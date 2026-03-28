@@ -43,3 +43,5 @@ next-env.d.ts
 # notes and instructions
 GEMINI.md
 
+
+/src/generated/prisma
