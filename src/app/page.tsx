@@ -1,6 +1,13 @@
 import Sidebar from '@/components/Sidebar';
+import { prisma } from '@/lib/prisma'
 
 export default async function Home() {
+  const items = await prisma.feedItem.findMany({
+    take: 30,
+    orderBy: { pubDate: 'desc' },
+    include: { source: true }
+  })
+
   return (
     <div className="flex flex-1 overflow-hidden">
       <Sidebar />
@@ -10,31 +17,40 @@ export default async function Home() {
         <header className="mb-12">
           <h1 className="text-5xl md:text-7xl mb-2 text-accent">MultivRSS</h1>
           <p className="text-zinc-500 max-w-lg">
-            A high-performance RSS aggregator built with Bauhaus precision and institutional monumentality.
+            A high-performance future-proof RSS aggregator.
           </p>
           <hr />
         </header>
 
         <section className="flex flex-col gap-12 max-w-4xl">
-          <article className="border-l-4 border-[--accent] pl-6 py-2">
-            <span className="text-xs uppercase tracking-widest text-zinc-400 mb-2 block">Technology — 2h ago</span>
-            <h3 className="text-3xl mb-4 normal-case font-bold tracking-normal text-black">
-              Introducing the Dissonant Harmony Design System
-            </h3>
-            <p className="text-zinc-600 line-clamp-3">
-              Explore how we blended minimalist Bauhaus principles with the commanding presence of classical typography to create a unique reading experience.
-            </p>
-          </article>
+          {items.map((item) => (
+            <article key={item.id} className="border-l-4 border-accent pl-6 py-2 group">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs uppercase tracking-widest text-accent font-bold">
+                  {item.source.title}
+                </span>
+                <span className="text-xs text-zinc-400">
+                  — {item.pubDate ? new Date(item.pubDate).toLocaleDateString() : 'No date'}
+                </span>
+              </div>
+              <a
+                href={item.link}
+                target="_blank"
+                className="hover:underline decoration-accent decoration-2 underline-offset-4"
+              >
+                <h3 className="text-xl mb-2 font-bold text-zinc-100 tracking-tight leading-snug">
+                  {item.title}
+                </h3>
+              </a>
+              <p className="text-zinc-600 line-clamp-3 leading-relaxed">
+                {item.content}
+              </p>
+            </article>
+          ))}
 
-          <article className="border-l-4 border-zinc-200 pl-6 py-2">
-            <span className="text-xs uppercase tracking-widest text-zinc-400 mb-2 block">Design — 5h ago</span>
-            <h3 className="text-3xl mb-4 normal-case font-bold tracking-normal">
-              The Power of the 8-Point Grid
-            </h3>
-            <p className="text-zinc-600 line-clamp-3">
-              Consistency is the foundation of digital experiences. Learn why we chose a strict grid system to manage complex data layouts.
-            </p>
-          </article>
+          {items.length === 0 && (
+            <p className="text-zinc-400 italic">No articles found. Try syncing a feed!</p>
+          )}
         </section>
       </main>
     </div>
