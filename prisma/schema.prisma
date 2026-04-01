@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,36 +9,35 @@ datasource db {
 model Category {
   id        String       @id @default(cuid())
   name      String       @unique
-  sources   FeedSource[]
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  sources   FeedSource[] @relation("CategoryToFeedSource")
 }
 
 model FeedSource {
   id         String     @id @default(cuid())
   url        String     @unique
   title      String?
-  categories Category[]
-  items      FeedItem[]
   lastSync   DateTime?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  items      FeedItem[]
+  categories Category[] @relation("CategoryToFeedSource")
 }
 
 model FeedItem {
-  id          String     @id @default(cuid())
-  externalId  String     @unique // ID originale dal feed RSS (per evitare duplicati)
-  title       String
-  link        String
-  content     String?    @db.Text
-  pubDate     DateTime?
-  read        Boolean    @default(false)
-  sourceId    String
-  source      FeedSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String     @id @default(cuid())
+  externalId String     @unique
+  title      String
+  link       String
+  content    String?
+  pubDate    DateTime?
+  read       Boolean    @default(false)
+  sourceId   String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  source     FeedSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
   @@index([sourceId])
   @@index([pubDate])
 }
-
-
