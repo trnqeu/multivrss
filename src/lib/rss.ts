@@ -1,5 +1,6 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
+import { meili } from './meili';
 
 const parser = new Parser();
 
@@ -37,7 +38,23 @@ export async function syncFeed(sourceId: string) {
         })
     );
 
-    // 4. Update the last sync date of the source
+    // 4. Sync to Meilisearch
+    // We send only the necessary data for searching
+    console.log(`📡 Syncing ${syncResults.length} items to Meilisearch...`);
+    const meiliTask = await meili.index('items').addDocuments(
+        syncResults.map((item) => ({
+            id: item.id,
+            externalId: item.externalId,
+            title: item.title,
+            content: item.content,
+            link: item.link,
+            pubDate: item.pubDate ? item.pubDate.getTime() : null,
+            sourceId: item.sourceId,
+        }))
+    );
+    console.log(`✅ Meilisearch sync task submitted. Task UID: ${meiliTask.taskUid}`);
+
+    // 5. Update the last sync date of the source
     await prisma.feedSource.update({
         where: { id: sourceId },
         data: {

@@ -15,10 +15,10 @@ async function test() {
 
         // 2. Create/Ensure a test source (Vercel Blog)
         const source = await prisma.feedSource.upsert({
-            where: { url: 'https://vercel.com/blog/feed' },
+            where: { url: 'https://news.ycombinator.com/rss' },
             update: {},
             create: {
-                url: 'https://vercel.com/blog/feed',
+                url: 'https://news.ycombinator.com/rss',
                 categories: { connect: { id: category.id } }
             },
         });
