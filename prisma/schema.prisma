@@ -11,7 +11,7 @@ model Category {
   name      String       @unique
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  sources   FeedSource[] @relation("CategoryToFeedSource")
+  sources   FeedSource[] 
 }
 
 model FeedSource {
@@ -22,7 +22,9 @@ model FeedSource {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   items      FeedItem[]
-  categories Category[] @relation("CategoryToFeedSource")
+  
+  categoryId String
+  category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
 model FeedItem {
