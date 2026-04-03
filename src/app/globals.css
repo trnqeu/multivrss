@@ -1,47 +1,90 @@
 @import "tailwindcss";
 
 :root {
-  /* 8pt Grid System */
+  /* 8pt Grid System Base */
   --grid: 8px;
-  --accent: #dc2626;
-  --background: #ffffff;
-  --foreground: #171717;
+  
+  /* Color Palette - Dissonant Harmony */
+  --bg-deep: #050505;
+  --bg-surface: #0a0a0a;
+  --bg-grid: #ffffff05;
+  
+  --accent: #dc2626; /* Blood-Red */
+  --accent-muted: rgba(220, 38, 38, 0.2);
+  --utility: #8a7b62; /* Antique Bronze/Gold */
+  
+  --foreground: #e4e4e7;
+  --foreground-muted: #71717a;
+  
+  /* Typography Variables from layout.tsx */
+  --font-hero: var(--font-lora);
+  --font-main: var(--font-inter);
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-background: var(--bg-deep);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
   --color-accent: var(--accent);
+  --color-utility: var(--utility);
+  
+  --font-serif: var(--font-hero), serif;
+  --font-sans: var(--font-main), ui-sans-serif, system-ui, sans-serif;
+  
+  --spacing-grid: var(--grid);
 }
 
 body {
   font-family: var(--font-sans);
-  @apply text-base leading-relaxed;
-  background: var(--background);
+  background-color: var(--bg-deep);
   color: var(--foreground);
+  background-image: 
+    linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  @apply antialiased selection:bg-accent selection:text-white;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  /* Usiamo il font sans (Geist) invece di serif */
-  font-family: var(--font-sans);
-  @apply font-bold tracking-tight text-foreground;
+/* Minimalist Typographic Scale - High Restraint */
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  @apply uppercase font-semibold tracking-[0.05em] text-accent transition-colors duration-300;
 }
 
-/* Horizontal Rule with Visual Impact */
+h1 { @apply text-2xl md:text-3xl leading-tight; }
+h2 { @apply text-base md:text-lg; }
+h3 { @apply text-sm md:text-base tracking-normal; }
+
+/* Functional Utility Text */
+.label-system {
+  @apply text-[10px] uppercase tracking-[0.15em] font-bold text-utility;
+}
+
+/* Horizontal Rule with Structural Impact */
 hr {
-  @apply border-t-2 border-[--accent] my-8;
+  @apply border-none h-px bg-accent/30 my-8;
+  position: relative;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+hr::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 40px;
+  height: 2px;
+  background-color: var(--accent);
+}
+
+/* Scrollbar Customization - System Feel */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-muted);
+  @apply hover:bg-accent transition-colors;
 }

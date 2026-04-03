@@ -4,37 +4,66 @@ import Link from 'next/link';
 export default async function Sidebar() {
     const categories = await prisma.category.findMany({
         include: {
-            _count: {
-                select: { sources: true }
-            }
+            sources: true,
         },
         orderBy: { name: 'asc' }
     });
 
     return (
-        <aside className="w-64 border-r-2 border-accent hidden md:flex flex-col p-4">
-            <h2 className="text-xl mb-4 text-accent font-bold">CATEGORIES</h2>
-            <nav className="flex flex-col gap-2">
-                <Link
-                    href="/"
-                    className="hover:text-accent transition-colors font-medium border-b border-transparent hover:border-accent pb-1 w-fit"
-                >
-                    All Feeds
-                </Link>
-                <hr className="my-2 border-zinc-200" />
-                {categories.map((category) => (
+        <aside className="w-64 border-r border-accent/20 hidden md:flex flex-col bg-[#0a0a0a] h-full">
+            {/* System Brand / Logo Area */}
+
+            <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+                {/* Main Navigation */}
+                <div className="flex flex-col gap-4">
+                    <span className="label-system opacity-30">NAV_ROOT</span>
                     <Link
-                        key={category.id}
-                        href={`/category/${category.id}`}
-                        className="flex justify-between items-center hover:text-accent transition-colors font-medium group"
+                        href="/"
+                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-accent transition-all pl-2 border-l-2 border-transparent hover:border-accent"
                     >
-                        <span>{category.name}</span>
-                        <span className="text-xs bg-zinc-100 px-2 py-1 rounded text-zinc-500 group-hover:bg-accent group-hover:text-white transition-colors">
-                            {category._count.sources}
+                        <span className="text-accent opacity-0 group-hover:opacity-100 transition-opacity">
+                            _
                         </span>
+                        All Feeds
                     </Link>
+                </div>
+
+                {/* Categories as Modules */}
+                {categories.map((category) => (
+                    <div key={category.id} className="flex flex-col gap-4">
+                        <div className="label-system border-b border-accent/10 pb-2 flex justify-between items-center">
+                            <span>{category.name}</span>
+                            <span className="opacity-30">{category.sources.length.toString().padStart(2, '0')}</span>
+                        </div>
+
+                        <ul className="flex flex-col gap-2">
+                            {category.sources.map((source) => (
+                                <li key={source.id}>
+                                    <Link
+                                        href={`/source/${source.id}`}
+                                        className="text-[13px] text-zinc-500 hover:text-white hover:translate-x-1 transition-all block py-1 font-medium"
+                                    >
+                                        // {source.title || 'UNTITLED_SOURCE'}
+                                    </Link>
+                                </li>
+                            ))}
+
+                            {category.sources.length === 0 && (
+                                <span className="label-system text-[9px] opacity-20 italic">Empty_Slot</span>
+                            )}
+                        </ul>
+                    </div>
                 ))}
             </nav>
+
+            {/* System Footer */}
+            <div className="p-8 border-t border-accent/10">
+                <div className="label-system text-[9px] opacity-40">
+                    Connection: [PROTECTED]
+                    <br />
+                    Node: MULTIVRSS_ALPHA
+                </div>
+            </div>
         </aside>
-    )
+    );
 }
