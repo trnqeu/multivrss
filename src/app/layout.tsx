@@ -1,21 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Lora } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const interSans = Inter({
+const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const fontLora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
 export const metadata: Metadata = {
-  title: "MultivRSS | High-Performance RSS",
-  description: "A Bauhaus-inspired RSS aggregator",
+  title: "MultivRSS | Digital Organicism",
+  description: "A Frank Lloyd Wright inspired RSS aggregator",
 };
 
 export default function RootLayout({
@@ -24,11 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${interSans.variable} ${fontLora.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-[#050505] text-zinc-300">
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white">
+        {/* FLW Detail: Structural Roofline */}
+        <div className="h-1 w-full bg-black sticky top-0 z-50" />
+        
         {children}
       </body>
     </html>

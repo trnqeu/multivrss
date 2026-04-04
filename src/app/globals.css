@@ -1,90 +1,79 @@
 @import "tailwindcss";
 
 :root {
-  /* 8pt Grid System Base */
-  --grid: 8px;
-  
-  /* Color Palette - Dissonant Harmony */
-  --bg-deep: #050505;
-  --bg-surface: #0a0a0a;
-  --bg-grid: #ffffff05;
-  
-  --accent: #dc2626; /* Blood-Red */
-  --accent-muted: rgba(220, 38, 38, 0.2);
-  --utility: #8a7b62; /* Antique Bronze/Gold */
-  
-  --foreground: #e4e4e7;
-  --foreground-muted: #71717a;
-  
-  /* Typography Variables from layout.tsx */
-  --font-hero: var(--font-lora);
-  --font-main: var(--font-inter);
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --line-thin: 1px;
+  --line-bold: 2px;
+  --line-roof: 4px;
 }
 
 @theme inline {
-  --color-background: var(--bg-deep);
+  --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-utility: var(--utility);
-  
-  --font-serif: var(--font-hero), serif;
-  --font-sans: var(--font-main), ui-sans-serif, system-ui, sans-serif;
-  
-  --spacing-grid: var(--grid);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-deep);
+  background-color: var(--background);
   color: var(--foreground);
-  background-image: 
-    linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
-  background-size: 32px 32px;
-  @apply antialiased selection:bg-accent selection:text-white;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  @apply antialiased selection:bg-black selection:text-white;
 }
 
-/* Minimalist Typographic Scale - High Restraint */
+/* Structural Headings - FLW Style */
 h1, h2, h3 {
-  font-family: var(--font-serif);
-  @apply uppercase font-semibold tracking-[0.05em] text-accent transition-colors duration-300;
+  @apply uppercase font-bold tracking-widest;
+  margin: 0;
 }
 
-h1 { @apply text-2xl md:text-3xl leading-tight; }
+h1 { @apply text-2xl md:text-3xl lg:text-4xl; }
 h2 { @apply text-base md:text-lg; }
-h3 { @apply text-sm md:text-base tracking-normal; }
+h3 { @apply text-sm font-semibold; }
 
-/* Functional Utility Text */
-.label-system {
-  @apply text-[10px] uppercase tracking-[0.15em] font-bold text-utility;
-}
-
-/* Horizontal Rule with Structural Impact */
+/* Structural Horizontal Motif */
 hr {
-  @apply border-none h-px bg-accent/30 my-8;
-  position: relative;
+  @apply border-none bg-black;
+  height: var(--line-thin);
+  margin: 2rem 0;
 }
 
-hr::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 40px;
-  height: 2px;
-  background-color: var(--accent);
+.hr-bold {
+  height: var(--line-bold);
 }
 
-/* Scrollbar Customization - System Feel */
+/* Integrated Furniture - Sharp Edges */
+button, input, select, textarea {
+  @apply rounded-none border-black border outline-none bg-white transition-all;
+  font-family: var(--font-sans);
+}
+
+button {
+  @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-white hover:bg-black hover:text-white;
+}
+
+input, select {
+  @apply px-4 py-3 text-sm;
+}
+
+/* Defined Zones */
+.structural-divider-v {
+  width: var(--line-thin);
+  background-color: #000000;
+}
+
+/* Scrollbar - Minimalist */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-deep);
+  background: #FFFFFF;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--accent-muted);
-  @apply hover:bg-accent transition-colors;
+  background: #000000;
 }

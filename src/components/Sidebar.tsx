@@ -10,8 +10,13 @@ export default async function Sidebar() {
     });
 
     return (
-        <aside className="w-64 border-r border-accent/20 hidden md:flex flex-col bg-[#0a0a0a] h-full">
+        <aside className="w-64 border-r border-accent/10 hidden md:flex flex-col bg-[#050505] h-full">
             {/* System Brand / Logo Area */}
+            <div className="p-8 border-b border-accent/10">
+                <h1 className="!text-xl tracking-[0.2em] !text-accent">
+                    MULTIVRSS
+                </h1>
+            </div>
 
             <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
                 {/* Main Navigation */}
