@@ -22,17 +22,39 @@ export async function getCategories() {
 export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const url = formData.get("url") as string;
     const categoryId = formData.get("categoryId") as string;
-    if (!url || !categoryId) {
-        return { success: false, message: "URL and Category are required." };
+    const newCategoryName = formData.get("newCategoryName") as string;
+    
+    if (!url) {
+        return { success: false, message: "URL is required." };
     }
+
     try {
-        // 1. Database creation
+        let finalCategoryId = categoryId;
+
+        // 1. Handle New Category with Case-Insensitive logic (Normalization to UPPERCASE)
+        if (newCategoryName && newCategoryName.trim() !== "") {
+            const normalizedName = newCategoryName.trim().toUpperCase();
+            const category = await prisma.category.upsert({
+                where: { name: normalizedName },
+                update: {}, // No updates needed if it exists
+                create: { name: normalizedName }
+            });
+            finalCategoryId = category.id;
+        }
+
+        if (!finalCategoryId) {
+            return { success: false, message: "Please select a category or create a new one." };
+        }
+
+        // 2. Database creation
         const source = await prisma.feedSource.create({
-            data: { url, categoryId }
+            data: { url, categoryId: finalCategoryId }
         });
-        // 2. Ingestion
+
+        // 3. Ingestion
         await syncFeed(source.id);
-        // 3. Clear cache and update UI
+
+        // 4. Clear cache and update UI
         revalidatePath("/");
         return { success: true, message: "Feed source added successfully! 🚀" };
     } catch (error) {
