@@ -1,12 +1,17 @@
 import Sidebar from '@/components/Sidebar';
 import { prisma } from '@/lib/prisma'
+import { getCategories } from "@/app/actions";
+import AddFeedForm from "@/components/AddFeedForm";
+import { connection } from 'next/server';
 
 export default async function Home() {
+  await connection();
   const items = await prisma.feedItem.findMany({
     take: 30,
     orderBy: { pubDate: 'desc' },
     include: { source: true }
   })
+  const categories = await getCategories();
 
   return (
     <div className="flex flex-1 overflow-hidden h-screen">
@@ -15,14 +20,16 @@ export default async function Home() {
       {/* Main Feed Content */}
       <main className="flex-1 overflow-y-auto relative scroll-smooth bg-[#050505]">
         {/* Minimalist Header */}
-        <header className="p-6 md:p-8 border-b border-accent/10 bg-[#050505]/95 backdrop-blur-md sticky top-0 z-10">
-          <h1 className="text-accent !text-xl md:!text-2xl">
-            MultivRSS
+        <header className="p-8 md:p-12 border-b border-accent/10 bg-[#050505]/95 backdrop-blur-md sticky top-0 z-10">
+          <h1 className="tracking-[0.2em]">
+            MULTIVRSS
           </h1>
           <p className="mt-2 text-zinc-500 max-w-xl text-[11px] font-medium leading-relaxed uppercase tracking-widest opacity-60">
             RSS Aggregator// v0.1.0
           </p>
         </header>
+
+        <AddFeedForm categories={categories} />
 
         {/* Feed List */}
         <section className="p-6 md:p-8 flex flex-col gap-8 max-w-5xl">
