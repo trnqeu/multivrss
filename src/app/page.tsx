@@ -18,13 +18,13 @@ export default async function Home() {
       <Sidebar />
 
       {/* Main Feed Content */}
-      <main className="flex-1 overflow-y-auto relative scroll-smooth bg-[#050505]">
+      <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
         {/* Minimalist Header */}
-        <header className="p-8 md:p-12 border-b border-accent/10 bg-[#050505]/95 backdrop-blur-md sticky top-0 z-10">
-          <h1 className="tracking-[0.2em]">
+        <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10">
+          <h1 className="tracking-[0.2em] text-foreground">
             MULTIVRSS
           </h1>
-          <p className="mt-2 text-zinc-500 max-w-xl text-[11px] font-medium leading-relaxed uppercase tracking-widest opacity-60">
+          <p className="mt-2 text-foreground max-w-xl text-[11px] font-medium leading-relaxed uppercase tracking-widest">
             RSS Aggregator// v0.1.0
           </p>
         </header>
@@ -40,11 +40,11 @@ export default async function Home() {
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="label-system text-accent/70 text-[9px]">
+                  <span className="label-system text-accent text-[9px]">
                     {item.source.title}
                   </span>
-                  <span className="h-px w-4 bg-zinc-800"></span>
-                  <span className="label-system !text-zinc-600 text-[9px]">
+                  <span className="h-px w-4 bg-foreground"></span>
+                  <span className="label-system text-foreground text-[9px]">
                     {item.pubDate ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '---'}
                   </span>
                 </div>
@@ -60,7 +60,7 @@ export default async function Home() {
                 </a>
 
                 {item.content && (
-                  <p className="text-zinc-500 line-clamp-2 leading-relaxed text-xs max-w-3xl font-medium mt-0.5">
+                  <p className="text-foreground line-clamp-2 leading-relaxed text-xs max-w-3xl font-medium mt-0.5">
                     {item.content.replace(/<[^>]*>?/gm, '')}
                   </p>
                 )}
@@ -75,8 +75,8 @@ export default async function Home() {
           ))}
 
           {items.length === 0 && (
-            <div className="py-8 border border-dashed border-zinc-900 text-center">
-              <p className="label-system opacity-20 italic">NULL_SET // SYNC_REQUIRED</p>
+            <div className="py-8 border-2 border-dashed border-foreground text-center">
+              <p className="label-system italic">NULL_SET // SYNC_REQUIRED</p>
             </div>
           )}
 

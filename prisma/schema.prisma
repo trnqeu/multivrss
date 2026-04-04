@@ -11,7 +11,7 @@ model Category {
   name      String       @unique
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  sources   FeedSource[] 
+  sources   FeedSource[]
 }
 
 model FeedSource {
@@ -21,9 +21,8 @@ model FeedSource {
   lastSync   DateTime?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  items      FeedItem[]
-  
   categoryId String
+  items      FeedItem[]
   category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 

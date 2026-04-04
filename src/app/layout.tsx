@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-black font-sans selection:bg-black selection:text-white">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-foreground selection:text-background">
         {/* FLW Detail: Structural Roofline */}
         <div className="h-1 w-full bg-black sticky top-0 z-50" />
         
