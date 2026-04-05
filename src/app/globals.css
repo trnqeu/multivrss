@@ -48,12 +48,12 @@ hr {
 
 /* Integrated Furniture - Sharp Edges */
 button, input, select, textarea {
-  @apply rounded-none border-black border outline-none bg-white transition-all;
+  @apply rounded-none border-foreground border-2 outline-none bg-background text-foreground transition-all;
   font-family: var(--font-sans);
 }
 
 button {
-  @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-white hover:bg-black hover:text-white;
+  @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-foreground text-background hover:bg-background hover:text-foreground;
 }
 
 input, select {
