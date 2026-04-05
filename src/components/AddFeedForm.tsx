@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createFeedSource, ActionState } from "@/app/actions";
 import type { Category } from "@prisma/client";
 
@@ -13,14 +13,30 @@ const initialState: ActionState = {
 };
 
 export default function AddFeedForm({ categories }: AddFeedFormProps) {
-    // This hook manages the form submission, loading state, and feedback from the server
+    const [open, setOpen] = useState(false);
     const [state, formAction, isPending] = useActionState(createFeedSource, initialState);
 
     return (
-        <div className="p-8 border-2 border-foreground mb-12 bg-background relative overflow-hidden">
+        <div className="border-b-2 border-foreground bg-background">
+            {/* Toggle bar */}
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="w-full flex items-center justify-between px-8 py-4 hover:bg-foreground hover:text-background transition-all group"
+            >
+                <span className="label-system font-bold text-[11px] tracking-widest">
+                    {open ? "CLOSE_FORM ×" : "ADD_SOURCE +"}
+                </span>
+                <span className="label-system text-[10px] opacity-40 group-hover:opacity-100">
+                    {open ? "COLLAPSE" : "EXPAND"}
+                </span>
+            </button>
+
+            {open && (
+            <div className="p-8 relative overflow-hidden border-t-2 border-foreground">
             {/* Structural Accent Line */}
             <div className="absolute top-0 left-0 w-12 h-[4px] bg-foreground"></div>
-            
+
             <h2 className="mb-8 text-foreground font-bold">
                 Add New Feed Source
             </h2>
@@ -77,8 +93,8 @@ export default function AddFeedForm({ categories }: AddFeedFormProps) {
                     <input
                         name="newCategoryName"
                         type="text"
-                        placeholder="ENTER NEW CATEGORY NAME (e.g. TECHNOLOGY, SPORT...)"
-                        className="p-4 bg-background border-2 border-foreground focus:ring-0 outline-none font-mono text-[13px] w-full text-foreground placeholder:text-foreground/20 transition-colors uppercase"
+                        placeholder="Enter new category name (e.g. Technology, Sport...)"
+                        className="p-4 bg-background border-2 border-foreground focus:ring-0 outline-none font-mono text-[13px] w-full text-foreground placeholder:text-foreground/20 transition-colors"
                         disabled={isPending}
                     />
                     <p className="text-[10px] text-foreground font-mono">SYSTEM_NOTE: All categories are normalized to uppercase for structural integrity.</p>
@@ -90,6 +106,8 @@ export default function AddFeedForm({ categories }: AddFeedFormProps) {
                 <p className={`mt-4 text-sm font-bold uppercase tracking-tight ${state.success ? 'text-green-600' : 'text-accent'}`}>
                     {state.message}
                 </p>
+            )}
+            </div>
             )}
         </div>
     );

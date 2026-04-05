@@ -19,7 +19,8 @@ async function test() {
             update: {},
             create: {
                 url: 'https://news.ycombinator.com/rss',
-                categories: { connect: { id: category.id } }
+                slug: 'hacker_news_test',
+                categoryId: category.id
             },
         });
 
