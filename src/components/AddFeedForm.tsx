@@ -37,7 +37,7 @@ export default function AddFeedForm({ categories }: AddFeedFormProps) {
             {/* Structural Accent Line */}
             <div className="absolute top-0 left-0 w-12 h-[4px] bg-foreground"></div>
 
-            <h2 className="mb-8 text-foreground font-bold">
+            <h2 className="mb-8 text-terracotta font-bold">
                 Add New Feed Source
             </h2>
 
@@ -79,7 +79,7 @@ export default function AddFeedForm({ categories }: AddFeedFormProps) {
                         <button
                             type="submit"
                             disabled={isPending}
-                            className="w-full p-4 bg-foreground text-background font-bold hover:bg-background hover:text-foreground border-2 border-foreground transition-all duration-300 uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2"
+                            className="w-full p-4 bg-terracotta text-background font-bold hover:bg-background hover:text-terracotta border-2 border-terracotta transition-all duration-300 uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2"
                         >
                             {isPending ? "INGESTING..." : "ADD_SOURCE"}
                             {!isPending && <span className="text-lg">→</span>}
