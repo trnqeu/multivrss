@@ -17,6 +17,7 @@ model Category {
 model FeedSource {
   id         String     @id @default(cuid())
   url        String     @unique
+  slug       String     @unique
   title      String?
   lastSync   DateTime?
   createdAt  DateTime   @default(now())

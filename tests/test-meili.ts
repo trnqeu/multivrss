@@ -14,12 +14,8 @@ async function testMeili() {
     console.log("📡 Document addition task submitted. Task UID:", task.taskUid);
 
     // Wait for the task to finish
-    let status = await meili.getTask(task.taskUid);
-    while (status.status !== 'succeeded' && status.status !== 'failed') {
-        console.log(`⏳ Task status: ${status.status}...`);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        status = await meili.getTask(task.taskUid);
-    }
+    console.log("⏳ Waiting for Meilisearch indexing...");
+    const status = await index.waitForTask(task.taskUid);
 
     if (status.status === 'succeeded') {
         console.log("✅ Document indexed successfully!");
