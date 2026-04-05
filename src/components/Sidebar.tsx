@@ -37,10 +37,13 @@ export default async function Sidebar() {
                 {/* Categories as Modules */}
                 {categories.map((category) => (
                     <div key={category.id} className="flex flex-col gap-4">
-                        <div className="label-system border-b-2 border-terracotta pb-2 flex justify-between items-center text-terracotta font-bold">
+                        <Link
+                            href={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            className="label-system border-b-2 border-terracotta pb-2 flex justify-between items-center text-terracotta font-bold hover:opacity-70 transition-opacity"
+                        >
                             <span>{category.name}</span>
                             <span className="">{category.sources.length.toString().padStart(2, '0')}</span>
-                        </div>
+                        </Link>
 
                         <ul className="flex flex-col gap-2">
                             {category.sources.map((source) => (

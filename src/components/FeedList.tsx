@@ -2,11 +2,16 @@ import { prisma } from '@/lib/prisma';
 
 interface FeedListProps {
     sourceId?: string;
+    categoryId?: string;
 }
 
-export default async function FeedList({ sourceId }: FeedListProps) {
+export default async function FeedList({ sourceId, categoryId }: FeedListProps) {
     const items = await prisma.feedItem.findMany({
-        where: sourceId ? { sourceId } : {},
+        where: sourceId
+            ? { sourceId }
+            : categoryId
+            ? { source: { categoryId } }
+            : {},
         take: 100,
         orderBy: { pubDate: 'desc' },
         include: { source: true }
