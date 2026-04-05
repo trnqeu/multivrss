@@ -80,12 +80,14 @@ docker-compose.yml  # PostgreSQL 16 on port 5435, Meilisearch on 7700
 
 ## Design System: Digital Organicism
 
-Strict black-and-white UI inspired by Frank Lloyd Wright. Enforce these constraints in all UI code:
+UI inspired by Frank Lloyd Wright — black/white base with a sparse organic palette used only for headings and accents.
 
-- **Colors:** Pure Black `#000000` and Pure White `#FFFFFF` only. No grays, no opacity, no gradients, no shadows.
+- **Base colors:** Pure Black `#000000` and Pure White `#FFFFFF` for all backgrounds, borders, body text.
+- **Organic accent:** Terracotta `#E2725B` (`text-terracotta`, `border-terracotta`) — used sparingly for headings, category labels, and interactive elements (buttons). Never as a general background.
+- **Rule:** terracotta on text and borders only. All other surfaces remain black or white.
 - **Geometry:** Sharp rectangular edges. `border-radius: 0` everywhere.
 - **Typography:** Single sans-serif family (Inter). Headings: bold, all-caps, wide tracking.
-- **Layout:** Strong horizontal lines (2px black borders) for structure. Horizontal emphasis over vertical stacking.
+- **Layout:** Strong horizontal lines (2px borders) for structure. Horizontal emphasis over vertical stacking.
 - **Components:** Inputs and buttons feel "built into" the layout — not floating or superimposed.
 
 ---

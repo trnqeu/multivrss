@@ -6,12 +6,15 @@
   --line-thin: 1px;
   --line-bold: 2px;
   --line-roof: 4px;
+
+  /* Organic Palette — Frank Lloyd Wright material tones */
+  --terracotta:#E2725B; /* headings, accents, interactive elements */
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: #FFFFFF;
+  --color-background:  var(--background);
+  --color-foreground:  var(--foreground);
+  --color-terracotta:  var(--terracotta);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 

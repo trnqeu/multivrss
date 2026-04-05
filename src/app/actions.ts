@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { syncFeed } from "@/lib/rss";
+import { syncFeed, ParsedFeed } from "@/lib/rss";
 import { revalidatePath } from "next/cache";
 import Parser from 'rss-parser';
 
@@ -58,8 +58,8 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             return { success: false, message: "Please select a category or create a new one." };
         }
 
-        // 2. Pre-fetch feed metadata to generate a good slug
-        const feedMetadata = await parser.parseURL(url);
+        // 2. Fetch feed once — reused for both slug generation and ingestion
+        const feedMetadata: ParsedFeed = await parser.parseURL(url);
         const title = feedMetadata.title || 'Untitled Source';
         const baseSlug = slugify(title);
         
@@ -81,9 +81,9 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             }
         });
 
-        // 4. Ingestion — if it fails, delete the source so the URL isn't permanently blocked
+        // 4. Ingestion — pass pre-fetched feed to avoid a second HTTP request
         try {
-            await syncFeed(source.id);
+            await syncFeed(source.id, feedMetadata);
         } catch (syncError) {
             await prisma.feedSource.delete({ where: { id: source.id } });
             throw syncError;
@@ -92,10 +92,11 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         revalidatePath("/");
         return { success: true, message: "Feed source added successfully" };
     } catch (error) {
-        console.error("Error adding feed:", error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Error adding feed:", message);
         return {
             success: false,
-            message: "Failed to create feed. The URL might be invalid or already registered."
+            message: `Failed to create feed: ${message}`
         };
     }
 }

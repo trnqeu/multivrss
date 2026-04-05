@@ -4,7 +4,9 @@ import { meili } from './meili';
 
 const parser = new Parser();
 
-export async function syncFeed(sourceId: string) {
+export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
+
+export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 1. Find source in the database
     const source = await prisma.feedSource.findUnique({
         where: { id: sourceId },
@@ -12,8 +14,8 @@ export async function syncFeed(sourceId: string) {
 
     if (!source) throw new Error('Source not found');
 
-    // 2. Download RSS feed
-    const feed = await parser.parseURL(source.url);
+    // 2. Download RSS feed (skip if already fetched by the caller)
+    const feed = prefetchedFeed ?? await parser.parseURL(source.url);
 
     // 3. Save articles (upsert)
     const syncResults = await Promise.all(
@@ -24,13 +26,13 @@ export async function syncFeed(sourceId: string) {
                 where: { externalId },
                 update: {
                     title: item.title || 'Untitled',
-                    content: item.contentSnippet || item.content || '',
+                    content: item.contentSnippet || item.summary || item.content || '',
                 },
                 create: {
                     externalId,
                     title: item.title || 'Untitled',
                     link: item.link || '',
-                    content: item.contentSnippet || item.content || '',
+                    content: item.contentSnippet || item.summary || item.content || '',
                     pubDate: item.isoDate ? new Date(item.isoDate) : null,
                     sourceId: source.id,
                 },

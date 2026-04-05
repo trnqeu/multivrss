@@ -14,7 +14,7 @@ export default async function Sidebar() {
         <aside className="w-64 border-r-2 border-foreground hidden md:flex flex-col bg-background h-full">
             {/* System Brand / Logo Area */}
             <div className="p-8 border-b-2 border-foreground">
-                <h1 className="!text-xl tracking-[0.2em] !text-foreground">
+                <h1 className="!text-xl tracking-[0.2em] !text-terracotta">
                     MULTIVRSS
                 </h1>
             </div>
@@ -37,7 +37,7 @@ export default async function Sidebar() {
                 {/* Categories as Modules */}
                 {categories.map((category) => (
                     <div key={category.id} className="flex flex-col gap-4">
-                        <div className="label-system border-b-2 border-foreground pb-2 flex justify-between items-center text-foreground font-bold">
+                        <div className="label-system border-b-2 border-terracotta pb-2 flex justify-between items-center text-terracotta font-bold">
                             <span>{category.name}</span>
                             <span className="">{category.sources.length.toString().padStart(2, '0')}</span>
                         </div>
