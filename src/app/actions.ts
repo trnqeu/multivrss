@@ -23,7 +23,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     const url = formData.get("url") as string;
     const categoryId = formData.get("categoryId") as string;
     const newCategoryName = formData.get("newCategoryName") as string;
-    
+
     if (!url) {
         return { success: false, message: "URL is required." };
     }
@@ -56,12 +56,25 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
 
         // 4. Clear cache and update UI
         revalidatePath("/");
-        return { success: true, message: "Feed source added successfully! 🚀" };
+        return { success: true, message: "Feed source added successfully" };
     } catch (error) {
-        console.error("❌ Error adding feed:", error);
+        console.error("Error adding feed:", error);
         return {
             success: false,
             message: "Failed to create feed. The URL might be already registered."
         };
+    }
+}
+
+export async function deleteFeedSource(sourceId: string) {
+    try {
+        await prisma.feedSource.delete({
+            where: { id: sourceId }
+        });
+        revalidatePath("/");
+        return { success: true };
+    } catch (error) {
+        console.error("❌ Error deleting feed source:", error);
+        return { success: false, message: "Failed to delete feed source." };
     }
 }
