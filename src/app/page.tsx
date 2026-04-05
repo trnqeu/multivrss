@@ -16,7 +16,7 @@ export default async function Home() {
       <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
         {/* Minimalist Header */}
         <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10">
-          <h1 className="tracking-[0.2em] text-foreground font-bold">
+          <h1 className="tracking-[0.2em] text-terracotta font-bold">
             MULTIVRSS
           </h1>
           <p className="mt-2 text-foreground max-w-xl text-[11px] font-bold leading-relaxed uppercase tracking-widest">
