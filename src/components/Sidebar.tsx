@@ -46,7 +46,7 @@ export default async function Sidebar() {
                             {category.sources.map((source) => (
                                 <li key={source.id} className="group flex items-center gap-1">
                                     <Link
-                                        href={`/source/${source.id}`}
+                                        href={`/source/${source.slug}`}
                                         className="text-[13px] text-foreground hover:bg-foreground hover:text-background hover:translate-x-1 transition-all block py-1 font-medium px-2 flex-1"
                                     >
                                         // {source.title || 'UNTITLED_SOURCE'}
