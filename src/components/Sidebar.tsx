@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import DeleteFeedButton from './DeleteFeedButton';
 
 export default async function Sidebar() {
     const categories = await prisma.category.findMany({
@@ -43,13 +44,14 @@ export default async function Sidebar() {
 
                         <ul className="flex flex-col gap-2">
                             {category.sources.map((source) => (
-                                <li key={source.id}>
+                                <li key={source.id} className="group flex items-center gap-1">
                                     <Link
                                         href={`/source/${source.id}`}
-                                        className="text-[13px] text-foreground hover:bg-foreground hover:text-background hover:translate-x-1 transition-all block py-1 font-medium px-2"
+                                        className="text-[13px] text-foreground hover:bg-foreground hover:text-background hover:translate-x-1 transition-all block py-1 font-medium px-2 flex-1"
                                     >
                                         // {source.title || 'UNTITLED_SOURCE'}
                                     </Link>
+                                    <DeleteFeedButton sourceId={source.id} />
                                 </li>
                             ))}
 
