@@ -69,6 +69,20 @@ docker-compose.yml  # PostgreSQL 16 on port 5435, Meilisearch on 7700
 
 ---
 
+## Teaching Mode — IMPORTANT
+
+This project is a **learning exercise**. The user is building this project to learn. Do NOT write code for the user unless explicitly asked to.
+
+**Default behavior for every task:**
+1. Explain *what* needs to be done and *why*.
+2. Point to the exact file(s) and line(s) to edit.
+3. Show the code snippet the user should write themselves.
+4. Wait for the user to implement it, then review.
+
+Only take over and write code directly if the user says something like "write it for me", "fallo tu", or "go ahead".
+
+---
+
 ## Guiding Principles (from project spec)
 
 1. **Step-by-step:** Break tasks into small modules — do not generate the entire feature at once.
