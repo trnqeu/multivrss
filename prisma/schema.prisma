@@ -6,30 +6,46 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id         String     @id @default(cuid())
+  username   String     @unique
+  email      String     @unique
+  password   String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  categories Category[]
+}
+
 model Category {
   id        String       @id @default(cuid())
-  name      String       @unique
+  name      String
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sources   FeedSource[]
+
+  @@unique([userId, name])
 }
 
 model FeedSource {
   id         String     @id @default(cuid())
-  url        String     @unique
+  url        String
   slug       String     @unique
   title      String?
   lastSync   DateTime?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   categoryId String
-  items      FeedItem[]
   category   Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  items      FeedItem[]
+
+  @@unique([categoryId, url])
 }
 
 model FeedItem {
   id         String     @id @default(cuid())
-  externalId String     @unique
+  externalId String
   title      String
   link       String
   content    String?
@@ -40,6 +56,7 @@ model FeedItem {
   updatedAt  DateTime   @updatedAt
   source     FeedSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
 
+  @@unique([sourceId, externalId])
   @@index([sourceId])
   @@index([pubDate])
 }
