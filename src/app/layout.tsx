@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+  children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -22,8 +24,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-foreground selection:text-background">
         {/* FLW Detail: Structural Roofline */}
         <div className="h-1 w-full bg-black sticky top-0 z-50" />
+        <Providers>
+          {children}
+        </Providers>
         
-        {children}
       </body>
     </html>
   );
