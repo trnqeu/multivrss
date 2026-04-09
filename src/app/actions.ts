@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { syncFeed, ParsedFeed } from "@/lib/rss";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import Parser from 'rss-parser';
 import bcrypt from "bcrypt";
 
@@ -34,6 +36,9 @@ function slugify(text: string) {
 }
 
 export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return {success: false, message: "Unauthorized"};
+    const userId = session.user.id;
     const url = formData.get("url") as string;
     const categoryId = formData.get("categoryId") as string;
     const newCategoryName = formData.get("newCategoryName") as string;
@@ -49,9 +54,9 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         if (newCategoryName && newCategoryName.trim() !== "") {
             const normalizedName = newCategoryName.trim().toUpperCase();
             const category = await prisma.category.upsert({
-                where: { name: normalizedName },
+                where: { userId_name: {userId, name: normalizedName} },
                 update: {},
-                create: { name: normalizedName }
+                create: { name: normalizedName, userId }
             });
             finalCategoryId = category.id;
         }
