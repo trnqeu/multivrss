@@ -11,7 +11,7 @@
 [ ] Salva articoli preferiti
 
 ## Context hub
-Esempio: Use the CLI command chub to get the latest [Next js 16](https://next-auth.js.org/) documentation and create a skill to reuse this knowledge. Run 'chub help' to understand how it works
+Esempio: Use the CLI command chub to get the latest Next js 16 documentation and create a skill to reuse this knowledge. Run 'chub help' to understand how it works
 
 ## Feeds list
 {

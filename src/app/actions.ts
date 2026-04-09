@@ -3,7 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { syncFeed, ParsedFeed } from "@/lib/rss";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import Parser from 'rss-parser';
+import bcrypt from "bcrypt";
 
 const parser = new Parser();
 
@@ -62,7 +64,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         const feedMetadata: ParsedFeed = await parser.parseURL(url);
         const title = feedMetadata.title || 'Untitled Source';
         const baseSlug = slugify(title);
-        
+
         // Ensure slug uniqueness (simple suffix if needed)
         let slug = baseSlug;
         let counter = 1;
@@ -113,3 +115,24 @@ export async function deleteFeedSource(sourceId: string) {
         return { success: false, message: "Failed to delete feed source." };
     }
 }
+
+// action to create user
+export async function registerUser(prevState: string | null, formData: FormData): Promise<string | null> {
+    const email = formData.get("email") as string;
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
+    try {
+        const hashed = await bcrypt.hash(password, 10);
+        await prisma.user.create({
+            data: { email, username, password: hashed },
+        })
+    } catch (error) {
+        return `Registration failed. Email or username already taken: ${error}`;
+    }
+
+    redirect("/login");
+    ;
+}
+
+
+
