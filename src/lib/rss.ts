@@ -1,6 +1,10 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { meili } from './meili';
+import dns from 'dns';
+import net from 'net';
+
+
 
 const parser = new Parser();
 

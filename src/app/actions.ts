@@ -37,7 +37,7 @@ function slugify(text: string) {
 
 export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const session = await getServerSession(authOptions);
-    if (!session) return {success: false, message: "Unauthorized"};
+    if (!session) return { success: false, message: "Unauthorized" };
     const userId = session.user.id;
     const url = formData.get("url") as string;
     const categoryId = formData.get("categoryId") as string;
@@ -54,7 +54,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         if (newCategoryName && newCategoryName.trim() !== "") {
             const normalizedName = newCategoryName.trim().toUpperCase();
             const category = await prisma.category.upsert({
-                where: { userId_name: {userId, name: normalizedName} },
+                where: { userId_name: { userId, name: normalizedName } },
                 update: {},
                 create: { name: normalizedName, userId }
             });
@@ -127,6 +127,10 @@ export async function registerUser(prevState: string | null, formData: FormData)
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
     try {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
+        }
         const hashed = await bcrypt.hash(password, 10);
         await prisma.user.create({
             data: { email, username, password: hashed },
