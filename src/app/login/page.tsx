@@ -2,6 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -59,6 +60,14 @@ export default function LoginPage() {
                             /GOOGLE/
                         </button>
                     </div>
+                </div>
+                <div>
+                <p className="px-8 text-sm text-center">
+                    Don't have an account?{" "}
+                    <Link href="/register" className="text-terracotta font-bold uppercase tracking-widest">
+                        Register
+                    </Link>
+                </p>
                 </div>
             </div>
         </main>
