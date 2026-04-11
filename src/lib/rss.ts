@@ -4,7 +4,44 @@ import { meili } from './meili';
 import dns from 'dns';
 import net from 'net';
 
+function isPrivateIp(ip: string): boolean {
+  // IPv6 loopback
+  if (ip === '::1') return true;
 
+  // Normalize IPv6-mapped IPv4 (e.g. "::ffff:127.0.0.1")
+  const ipv4 = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+
+  const parts = ipv4.split('.').map(Number);
+  if (parts.length !== 4) return false; // pure IPv6, block it to be safe
+
+  const [a, b] = parts;
+  return (
+    a === 127 ||                        // 127.0.0.0/8
+    a === 10 ||                         // 10.0.0.0/8
+    a === 169 && b === 254 ||           // 169.254.0.0/16
+    a === 172 && b >= 16 && b <= 31 ||  // 172.16.0.0/12
+    a === 192 && b === 168              // 192.168.0.0/16
+  );
+}
+
+export async function validateFeedUrl(rawUrl: string): Promise<void> {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error('Invalid URL.');
+  }
+
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error('Only http and https URLs are allowed.');
+  }
+
+  const { address } = await dns.promises.lookup(parsed.hostname);
+
+  if (isPrivateIp(address)) {
+    throw new Error('URL resolves to a private or reserved IP address.');
+  }
+}
 
 const parser = new Parser();
 

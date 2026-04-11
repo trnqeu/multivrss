@@ -1,13 +1,14 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { syncFeed, ParsedFeed } from "@/lib/rss";
+import { syncFeed, ParsedFeed, validateFeedUrl } from "@/lib/rss";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Parser from 'rss-parser';
 import bcrypt from "bcrypt";
+
 
 const parser = new Parser();
 
@@ -46,8 +47,10 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     if (!url) {
         return { success: false, message: "URL is required." };
     }
+    
 
     try {
+        await validateFeedUrl(url);
         let finalCategoryId = categoryId;
 
         // 1. Handle New Category
