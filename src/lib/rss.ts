@@ -2,7 +2,6 @@ import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { meili } from './meili';
 import dns from 'dns';
-import net from 'net';
 
 function isPrivateIp(ip: string): boolean {
   // IPv6 loopback
@@ -64,7 +63,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
             const externalId = item.guid || item.link || '';
 
             return prisma.feedItem.upsert({
-                where: { externalId },
+                where: { sourceId_externalId: { sourceId: source.id, externalId } },
                 update: {
                     title: item.title || 'Untitled',
                     content: item.contentSnippet || item.summary || item.content || '',
