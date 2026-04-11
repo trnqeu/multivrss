@@ -16,21 +16,57 @@ Esempio: Use the CLI command chub to get the latest Next js 16 documentation and
 ## Feeds list
 {
   "TECH": [
-    "Hacker News",
-    "Simon Willison's Weblog",
-    "NYT > Technology"
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/rss"
+    },
+    {
+      "name": "Simon Willison's Weblog",
+      "url": "https://simonwillison.net/atom/entries/"
+    },
+    {
+      "name": "NYT > Technology",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml"
+    }
   ],
   "NEWS": [
-    "NYT > World News",
-    "Repubblica.it",
-    "Adnkronos - ultimoratop",
-    "The Guardian"
+    {
+      "name": "NYT > World News",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+    },
+    {
+      "name": "Repubblica.it",
+      "url": "https://www.repubblica.it/rss/homepage/rss2.0.xml"
+    },
+    {
+      "name": "Adnkronos - ultimoratop",
+      "url": "https://www.adnkronos.com/rss/ultimora"
+    },
+    {
+      "name": "The Guardian",
+      "url": "https://www.theguardian.com/world/rss"
+    }
   ],
   "SPORT": [
-    "NYT > Sports > Baseball",
-    "NYT > Sports > N.F.L.",
-    "NYT > Sports > College Football",
-    "CBS Sports Headlines",
-    "MLB News"
+    {
+      "name": "NYT > Sports > Baseball",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/Baseball.xml"
+    },
+    {
+      "name": "NYT > Sports > N.F.L.",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/ProFootball.xml"
+    },
+    {
+      "name": "NYT > Sports > College Football",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/CollegeFootball.xml"
+    },
+    {
+      "name": "CBS Sports Headlines",
+      "url": "https://www.cbssports.com/rss/headlines/"
+    },
+    {
+      "name": "MLB News",
+      "url": "https://www.mlb.com/feeds/news/rss.xml"
+    }
   ]
 }

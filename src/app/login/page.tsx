@@ -28,7 +28,7 @@ export default function LoginPage() {
                         placeholder="EMAIL"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="border-2 border-foreground bg-background px-4 py-3 text-sm uppercase tracking-widest w-full outline-none"
+                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
                     />
                     <input
                         type="password"

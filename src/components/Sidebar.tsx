@@ -1,8 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import DeleteFeedButton from './DeleteFeedButton';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import LogoutButton from "./LogoutButton";
+
 
 export default async function Sidebar() {
+    const session = await getServerSession(authOptions);
     const categories = await prisma.category.findMany({
         include: {
             sources: true,
@@ -66,8 +71,12 @@ export default async function Sidebar() {
                 ))}
             </nav>
 
-            {/* System Footer */}
-            <div className="p-8 border-t-2 border-foreground">
+            {/* System Footer */} 
+            <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
+                <div>
+                    <LogoutButton/>
+                    
+                </div>
                 <div className="label-system text-[9px] text-foreground font-bold">
                     Connection: [PROTECTED]
                     <br />
