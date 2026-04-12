@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Parser from 'rss-parser';
 import bcrypt from "bcrypt";
+import { slugify } from "@/lib/utils";
 
 
 const parser = new Parser();
@@ -22,18 +23,6 @@ export async function getCategories() {
     return await prisma.category.findMany({
         orderBy: { name: 'asc' }
     });
-}
-// Helper to generate URL-friendly slugs
-function slugify(text: string) {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '_')           // Replace spaces with _
-        .replace(/[^\w-]+/g, '')       // Remove all non-word chars
-        .replace(/--+/g, '_')           // Replace multiple - or _ with single _
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
 }
 
 export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
