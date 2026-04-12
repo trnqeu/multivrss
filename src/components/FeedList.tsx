@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 interface FeedListProps {
     sourceId?: string;
@@ -6,12 +8,14 @@ interface FeedListProps {
 }
 
 export default async function FeedList({ sourceId, categoryId }: FeedListProps) {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user.id;
     const items = await prisma.feedItem.findMany({
         where: sourceId
-            ? { sourceId }
+            ? { sourceId, source: { category: { userId } } }
             : categoryId
-            ? { source: { categoryId } }
-            : {},
+                ? { source: { categoryId, category: { userId } } }
+                : { source: { category: { userId } } },
         take: 100,
         orderBy: { pubDate: 'desc' },
         include: { source: true }

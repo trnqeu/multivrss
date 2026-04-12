@@ -20,7 +20,10 @@ export type ActionState = {
 };
 
 export async function getCategories() {
+    const session = await getServerSession(authOptions);
+    if (!session) return [];
     return await prisma.category.findMany({
+        where: { userId: session.user.id },
         orderBy: { name: 'asc' }
     });
 }

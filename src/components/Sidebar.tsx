@@ -9,6 +9,7 @@ import LogoutButton from "./LogoutButton";
 export default async function Sidebar() {
     const session = await getServerSession(authOptions);
     const categories = await prisma.category.findMany({
+        where: { userId: session?.user.id }, // filter by userId
         include: {
             sources: true,
         },
