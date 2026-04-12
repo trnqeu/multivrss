@@ -5,10 +5,32 @@ import GithubProvider from "next-auth/providers/github";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { slugify } from "@/lib/utils";
+
+const baseAdapter = PrismaAdapter(prisma);
+
+const customAdapter = {
+  ...baseAdapter,
+  async createUser(data: Parameters<typeof baseAdapter.createUser>[0]) {
+    const base = slugify(data.email.split('@')[0]);
+
+    let username = base;
+    let counter = 1;
+    while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${base}_${counter}`;
+        counter++;
+    }
+
+    return prisma.user.create({
+        data: { email: data.email, username },
+    });
+},
+};
+
 
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: customAdapter,
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -33,13 +55,13 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     GithubProvider({
-  clientId: process.env.GITHUB_ID!,
-  clientSecret: process.env.GITHUB_SECRET!,
-}),
-GoogleProvider({
-  clientId: process.env.GOOGLE_ID!,
-  clientSecret: process.env.GOOGLE_SECRET!,
-})
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_ID!,
+      clientSecret: process.env.GOOGLE_SECRET!,
+    })
 
   ],
   session: { strategy: "jwt" },
@@ -47,10 +69,16 @@ GoogleProvider({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.username = user.name;
+        // Fetch username from DB — covers both Credentials and OAuth
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { username: true },
+        });
+        token.username = dbUser?.username ?? null;
       }
       return token;
     },
+
     async session({ session, token }) {
       session.user.id = token.id as string;
       session.user.username = token.username as string;
