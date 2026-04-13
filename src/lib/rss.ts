@@ -82,7 +82,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         where: { id: sourceId },
         data: {
             lastSync: new Date(),
-            title: feed.title,
+            ...(feed.title ? { title: feed.title } : {}),
         },
     });
 
