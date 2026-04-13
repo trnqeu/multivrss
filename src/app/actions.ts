@@ -62,7 +62,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
 
         // 2. Fetch feed once — reused for both slug generation and ingestion
         const feedMetadata: ParsedFeed = await parser.parseURL(url);
-        const title = feedMetadata.title || 'Untitled Source';
+        const title = feedMetadata.title || url;
         const baseSlug = slugify(title);
 
         // Ensure slug uniqueness (simple suffix if needed)
