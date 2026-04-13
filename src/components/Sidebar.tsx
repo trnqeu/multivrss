@@ -21,7 +21,7 @@ export default async function Sidebar() {
             {/* System Brand / Logo Area */}
             <div className="p-8 border-b-2 border-foreground">
                 <h1 className="!text-xl tracking-[0.2em] !text-terracotta">
-                    MULTIVRSS
+                    <Link href="/">MULTIVRSS</Link>
                 </h1>
             </div>
 
@@ -58,7 +58,7 @@ export default async function Sidebar() {
                                         href={`/source/${source.slug}`}
                                         className="text-[13px] text-foreground hover:bg-foreground hover:text-background hover:translate-x-1 transition-all block py-1 font-medium px-2 flex-1"
                                     >
-                                        // {source.title || 'UNTITLED_SOURCE'}
+                                        {source.title || 'UNTITLED_SOURCE'}
                                     </Link>
                                     <DeleteFeedButton sourceId={source.id} />
                                 </li>
@@ -72,11 +72,11 @@ export default async function Sidebar() {
                 ))}
             </nav>
 
-            {/* System Footer */} 
+            {/* System Footer */}
             <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
                 <div>
-                    <LogoutButton/>
-                    
+                    <LogoutButton />
+
                 </div>
                 <div className="label-system text-[9px] text-foreground font-bold">
                     Connection: [PROTECTED]
