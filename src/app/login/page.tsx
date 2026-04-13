@@ -3,10 +3,18 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+const ERROR_MESSAGES: Record<string, string> = {
+    OAuthAccountNotLinked: "An account with this email already exists. Sign in with email and password.",
+    CredentialsSignin: "Invalid email or password.",
+};
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const searchParams = useSearchParams()
+    const error = searchParams.get("error")
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -21,6 +29,12 @@ export default function LoginPage() {
                         MULTIVRSS // LOGIN
                     </h1>
                 </div>
+                {error && (
+                    <div className="px-8 pt-6 text-sm tracking-widest text-terracotta">
+                        {ERROR_MESSAGES[error] ?? "An error occurred. Please try again."}
+                    </div>
+                )}
+
 
                 <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-4">
                     <input
@@ -62,12 +76,12 @@ export default function LoginPage() {
                     </div>
                 </div>
                 <div>
-                <p className="px-8 text-sm text-center">
-                    Don't have an account?{" "}
-                    <Link href="/register" className="text-terracotta font-bold uppercase tracking-widest">
-                        Register
-                    </Link>
-                </p>
+                    <p className="px-8 text-sm text-center">
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register" className="text-terracotta font-bold uppercase tracking-widest">
+                            Register
+                        </Link>
+                    </p>
                 </div>
             </div>
         </main>
