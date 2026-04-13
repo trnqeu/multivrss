@@ -3,6 +3,9 @@ import { getCategories } from "@/app/actions";
 import AddFeedForm from "@/components/AddFeedForm";
 import FeedList from "@/components/FeedList";
 import { connection } from 'next/server';
+import SearchBar from "@/components/SearchBar";
+
+
 
 export default async function Home() {
   await connection();
@@ -23,6 +26,7 @@ export default async function Home() {
             RSS Aggregator// v0.1.0
           </p>
         </header>
+        <SearchBar />
 
         <AddFeedForm categories={categories} />
 
