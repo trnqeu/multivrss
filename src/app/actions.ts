@@ -108,12 +108,13 @@ export async function deleteFeedSource(sourceId: string) {
         await prisma.feedSource.delete({
             where: { id: sourceId }
         });
-        revalidatePath("/");
-        return { success: true };
     } catch (error) {
         console.error("❌ Error deleting feed source:", error);
         return { success: false, message: "Failed to delete feed source." };
     }
+
+    revalidatePath("/");
+    redirect("/");
 }
 
 // action to create user
@@ -136,6 +137,25 @@ export async function registerUser(prevState: string | null, formData: FormData)
 
     redirect("/login");
     ;
+}
+
+export async function renameFeedSource(sourceId: string, newTitle: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const trimmed = newTitle.trim();
+    if (!trimmed) return { success: false, message: "Title cannot be empty." };
+
+    try {
+        await prisma.feedSource.update({
+            where: { id: sourceId },
+            data: { title: trimmed },
+        });
+        revalidatePath("/");
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to rename feed." };
+    }
 }
 
 
