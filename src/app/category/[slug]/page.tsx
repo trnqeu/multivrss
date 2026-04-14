@@ -3,17 +3,25 @@ import FeedList from "@/components/FeedList";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
 
 interface CategoryPageProps {
-  params: Promise<{ slug: string }>;
+    params: Promise<{ slug: string }>;
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-    const { slug } = await params;
+    const session = await getServerSession(authOptions);
+    if (!session) return notFound();
 
+    const { slug } = await params;
     const nameQuery = slug.replace(/-/g, ' ');
     const category = await prisma.category.findFirst({
-        where: { name: { equals: nameQuery, mode: 'insensitive' } },
+        where: {
+            name: { equals: nameQuery, mode: 'insensitive' },
+            userId: session.user.id,
+        },
         include: { _count: { select: { sources: true } } }
     });
 
