@@ -14,13 +14,14 @@ export async function GET(request: NextRequest) {
         where: { category: { userId: session.user.id } },
         select: { id: true },
     });
-    const sourceIds = sources.map(s => s.id);
-    if (sourceIds.length === 0) return Response.json([]);
 
+    if (sources.length === 0) return Response.json([]);
+
+    const filter = sources.map((s: { id: string }) => `sourceId = "${s.id}"`).join(" OR ");
 
     const results = await meili.index("items").search(q, {
         limit: 50,
-        filter: sourceIds.map(id => `sourceId = "${id}"`).join(" OR "),
+        filter,
         sort: ["pubDate:desc"],
     });
 
