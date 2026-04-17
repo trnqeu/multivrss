@@ -61,7 +61,7 @@ export default async function FeedList({ sourceId, categoryId }: FeedListProps) 
                             )}
                         </a>
                         {index < items.length - 1 && (
-                            <span className="text-terracotta font-bold mx-3 select-none">//</span>
+                            <span className="text-terracotta font-bold mx-3 select-none">{'/ /'}</span>
                         )}
                     </span>
                 ))}
