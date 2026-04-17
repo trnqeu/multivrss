@@ -12,10 +12,7 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ...
-      POSTGRES_PASSWORD: ...
-      POSTGRES_DB: multivrss-db
+    env_file: .env.production
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -24,12 +21,12 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.13
     restart: unless-stopped
-    environment:
-      MEILI_MASTER_KEY: ...
+    env_file: .env.production
     volumes:
       - meilidata:/meili_data
     networks:
       - internal
+
 
 networks:
   internal:
