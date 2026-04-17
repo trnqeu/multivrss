@@ -38,9 +38,3 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd ~/multivrss
-            git pull origin dev
-            docker build -t multivrss-app .
-            docker compose -f docker-compose.prod.yml up -d
-            docker compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
