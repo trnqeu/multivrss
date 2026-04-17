@@ -14,12 +14,15 @@ FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-
-# Copia solo l'output standalone
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["sh", "./docker-entrypoint.sh"]
 
