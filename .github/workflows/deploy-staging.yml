@@ -44,4 +44,6 @@ jobs:
             docker build --target builder -t multivrss-builder .
             docker build -t multivrss-app .
             docker run --rm --network multivrss_internal --env-file .env.production multivrss-builder npx prisma migrate deploy
-            docker compose -f docker-compose.prod.yml up -d --force-recreate
+            docker compose -f docker-compose.prod.yml down --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d
+
