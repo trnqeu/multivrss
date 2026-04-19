@@ -16,6 +16,7 @@ model User {
   categories Category[]
   accounts   Account[]
   sessions   Session[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Account {
@@ -97,4 +98,13 @@ model FeedItem {
   @@unique([sourceId, externalId])
   @@index([sourceId])
   @@index([pubDate])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
