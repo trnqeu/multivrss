@@ -2,7 +2,7 @@ services:
   app:
     image: multivrss-app:latest
     restart: unless-stopped
-    env_file: .env.production
+    env_file: ${ENV_FILE:-.env.production}
     ports:
     - "127.0.0.1:3001:3000"
     networks:
@@ -14,7 +14,11 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file: .env.production
+    env_file: ${ENV_FILE:-.env.production}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
@@ -23,7 +27,7 @@ services:
   meilisearch:
     image: getmeili/meilisearch:v1.13
     restart: unless-stopped
-    env_file: .env.production
+    env_file: ${ENV_FILE:-.env.production}
     volumes:
       - meilidata:/meili_data
     networks:
