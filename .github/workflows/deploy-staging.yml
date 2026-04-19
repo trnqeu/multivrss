@@ -44,7 +44,7 @@ jobs:
             docker build --target builder -t multivrss-builder .
             docker build -t multivrss-app .
             docker network create multivrss_internal 2>/dev/null || true
-            docker run --rm --network multivrss_internal --env-file .env.production multivrss-builder npx prisma migrate deploy
+            docker run --rm --network multivrss_internal --env-file .env.staging multivrss-builder npx prisma migrate deploy
             docker compose -f docker-compose.prod.yml down --remove-orphans
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml --env-file .env.staging up -d
 
