@@ -49,7 +49,7 @@ export default function LoginPage() {
                         placeholder="PASSWORD"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="border-2 border-foreground bg-foreground text-background px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors"
+                        className="border-2 border-foreground bg-foreground text-background px-4 py-3 text-sm font-bold tracking-widest hover:bg-background hover:text-foreground transition-colors"
                     />
                     <button
                         type="submit"
@@ -57,6 +57,12 @@ export default function LoginPage() {
                     >
                         SIGN_IN →
                     </button>
+
+
+                    <Link href="/forgot-password" className="text-sm text-center tracking-widest hover:text-terracotta transition-colors">
+                        Forgot password?
+                    </Link>
+
                 </form>
 
                 <div className="px-8 pb-8 flex flex-col gap-3">
