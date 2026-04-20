@@ -1,22 +1,16 @@
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendPasswordResetEmail(to: string, resetLink: string) {
-    await transporter.sendMail({
-        from: `"MultivRSS" <${process.env.SMTP_FROM}>`,
-        to,
-        subject: "Password Reset",
-        text: `Reset your password: ${resetLink}`,
+    const { error } = await resend.emails.send({
+        from: 'MultivRSS <noreply@multivrss.com>',
+        to: [to],
+        subject: 'Password Reset',
         html: `<p>Click the link below to reset your password. It expires in 1 hour.</p>
-            <p><a href="${resetLink}">${resetLink}</a></p>`,
+               <p><a href="${resetLink}">${resetLink}</a></p>`,
+        text: `Reset your password: ${resetLink}`,
     });
+
+    if (error) throw new Error(error.message);
 }
