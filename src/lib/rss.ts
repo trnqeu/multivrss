@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
-import { meili } from './meili';
+import { meili, configureMeiliIndex } from './meili';
 import dns from 'dns';
 import { isPrivateIp } from './utils';
 
@@ -28,6 +28,8 @@ const parser = new Parser();
 export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
 
 export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
+    await configureMeiliIndex();
+
     // 1. Find source in the database
     const source = await prisma.feedSource.findUnique({
         where: { id: sourceId },
