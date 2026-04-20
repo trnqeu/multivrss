@@ -6,6 +6,7 @@ RUN npm ci
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+ARG GIT_COMMIT=unknown
 COPY . .
 RUN npx prisma generate
 RUN npm run build
