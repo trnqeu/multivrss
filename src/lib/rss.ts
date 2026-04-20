@@ -75,7 +75,8 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
             link: item.link,
             pubDate: item.pubDate ? item.pubDate.getTime() : null,
             sourceId: item.sourceId,
-        }))
+        })),
+        { primaryKey: 'id' }
     );
     console.log(`✅ Meilisearch sync task submitted. Task UID: ${meiliTask.taskUid}`);
 
