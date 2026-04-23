@@ -225,5 +225,36 @@ export async function resetPassword(prevState: ActionState | null, formData: For
     }
 }
 
+export async function syncAllFeeds(): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const staleFeeds = await prisma.feedSource.findMany({
+        where: {
+            category: { userId: session.user.id },
+            OR: [
+                { lastSync: null },
+                { lastSync: { lt: new Date(Date.now() - 30 * 60 * 1000) } }
+            ]
+        }
+    });
+
+    if (staleFeeds.length === 0) {
+        return { success: true, message: "All feeds are up to date." };
+    }
+
+    let synced = 0;
+    for (const source of staleFeeds) {
+        try {
+            await syncFeed(source.id);
+            synced++;
+        } catch {
+
+        }
+    }
+    revalidatePath("/");
+    return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
+
+}
 
 
