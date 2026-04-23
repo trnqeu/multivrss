@@ -2,13 +2,19 @@
 
 [ ] Interfaccia di aggiunta dei feed
 [ ] Barra di ricerca
-[ ] Chiusura fonti sotto alla categoria
+[ ] Collapsible categories in the left sidebar (open/close feed sources per category)
 [ ] Pagina di consultazione dei feed
 [ ] Apertura / Chiusura sidebar
 [ ] Integrazione agente
 [ ] Database vettoriale 
 [ ] REST API: src/app/api/feeds/route.ts
 [ ] Salva articoli preferiti
+[ ] Chrome extension: detect RSS feeds on the current page and add them to MultivRSS with one click (requires a REST API endpoint — see REST API task above)
+[ ] Export feeds as CSV (all feed sources for a user)
+[ ] Marketing homepage at / (project presentation, landing page)
+[ ] Protect staging.multivrss.com (HTTP basic auth or IP allowlist via Nginx)
+[ ] Server hardening: add Fail2ban + rate limiting in Nginx to protect against bots and brute-force attacks (consider Crowdsec or a WAF like ModSecurity as alternatives)
+[ ] Onboarding: show curated feed suggestions to new users on first login (seed list available in Feeds list section below)
 
 ## Context hub
 Esempio: Use the CLI command chub to get the latest Next js 16 documentation and create a skill to reuse this knowledge. Run 'chub help' to understand how it works

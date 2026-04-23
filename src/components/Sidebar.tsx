@@ -4,6 +4,7 @@ import RenameFeedTitle from './RenameFeedTitle';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import LogoutButton from "./LogoutButton";
+import SyncButton from "./SyncButton";
 
 
 export default async function Sidebar() {
@@ -67,6 +68,7 @@ export default async function Sidebar() {
             </nav>
 
             {/* System Footer */}
+            <SyncButton />
             <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
                 <div>
                     <LogoutButton />
