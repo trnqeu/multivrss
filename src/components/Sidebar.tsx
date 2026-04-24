@@ -12,7 +12,9 @@ export default async function Sidebar() {
     const categories = await prisma.category.findMany({
         where: { userId: session?.user.id }, // filter by userId
         include: {
-            sources: true,
+            sources: {
+                orderBy: { title: 'asc' }
+            },
         },
         orderBy: { name: 'asc' }
     });
