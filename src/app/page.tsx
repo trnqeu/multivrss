@@ -1,4 +1,5 @@
 import Sidebar from '@/components/Sidebar';
+import SidebarContainer from '@/components/SidebarContainer';
 import { getCategories } from "@/app/actions";
 import AddFeedForm from "@/components/AddFeedForm";
 import FeedList from "@/components/FeedList";
@@ -12,10 +13,13 @@ export default async function Home() {
   const categories = await getCategories();
 
   return (
-    <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground">
-      <Sidebar />
+    <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
+      <SidebarContainer>
+        <Sidebar />
+      </SidebarContainer>
 
       {/* Main Feed Content */}
+
       <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
         {/* Minimalist Header */}
         <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10">
