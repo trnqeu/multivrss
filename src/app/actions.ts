@@ -41,7 +41,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     if (!url) {
         return { success: false, message: "URL is required." };
     }
-    
+
 
     try {
         await validateFeedUrl(url);
@@ -60,6 +60,14 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
 
         if (!finalCategoryId) {
             return { success: false, message: "Please select a category or create a new one." };
+        }
+
+        // Verify the selected category belongs to the current user
+        if (!newCategoryName?.trim()) {
+            const ownedCategory = await prisma.category.findFirst({
+                where: { id: finalCategoryId, userId }
+            });
+            if (!ownedCategory) return { success: false, message: "Invalid category." };
         }
 
         // 2. Fetch feed once — reused for both slug generation and ingestion
@@ -106,9 +114,11 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
 }
 
 export async function deleteFeedSource(sourceId: string) {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user.id;
     try {
         await prisma.feedSource.delete({
-            where: { id: sourceId }
+            where: { id: sourceId, category: { userId } }
         });
     } catch (error) {
         console.error("❌ Error deleting feed source:", error);
@@ -134,7 +144,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
             data: { email, username, password: hashed },
         })
     } catch (error) {
-        return `Registration failed. Email or username already taken: ${error}`;
+        return "Registration failed. Email or username already taken.";
     }
 
     redirect("/login");
@@ -143,14 +153,16 @@ export async function registerUser(prevState: string | null, formData: FormData)
 
 export async function renameFeedSource(sourceId: string, newTitle: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
+    const userId = session?.user.id;
     if (!session) return { success: false, message: "Unauthorized" };
+
 
     const trimmed = newTitle.trim();
     if (!trimmed) return { success: false, message: "Title cannot be empty." };
 
     try {
         await prisma.feedSource.update({
-            where: { id: sourceId },
+            where: { id: sourceId, category: { userId } },
             data: { title: trimmed },
         });
         revalidatePath("/");

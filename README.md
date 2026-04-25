@@ -1,44 +1,72 @@
 # MultivRSS
 
-A high-performance RSS aggregator SaaS. Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4, PostgreSQL + Prisma 7, Meilisearch, Docker.
+A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4, PostgreSQL + Prisma 7, Meilisearch, Docker.
+
+---
+
+## Product Vision
+
+MultivRSS is three things in one:
+
+1. **RSS Reader** — subscribe to feeds organized in categories, read and search articles in a private dashboard.
+2. **Reading List** — save any link (from your feeds or from anywhere on the web, like Instapaper or Pocket), annotate it, and build a personal archive.
+3. **Public Profile** — optionally publish a curated "best-of internet" list at your own public URL (`multivrss.com/[username]`), visible to anyone without login.
+
+---
+
+## URL Architecture
+
+| URL | Who sees it | What it is |
+|-----|-------------|------------|
+| `multivrss.com/` | Everyone | Marketing landing page — project presentation, curated feed suggestions, login/register |
+| `multivrss.com/app` | Authenticated users | Private RSS reader dashboard |
+| `multivrss.com/app/search` | Authenticated users | Full-text search over indexed feed items |
+| `multivrss.com/app/category/[slug]` | Authenticated users | Filtered view by category |
+| `multivrss.com/app/source/[slug]` | Authenticated users | Filtered view by feed source |
+| `multivrss.com/app/saved` | Authenticated users | Private reading list (all saved links) |
+| `multivrss.com/[username]` | Everyone | User's public "best-of" reading list |
 
 ---
 
 ## Roadmap
 
+### Done
+
+- [x] OAuth sign-in (GitHub + Google) with Prisma Adapter
+- [x] Meilisearch full-text search bar
+- [x] Sidebar toggle (open/close)
+- [x] Collapsible sidebar categories
+- [x] Alphabetical feed sorting within categories
+- [x] Manual sync button (syncs all feeds for the logged-in user)
+
 ### In progress
 
-- [x] **Fix OAuth sign-in (GitHub + Google)** — providers are declared but require the Prisma Adapter + `Account`/`Session`/`VerificationToken` schema models to persist OAuth users
+- [ ] **Article view** — verify and complete `src/app/source/[slug]/page.tsx`
+
+### Reading List (Instapaper/Pocket-style)
+
+- [ ] **Save from feed** — one-click bookmark on any feed item
+- [ ] **Save external link** — add any URL manually (title + description auto-fetched from og:title/og:description)
+- [ ] **Private saved list** — view and manage saved links at `/app/saved`
+- [ ] **Public toggle** — mark any saved link as "public" to include it in the user's public profile
+- [ ] **Public profile page** — `multivrss.com/[username]` readable without login; shows the user's curated public links
+- [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved/public links are exempt
 
 ### Core features
 
-- [x] **Meilisearch search bar** — full-text search UI over indexed feed items
 - [ ] **Mark as read** — `FeedItem.read` field exists; needs server action + UI toggle
-- [ ] **Saved/favorite articles** — schema change (`SavedItem` relation) + server action + UI
-  - [ ] Save an article from the feed list (one-click bookmark)
-  - [ ] Add an external article by URL (manual link entry with title/description)
-  - [ ] Mark any saved article as "public" to include it in the user's public reading list
-  - [ ] Public reading list page at `/u/[username]/list` — readable without login
-- [ ] **Sidebar toggle** — open/close the sidebar from the main layout
-- [ ] **Light / dark mode** — theme toggle with `prefers-color-scheme` as default; persist preference in `localStorage`
-- [ ] **Search bar UX revision** — revisit placement, keyboard shortcut (e.g. `/` to focus), results layout, and empty/loading states
+- [ ] **Search UX revision** — keyboard shortcut (`/` to focus), results layout, empty/loading states
+- [ ] **Light / dark mode** — theme toggle; persist preference in `localStorage`
+- [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
+- [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click (depends on REST API)
+- [ ] **Export feeds as CSV** — download all feed sources for the logged-in user
+- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start? Let's add some MultivRSS favourite feeds." screen. They pick one or more interest categories (e.g. News, Tech, Sports, Mind, Art, Literature) and the app auto-creates those categories in their account and populates them with a curated seed list of feeds maintained by MultivRSS. Users can remove or edit anything afterwards. Seed list lives in `notes.md`.
+- [ ] **RSS feed creator** — generate a feed for websites that don't provide one
 
-### Polish & extras
+### Marketing & Infrastructure
 
-- [ ] **Article view** — verify and complete `src/app/source/[slug]/page.tsx`
-- [ ] **REST API** — expose feeds via `src/app/api/feeds/route.ts` for external clients
-- rss feed creator for webite that doesn't provide one
+- [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, and curated feed examples
+- [ ] **Protect staging** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
+- [ ] **Server hardening** — Fail2ban + Nginx rate limiting; evaluate Crowdsec or ModSecurity (WAF)
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
-
-### Roadmap additions (2026-04-24)
-
-- [ ] **Export feeds as CSV** — let users download all their feed sources as a CSV file
-- [ ] **Collapsible sidebar categories** — toggle open/close feed sources per category in the left sidebar
-- [ ] **Alphabetical feed sorting** — sort feed sources within each sidebar category alphabetically (case-insensitive); future: add secondary sort by most recent update
-- [ ] **Marketing homepage** — landing page at `/` presenting the project to new visitors
-- [ ] **Protect staging environment** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
-- [ ] **Server hardening** — Fail2ban + Nginx rate limiting against bots and brute-force; evaluate Crowdsec or ModSecurity (WAF) as alternatives
-- [ ] **Onboarding feed suggestions** — show curated feed proposals to new users on first login (seed list available in `notes.md`)
-- [ ] **Chrome extension** — detect RSS feeds on the current page and add them to MultivRSS with one click (depends on REST API above)
-- [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than a configurable threshold (default 90 days) via a scheduled job; saved/public articles must be exempt from purging
