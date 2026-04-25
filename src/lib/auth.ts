@@ -1,4 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
+import type { Adapter, AdapterUser } from "next-auth/adapters";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
@@ -11,7 +12,7 @@ const baseAdapter = PrismaAdapter(prisma);
 
 const customAdapter = {
   ...baseAdapter,
-  async createUser(data: Parameters<typeof baseAdapter.createUser>[0]) {
+  async createUser(data: Omit<AdapterUser, "id">) {
     const base = slugify(data.email.split('@')[0]);
 
     let username = base;
@@ -23,9 +24,9 @@ const customAdapter = {
 
     return prisma.user.create({
         data: { email: data.email, username },
-    });
-},
-};
+    }) as unknown as AdapterUser;
+  },
+} as Adapter;
 
 
 
