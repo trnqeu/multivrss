@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import RenameFeedTitle from './RenameFeedTitle';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import LogoutButton from "./LogoutButton";
+import CollapsibleCategory from "./CollapsibleCategory";
 
 
 export default async function Sidebar() {
@@ -44,27 +44,7 @@ export default async function Sidebar() {
 
                 {/* Categories as Modules */}
                 {categories.map((category) => (
-                    <div key={category.id} className="flex flex-col gap-4">
-                        <Link
-                            href={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            className="label-system border-b-2 border-terracotta pb-2 flex justify-between items-center text-terracotta font-bold hover:opacity-70 transition-opacity"
-                        >
-                            <span>{category.name}</span>
-                            <span className="">{category.sources.length.toString().padStart(2, '0')}</span>
-                        </Link>
-
-                        <ul className="flex flex-col gap-2">
-                            {category.sources.map((source) => (
-                                <li key={source.id} className="group flex items-center relative pr-20">
-                                    <RenameFeedTitle sourceId={source.id} title={source.title ?? ''} slug={source.slug} />
-                                </li>
-                            ))}
-
-                            {category.sources.length === 0 && (
-                                <span className="label-system text-[9px] opacity-20 italic">Empty_Slot</span>
-                            )}
-                        </ul>
-                    </div>
+                    <CollapsibleCategory key={category.id} category={category} />
                 ))}
             </nav>
 
