@@ -19,7 +19,7 @@ export default async function Sidebar() {
     });
 
     return (
-        <aside className="w-64 border-r-2 border-foreground hidden md:flex flex-col bg-background h-full">
+        <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
             {/* System Brand / Logo Area */}
             <div className="p-8 border-b-2 border-foreground">
                 <h1 className="!text-xl tracking-[0.2em] !text-terracotta">

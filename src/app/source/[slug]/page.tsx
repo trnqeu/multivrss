@@ -15,7 +15,8 @@ export default async function SourcePage({ params }: SourcePageProps) {
     const resolvedParams = await params;
     const { slug } = resolvedParams;
     const session = await getServerSession(authOptions);
-    const userId = session?.user.id;
+    if (!session) return notFound();
+    const userId = session.user.id;
     
     const source = await prisma.feedSource.findUnique({
         where: { slug, category: { userId } }
