@@ -11,16 +11,22 @@ export async function GET(request: Request) {
     }
     const allFeeds = await prisma.feedSource.findMany()
 
-    for (const source of allFeeds) {
-        try {
-            await syncFeed(source.id);
-            results.synced++;
-        } catch (error) {
-            console.error(`Failed to sync ${source.url}:`, error);
-            results.failed++;
-        }
-        
-    };
+    const CONCURRENCY = 5;
+
+    for (let i = 0; i < allFeeds.length; i += CONCURRENCY) {
+        const chunk = allFeeds.slice(i, i + CONCURRENCY);
+        await Promise.all(
+            chunk.map(async (source) => {
+                try {
+                    await syncFeed(source.id);
+                    results.synced++;
+                } catch (error) {
+                    console.error(`Failed to sync ${source.url}:`, error);
+                    results.failed++;
+                }
+            })
+        )
+    }
 
     return NextResponse.json(results);
 }
