@@ -73,10 +73,12 @@ MultivRSS is three things in one:
 
 - [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, curated feed examples, and a Tips & Tricks section (see below)
 - [ ] **Protect staging** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
-- [ ] **Server hardening** — Fail2ban + Nginx rate limiting; evaluate Crowdsec or ModSecurity (WAF)
+- [ ] **CDN + security** — Bunny CDN + Bunny Shield in front of the VPS: cache static assets and public pages (`/`, `/[username]`), WAF (OWASP Top 10), DDoS protection, bot mitigation, and rate limiting — all upstream before traffic reaches the server. Never route `/app` through CDN to avoid session data leaks. Free tier covers the basics; Advanced ($9.5/mo) adds complex bot mitigation and AI WAF. Fail2ban on the VPS as a last line of defense.
+- [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban as last-resort IP banning at VPS level
 - [ ] **OWASP secure development** — apply OWASP Top 10 mitigations across every feature: input validation at all boundaries, parameterized queries only, CSRF protection on all mutations, `Content-Security-Policy` header, dependency audit (`npm audit`) in CI, secrets never in code or logs
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
+- [ ] **Database backups** — set up periodic automated `pg_dump` backups; evaluate one of: Hetzner Storage Box (SFTP/rsync, cheap, same infra), Backblaze B2, or Cloudflare R2 (S3-compatible object storage, near-zero cost at small scale, geo-separated from Hetzner)
 
 ---
 
