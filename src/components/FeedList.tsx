@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import FeedItem from '@/components/FeedItem';
+
 
 interface FeedListProps {
     sourceId?: string;
@@ -17,7 +19,7 @@ export default async function FeedList({ sourceId, categoryId }: FeedListProps) 
                 ? { source: { categoryId, category: { userId } } }
                 : { source: { category: { userId } } },
         take: 100,
-        orderBy: { pubDate: 'desc' },
+        orderBy: { pubDate: { sort: 'desc', nulls: 'last' } },
         include: { source: true }
     });
 
@@ -33,38 +35,9 @@ export default async function FeedList({ sourceId, categoryId }: FeedListProps) 
         <section className="p-8 md:p-12">
             <p className="leading-relaxed text-sm text-foreground font-medium">
                 {items.map((item, index) => (
-                    <span key={item.id}>
-                        <a
-                            href={item.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:text-terracotta transition-colors"
-                        >
-                            <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
-                                {item.source.title}
-                            </span>
-                            <span className="text-foreground/40 mx-2">·</span>
-                            <span className="text-foreground/50 text-xs">
-                                {item.pubDate
-                                    ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                    : '---'}
-                            </span>
-                            <span className="text-foreground/40 mx-2">·</span>
-                            <span>{item.title}</span>
-                            {item.content && (
-                                <>
-                                    <span className="text-foreground/40 mx-2">—</span>
-                                    <span className="text-foreground/50 text-xs font-normal">
-                                        {item.content.replace(/<[^>]*>?/gm, '').slice(0, 120).trimEnd()}…
-                                    </span>
-                                </>
-                            )}
-                        </a>
-                        {index < items.length - 1 && (
-                            <span className="text-terracotta font-bold mx-3 select-none">{'/ /'}</span>
-                        )}
-                    </span>
+                    <FeedItem key={item.id} item={item} isLast={index === items.length - 1} />
                 ))}
+
             </p>
         </section>
     );
