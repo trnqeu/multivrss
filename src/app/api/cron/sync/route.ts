@@ -22,5 +22,5 @@ export async function GET(request: Request) {
         
     };
 
-    return NextResponse.json( { synced: allFeeds.length});
+    return NextResponse.json(results);
 }
