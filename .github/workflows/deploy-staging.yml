@@ -42,10 +42,12 @@ jobs:
             set -e
             cd ~/multivrss
             git pull origin dev
+            docker builder prune -f
             docker build --target builder --build-arg GIT_COMMIT=$(git rev-parse HEAD) -t multivrss-builder .
             docker build --build-arg GIT_COMMIT=$(git rev-parse HEAD) -t multivrss-app .
             docker network create multivrss_internal 2>/dev/null || true
             docker run --rm --network multivrss_internal --env-file .env.staging multivrss-builder npx prisma migrate deploy
             docker compose -f docker-compose.prod.yml down --remove-orphans
             docker compose -f docker-compose.prod.yml --env-file .env.staging up -d
+            docker system prune -f
 

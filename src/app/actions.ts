@@ -269,4 +269,19 @@ export async function syncAllFeeds(): Promise<ActionState> {
 
 }
 
-
+export async function markAsRead(itemId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    try {
+        await prisma.feedItem.update({
+            where: {
+                id: itemId,
+                source: { category: { userId: session.user.id } }
+            },
+            data: { read: true }
+        });
+        return { success: true, message: "Marked as read."}
+    } catch {
+        return { success: false, message: "Failed to mark as read."}
+    }
+}

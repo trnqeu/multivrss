@@ -62,11 +62,98 @@ MultivRSS is three things in one:
 - [ ] **Export feeds as CSV** — download all feed sources for the logged-in user
 - [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start? Let's add some MultivRSS favourite feeds." screen. They pick one or more interest categories (e.g. News, Tech, Sports, Mind, Art, Literature) and the app auto-creates those categories in their account and populates them with a curated seed list of feeds maintained by MultivRSS. Users can remove or edit anything afterwards. Seed list lives in `notes.md`.
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
+- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance: full keyboard navigation, semantic HTML, ARIA labels on all interactive elements, sufficient color contrast ratios, screen reader support, focus-visible outlines
+
+### Monetization
+
+- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors); keep the private `/app` dashboard ad-free
+- [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access. Key design challenge: restrict the free tier enough to drive upgrades without frustrating users.
 
 ### Marketing & Infrastructure
 
-- [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, and curated feed examples
+- [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, curated feed examples, and a Tips & Tricks section (see below)
 - [ ] **Protect staging** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
 - [ ] **Server hardening** — Fail2ban + Nginx rate limiting; evaluate Crowdsec or ModSecurity (WAF)
+- [ ] **OWASP secure development** — apply OWASP Top 10 mitigations across every feature: input validation at all boundaries, parameterized queries only, CSRF protection on all mutations, `Content-Security-Policy` header, dependency audit (`npm audit`) in CI, secrets never in code or logs
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
+
+---
+
+## Home Page — Tips & Tricks Section
+
+Content planned for the marketing landing page. A curated list of tricks to help users find and create RSS feeds for sites that make them hard to discover.
+
+### Google News
+
+Any Google News search URL becomes an RSS feed by inserting `/rss` after the TLD:
+
+```
+https://news.google.com/search?q=site%3Areuters.com&hl=en-US&gl=US&ceid=US%3Aen
+→
+https://news.google.com/rss/search?q=site%3Areuters.com&hl=en-US&gl=US&ceid=US%3Aen
+```
+
+### Substack
+
+Every Substack publication exposes a feed at `/feed`:
+
+```
+https://stratechery.com/feed
+```
+
+### Reddit
+
+Append `.rss` to any subreddit URL:
+
+```
+https://www.reddit.com/r/programming.rss
+https://www.reddit.com/r/worldnews.rss
+```
+
+### YouTube
+
+Every YouTube channel has a hidden Atom feed. Find the channel ID in the URL and use:
+
+```
+https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
+```
+
+### Medium
+
+Medium publications and user pages expose a feed at `/feed/`:
+
+```
+https://medium.com/feed/@username
+https://medium.com/feed/publication-name
+```
+
+### WordPress sites
+
+Nearly every WordPress site has a feed at `/feed`:
+
+```
+https://example.com/feed
+```
+
+### GitHub
+
+GitHub exposes Atom feeds for releases, commits, and tags — no authentication needed:
+
+```
+https://github.com/owner/repo/releases.atom
+https://github.com/owner/repo/commits.atom
+https://github.com/owner/repo/tags.atom
+```
+
+### Podcast apps
+
+Every podcast is natively an RSS feed. Copy the podcast's feed URL from any podcast directory (Apple Podcasts, Spotify for Podcasters, Listen Notes) and paste it directly into MultivRSS.
+
+### Kill the Newsletter
+
+[Kill the Newsletter](https://kill-the-newsletter.com/) converts any email newsletter into an RSS feed. It generates a unique inbox address — subscribe to the newsletter with that address and get every issue as a feed item.
+
+### RSS-Bridge (self-hosted)
+
+[RSS-Bridge](https://github.com/RSS-Bridge/rss-bridge) is an open-source tool that generates RSS feeds for hundreds of sites that don't provide one natively (Instagram, Twitter/X, Telegram channels, and more). Can be self-hosted or used via public instances.
