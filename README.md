@@ -4,6 +4,35 @@ A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js
 
 ---
 
+## Next.js App Router Architecture
+
+This project uses the Next.js 16 App Router under the optional `src` folder:
+
+```text
+src/app/
+  layout.tsx              Root layout for every route
+  page.tsx                Public route when present at this level
+  (app)/                  Route group for the authenticated product UI
+    layout.tsx            Private app shell with sidebar
+    page.tsx              Private dashboard at `/`
+    search/page.tsx       Private search at `/search`
+    category/[slug]/      Private category page at `/category/[slug]`
+    source/[slug]/        Private source page at `/source/[slug]`
+  api/**/route.ts         Route Handlers / API endpoints
+```
+
+Important Next.js conventions used here:
+
+- `src` is only a source folder; it does not affect URL paths.
+- `app` enables the App Router.
+- Folders define URL segments only when they are normal route folders.
+- Route groups such as `(app)` organize routes and layouts without adding anything to the URL.
+- A route becomes public only when a `page.tsx` or `route.ts` file exists.
+- Dynamic route params use square brackets, for example `category/[slug]`.
+- `proxy.ts` is the Next.js 16 request proxy convention; do not use the old `middleware.ts` naming for new work.
+- `next.config.ts` enables `cacheComponents: true`, so caching work must follow the Next.js 16 Cache Components model.
+- With Cache Components, use `"use cache"` only for cacheable output, keep request-specific/private data uncached or behind the appropriate runtime boundary, and use `connection()` when a route must defer to request time.
+
 ## Product Vision
 
 MultivRSS is three things in one:
@@ -18,13 +47,14 @@ MultivRSS is three things in one:
 
 | URL | Who sees it | What it is |
 |-----|-------------|------------|
-| `multivrss.com/` | Everyone | Marketing landing page — project presentation, curated feed suggestions, login/register |
-| `multivrss.com/app` | Authenticated users | Private RSS reader dashboard |
-| `multivrss.com/app/search` | Authenticated users | Full-text search over indexed feed items |
-| `multivrss.com/app/category/[slug]` | Authenticated users | Filtered view by category |
-| `multivrss.com/app/source/[slug]` | Authenticated users | Filtered view by feed source |
-| `multivrss.com/app/saved` | Authenticated users | Private reading list (all saved links) |
+| `multivrss.com/` | Authenticated users today; everyone later | Current private RSS dashboard. Future marketing landing page once the private dashboard is moved or separated. |
+| `multivrss.com/search` | Authenticated users | Full-text search over indexed feed items |
+| `multivrss.com/category/[slug]` | Authenticated users | Filtered view by category |
+| `multivrss.com/source/[slug]` | Authenticated users | Filtered view by feed source |
+| `multivrss.com/saved` | Authenticated users | Planned private reading list (all saved links) |
 | `multivrss.com/[username]` | Everyone | User's public "best-of" reading list |
+
+The authenticated product routes currently live inside `src/app/(app)`. The `(app)` route group is omitted from URLs by design. If a future real `/app` URL segment is desired, create a normal `app` segment instead of relying on `(app)`.
 
 ---
 
@@ -47,7 +77,7 @@ MultivRSS is three things in one:
 
 - [ ] **Save from feed** — one-click bookmark on any feed item
 - [ ] **Save external link** — add any URL manually (title + description auto-fetched from og:title/og:description)
-- [ ] **Private saved list** — view and manage saved links at `/app/saved`
+- [ ] **Private saved list** — view and manage saved links at `/saved`
 - [ ] **Public toggle** — mark any saved link as "public" to include it in the user's public profile
 - [ ] **Public profile page** — `multivrss.com/[username]` readable without login; shows the user's curated public links
 - [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved/public links are exempt
@@ -66,14 +96,14 @@ MultivRSS is three things in one:
 
 ### Monetization
 
-- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors); keep the private `/app` dashboard ad-free
+- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors); keep the private authenticated dashboard ad-free
 - [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access. Key design challenge: restrict the free tier enough to drive upgrades without frustrating users.
 
 ### Marketing & Infrastructure
 
 - [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, curated feed examples, and a Tips & Tricks section (see below)
 - [ ] **Protect staging** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
-- [ ] **CDN + security** — Bunny CDN + Bunny Shield in front of the VPS: cache static assets and public pages (`/`, `/[username]`), WAF (OWASP Top 10), DDoS protection, bot mitigation, and rate limiting — all upstream before traffic reaches the server. Never route `/app` through CDN to avoid session data leaks. Free tier covers the basics; Advanced ($9.5/mo) adds complex bot mitigation and AI WAF. Fail2ban on the VPS as a last line of defense.
+- [ ] **CDN + security** — Bunny CDN + Bunny Shield in front of the VPS: cache static assets and public pages only, WAF (OWASP Top 10), DDoS protection, bot mitigation, and rate limiting — all upstream before traffic reaches the server. Never cache authenticated dashboard traffic to avoid session data leaks. Free tier covers the basics; Advanced ($9.5/mo) adds complex bot mitigation and AI WAF. Fail2ban on the VPS as a last line of defense.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban as last-resort IP banning at VPS level
 - [ ] **OWASP secure development** — apply OWASP Top 10 mitigations across every feature: input validation at all boundaries, parameterized queries only, CSRF protection on all mutations, `Content-Security-Policy` header, dependency audit (`npm audit`) in CI, secrets never in code or logs
 - [ ] **AI agent integration** — TBD

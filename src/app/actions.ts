@@ -143,7 +143,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
         await prisma.user.create({
             data: { email, username, password: hashed },
         })
-    } catch (error) {
+    } catch {
         return "Registration failed. Email or username already taken.";
     }
 
