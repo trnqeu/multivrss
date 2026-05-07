@@ -13,7 +13,7 @@ type Props = {
 };
 
 export default function CollapsibleCategory({ category }: Props) {
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <div className="flex flex-col gap-4">
