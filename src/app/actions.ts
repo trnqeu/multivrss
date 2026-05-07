@@ -255,15 +255,24 @@ export async function syncAllFeeds(): Promise<ActionState> {
         return { success: true, message: "All feeds are up to date." };
     }
 
+    const CONCURRENCY = 5;
     let synced = 0;
-    for (const source of staleFeeds) {
-        try {
-            await syncFeed(source.id);
-            synced++;
-        } catch {
 
-        }
+    for (let i = 0; i < staleFeeds.length; i += CONCURRENCY) {
+        const chunk = staleFeeds.slice(i, i + CONCURRENCY);
+        const results = await Promise.all(
+            chunk.map(async (source) => {
+                try {
+                    await syncFeed(source.id);
+                    return 1;
+                } catch {
+                    return 0;
+                }
+            })
+        );
+        synced += results.reduce((a: number, b: number) => a + b, 0);
     }
+
     revalidatePath("/");
     return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
 
@@ -280,8 +289,8 @@ export async function markAsRead(itemId: string): Promise<ActionState> {
             },
             data: { read: true }
         });
-        return { success: true, message: "Marked as read."}
+        return { success: true, message: "Marked as read." }
     } catch {
-        return { success: false, message: "Failed to mark as read."}
+        return { success: false, message: "Failed to mark as read." }
     }
 }

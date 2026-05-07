@@ -10,8 +10,11 @@ export async function GET(request: NextRequest) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const q = request.nextUrl.searchParams.get("q") ?? "";
-    const hits = await searchFeedItemsForUser(session.user.id, q);
+    const params = request.nextUrl.searchParams;
+    const q = params.get("q") ?? "";
+    const cat = params.get("cat") ?? undefined;
+    const limit = Math.min(parseInt(params.get("limit") ?? "30", 10), 200);
 
-    return Response.json(hits);
+    const result = await searchFeedItemsForUser(session.user.id, q, cat, limit);
+    return Response.json(result);
 }

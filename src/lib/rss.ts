@@ -30,9 +30,10 @@ export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
 export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     await configureMeiliIndex();
 
-    // 1. Find source in the database
+    // 1. Find source in the database (include category for Meili denormalization)
     const source = await prisma.feedSource.findUnique({
         where: { id: sourceId },
+        include: { category: true },
     });
 
     if (!source) throw new Error('Source not found');
@@ -75,6 +76,9 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
             link: item.link,
             pubDate: item.pubDate ? item.pubDate.getTime() : null,
             sourceId: item.sourceId,
+            sourceTitle: source.title || '',
+            categoryId: source.category.id,
+            categoryName: source.category.name,
         })),
         { primaryKey: 'id' }
     );

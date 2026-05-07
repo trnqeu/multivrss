@@ -6,21 +6,26 @@ async function test() {
     console.log("🚀 Starting RSS integration test...");
 
     try {
-        // 1. Create/Ensure a test category
+        // 0. Find a real user to scope test data under
+        const user = await prisma.user.findFirst();
+        if (!user) throw new Error('No users in database — create an account first.');
+        console.log(`👤 Using user: ${user.email}`);
+
+        // 1. Create/Ensure a test category (unique by userId + name)
         const category = await prisma.category.upsert({
-            where: { name: 'Technology' },
+            where: { userId_name: { userId: user.id, name: 'Technology' } },
             update: {},
-            create: { name: 'Technology' },
+            create: { name: 'Technology', userId: user.id },
         });
 
-        // 2. Create/Ensure a test source (Vercel Blog)
+        // 2. Create/Ensure a test source (unique by categoryId + url)
         const source = await prisma.feedSource.upsert({
-            where: { url: 'https://news.ycombinator.com/rss' },
+            where: { categoryId_url: { categoryId: category.id, url: 'https://news.ycombinator.com/rss' } },
             update: {},
             create: {
                 url: 'https://news.ycombinator.com/rss',
                 slug: 'hacker_news_test',
-                categoryId: category.id
+                categoryId: category.id,
             },
         });
 
