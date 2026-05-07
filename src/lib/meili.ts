@@ -6,11 +6,15 @@ export const meili = new MeiliSearch({
   apiKey: process.env.MEILI_MASTER_KEY,
 });
 
+// Highlight delimiters used in every search call — safe, no dangerouslySetInnerHTML needed
+export const HIGHLIGHT_PRE = '<<HL>>';
+export const HIGHLIGHT_POST = '<</HL>>';
+
 // Configure index settings — call this at runtime, not at import time
 export async function configureMeiliIndex() {
     await meili.index('items').updateSettings({
         searchableAttributes: ['title', 'content'],
-        filterableAttributes: ['sourceId'],
+        filterableAttributes: ['sourceId', 'categoryId', 'categoryName', 'pubDate'],
         sortableAttributes: ['pubDate'],
     });
 }

@@ -58,9 +58,11 @@ npx prisma generate
 Manual integration checks:
 
 ```bash
-npx ts-node tests/test-rss.ts
-npx ts-node tests/test-meili.ts
+npx ts-node --project tsconfig.test.json tests/test-rss.ts
+npx ts-node --project tsconfig.test.json tests/test-meili.ts
 ```
+
+Note: `tsconfig.test.json` switches to `module: CommonJS` / `moduleResolution: node` so `ts-node` can resolve modules correctly. The main `tsconfig.json` uses `module: esnext` (for Next.js/webpack) which breaks direct ts-node execution.
 
 ## Dependency Documentation With Chub
 

@@ -1,7 +1,6 @@
 
 import { getCategories } from "@/app/actions";
 import AddFeedForm from "@/components/AddFeedForm";
-import FeedList from "@/components/FeedList";
 import { connection } from 'next/server';
 import SearchBar from "@/components/SearchBar";
 import SyncButton from "@/components/SyncButton";
@@ -33,9 +32,6 @@ export default async function Home() {
         <SearchBar />
 
         <AddFeedForm categories={categories} />
-
-        {/* Feed List Section */}
-        <FeedList />
       </main>
   );
 }
