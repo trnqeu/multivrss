@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST } from "@/lib/meili";
+import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST, configureMeiliIndex } from "@/lib/meili";
 
 export { HIGHLIGHT_PRE, HIGHLIGHT_POST };
 
@@ -31,6 +31,8 @@ export async function searchFeedItemsForUser(
     cat?: string,
     limit = 30,
 ): Promise<SearchResult> {
+    await configureMeiliIndex();
+
     const sources = await prisma.feedSource.findMany({
         where: { category: { userId } },
         select: { id: true, category: { select: { name: true } } },

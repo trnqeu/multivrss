@@ -15,6 +15,11 @@ export async function GET(request: NextRequest) {
     const cat = params.get("cat") ?? undefined;
     const limit = Math.min(parseInt(params.get("limit") ?? "30", 10), 200);
 
-    const result = await searchFeedItemsForUser(session.user.id, q, cat, limit);
-    return Response.json(result);
+    try {
+        const result = await searchFeedItemsForUser(session.user.id, q, cat, limit);
+        return Response.json(result);
+    } catch (err) {
+        console.error("[search] Meilisearch error:", err);
+        return Response.json({ error: "Search unavailable" }, { status: 503 });
+    }
 }
