@@ -13,10 +13,11 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const q = params.get("q") ?? "";
     const cat = params.get("cat") ?? undefined;
+    const since = params.get("since") ?? undefined;
     const limit = Math.min(parseInt(params.get("limit") ?? "30", 10), 200);
 
     try {
-        const result = await searchFeedItemsForUser(session.user.id, q, cat, limit);
+        const result = await searchFeedItemsForUser(session.user.id, q, cat, since, limit);
         return Response.json(result);
     } catch (err) {
         console.error("[search] Meilisearch error:", err);

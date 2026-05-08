@@ -29,6 +29,7 @@ export async function searchFeedItemsForUser(
     userId: string,
     query: string,
     cat?: string,
+    since?: string,
     limit = 30,
 ): Promise<SearchResult> {
     await configureMeiliIndex();
@@ -48,6 +49,17 @@ export async function searchFeedItemsForUser(
 
     const ownershipFilter = sources.map((s) => `sourceId = "${s.id}"`).join(" OR ");
     const filter: string[] = [`(${ownershipFilter})`];
+    if (since) {
+        const now = Date.now();
+        const sinceMap: Record<string, number> = {
+            '24h': now - 24 * 60 * 60 * 1000,
+            '7d': now - 7 * 24 * 60 * 60 * 1000,
+            'today': new Date().setHours(0, 0, 0, 0),
+        };
+        const epoch = sinceMap[since];
+        if (epoch !== undefined) filter.push(`pubDate > ${epoch}`);
+    }
+
     if (resolvedCat) {
         filter.push(`categoryName = "${resolvedCat}"`);
     }
