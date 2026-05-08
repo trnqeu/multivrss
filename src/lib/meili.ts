@@ -14,7 +14,7 @@ export const HIGHLIGHT_POST = '<</HL>>';
 export async function configureMeiliIndex() {
     await meili.index('items').updateSettings({
         searchableAttributes: ['title', 'content'],
-        filterableAttributes: ['sourceId', 'categoryId', 'categoryName', 'pubDate'],
+        filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate'],
         sortableAttributes: ['pubDate'],
     });
 }
