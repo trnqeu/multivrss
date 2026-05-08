@@ -56,6 +56,7 @@ function loadRecentSearches(): string[] {
 export default function SearchBar() {
     const [query, setQuery] = useState('');
     const [cat, setCat] = useState('ALL');
+    const [since, setSince] = useState<string | undefined>(undefined);
     const [focused, setFocused] = useState(false);
     const [recent, setRecent] = useState<string[]>(loadRecentSearches);
     const [baseFacets, setBaseFacets] = useState<{ total: number; cats: Record<string, number> }>({ total: 0, cats: {} });
@@ -79,7 +80,7 @@ export default function SearchBar() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, []);
 
-    const doFetch = useCallback(async (q: string, category: string) => {
+    const doFetch = useCallback(async (q: string, category: string, sinceVal?: string) => {
         const baseParams = new URLSearchParams({ q, limit: '0' });
         const baseRes = await fetch(`/api/search?${baseParams}`);
         if (baseRes.ok) {
@@ -92,15 +93,16 @@ export default function SearchBar() {
 
         const resultParams = new URLSearchParams({ q });
         if (category !== 'ALL') resultParams.set('cat', category);
+        if (sinceVal) resultParams.set('since', sinceVal);
         const res = await fetch(`/api/search?${resultParams}`);
         if (res.ok) setResponse(await res.json());
     }, []);
 
     useEffect(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => doFetch(query, cat), 120);
+        timerRef.current = setTimeout(() => doFetch(query, cat, since), 120);
         return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-    }, [query, cat, doFetch]);
+    }, [query, cat, since, doFetch]);
 
     function handleBlur() {
         setFocused(false);
@@ -129,11 +131,10 @@ export default function SearchBar() {
                     </span>
                     <button
                         onClick={() => setCat('ALL')}
-                        className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${
-                            cat === 'ALL'
+                        className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${cat === 'ALL'
                                 ? 'bg-terracotta text-background border-terracotta'
                                 : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
-                        }`}
+                            }`}
                     >
                         {`ALL ${String(baseFacets.total).padStart(2, '0')}`}
                     </button>
@@ -141,16 +142,38 @@ export default function SearchBar() {
                         <button
                             key={name}
                             onClick={() => setCat(prev => prev === name ? 'ALL' : name)}
-                            className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${
-                                cat === name
+                            className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${cat === name
                                     ? 'bg-terracotta text-background border-terracotta'
                                     : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
-                            }`}
+                                }`}
                         >
                             {`${name} ${String(count).padStart(2, '0')}`}
                         </button>
                     ))}
                 </div>
+
+                {/* Time filter pills */}
+                <div className="flex items-center gap-3 px-8 py-3 border-b-2 border-foreground overflow-x-auto">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 shrink-0 select-none">
+                        SINCE //
+                    </span>
+                    {(['TODAY', '24H', '7D'] as const).map((label) => {
+                        const val = label.toLowerCase();
+                        return (
+                            <button
+                                key={label}
+                                onClick={() => setSince(prev => prev === val ? undefined : val)}
+                                className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${since === val
+                                        ? 'bg-terracotta text-background border-terracotta'
+                                        : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
+                                    }`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                </div>
+
 
                 {/* Row 2: Input */}
                 <div className="flex items-stretch border-b-2 border-foreground">
@@ -170,7 +193,7 @@ export default function SearchBar() {
                     <div className="flex items-stretch border-l-2 border-foreground">
                         {query && (
                             <button
-                                onMouseDown={e => { e.preventDefault(); setQuery(''); setCat('ALL'); }}
+                                onMouseDown={e => { e.preventDefault(); setQuery(''); setCat('ALL'); setSince(undefined); }}
                                 className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest hover:text-terracotta transition-colors border-r-2 border-foreground"
                             >
                                 CLEAR
