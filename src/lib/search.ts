@@ -68,7 +68,7 @@ export async function searchFeedItemsForUser(
         limit: Math.min(limit, 200),
         filter,
         sort: ["pubDate:desc"],
-        facets: ["categoryName"],
+        facets: ["categoryName", "sourceTitle"],
         attributesToHighlight: ["title", "content"],
         attributesToCrop: ["content"],
         cropLength: 100,

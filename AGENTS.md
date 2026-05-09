@@ -316,6 +316,10 @@ Near-term:
 - Add RSS feed creator for sites without feeds.
 - Improve accessibility toward WCAG 2.1 AA.
 
+Optional / future:
+
+- **Reader mode via `@mozilla/readability` + `jsdom`:** extract full article content from saved URLs (and optionally from RSS entries that only ship summaries). Apply the same URL validation logic as `validateFeedUrl()` before fetching. Integrate in the "save external URL" flow once saved links are complete. Note: the Go library at github.com/cixtor/readability is not suitable — use the JS implementation.
+
 Business/infrastructure:
 
 - Landing page with feed-finding tips.
