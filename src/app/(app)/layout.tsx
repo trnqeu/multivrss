@@ -1,5 +1,6 @@
 import Sidebar from '@/components/Sidebar';
 import SidebarContainer from '@/components/SidebarContainer';
+import MobileShell from '@/components/MobileShell';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
@@ -7,7 +8,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarContainer>
                 <Sidebar />
             </SidebarContainer>
-            {children}
+            <MobileShell>
+                {children}
+            </MobileShell>
         </div>
     );
 }

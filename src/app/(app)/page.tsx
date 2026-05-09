@@ -4,7 +4,7 @@ import AddFeedForm from "@/components/AddFeedForm";
 import { connection } from 'next/server';
 import SearchBar from "@/components/SearchBar";
 import SyncButton from "@/components/SyncButton";
-
+import MobileCategoryStrip from '@/components/MobileCategoryStrip';
 
 
 export default async function Home() {
@@ -28,6 +28,7 @@ export default async function Home() {
             <SyncButton />
           </div>
         </header>
+        <MobileCategoryStrip categories={categories} />
 
         <SearchBar />
 

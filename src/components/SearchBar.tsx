@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const HL_PRE = '<<HL>>';
 const HL_POST = '<</HL>>';
@@ -54,8 +55,10 @@ function loadRecentSearches(): string[] {
 }
 
 export default function SearchBar() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
     const [query, setQuery] = useState('');
-    const [cat, setCat] = useState('ALL');
     const [since, setSince] = useState<string | undefined>(undefined);
     const [focused, setFocused] = useState(false);
     const [recent, setRecent] = useState<string[]>(loadRecentSearches);
@@ -63,6 +66,16 @@ export default function SearchBar() {
     const [response, setResponse] = useState<SearchResult | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // cat is derived from URL — single source of truth shared with MobileCategoryStrip
+    const cat = searchParams.get('cat') ?? 'ALL';
+
+    function selectCat(name: string) {
+        const next = new URLSearchParams(searchParams.toString());
+        if (name === 'ALL') next.delete('cat');
+        else next.set('cat', name);
+        router.replace(`?${next}`);
+    }
 
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
@@ -72,12 +85,13 @@ export default function SearchBar() {
             }
             if (e.key === 'Escape' && document.activeElement === inputRef.current) {
                 setQuery('');
-                setCat('ALL');
+                selectCat('ALL');
                 inputRef.current?.blur();
             }
         }
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const doFetch = useCallback(async (q: string, category: string, sinceVal?: string) => {
@@ -130,10 +144,10 @@ export default function SearchBar() {
                         {'FILTER_BY //'}
                     </span>
                     <button
-                        onClick={() => setCat('ALL')}
+                        onClick={() => selectCat('ALL')}
                         className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${cat === 'ALL'
-                                ? 'bg-terracotta text-background border-terracotta'
-                                : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
+                            ? 'bg-terracotta text-background border-terracotta'
+                            : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
                             }`}
                     >
                         {`ALL ${String(baseFacets.total).padStart(2, '0')}`}
@@ -141,10 +155,10 @@ export default function SearchBar() {
                     {categories.map(([name, count]) => (
                         <button
                             key={name}
-                            onClick={() => setCat(prev => prev === name ? 'ALL' : name)}
+                            onClick={() => selectCat(cat === name ? 'ALL' : name)}
                             className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${cat === name
-                                    ? 'bg-terracotta text-background border-terracotta'
-                                    : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
+                                ? 'bg-terracotta text-background border-terracotta'
+                                : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
                                 }`}
                         >
                             {`${name} ${String(count).padStart(2, '0')}`}
@@ -164,8 +178,8 @@ export default function SearchBar() {
                                 key={label}
                                 onClick={() => setSince(prev => prev === val ? undefined : val)}
                                 className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-2 shrink-0 transition-colors ${since === val
-                                        ? 'bg-terracotta text-background border-terracotta'
-                                        : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
+                                    ? 'bg-terracotta text-background border-terracotta'
+                                    : 'border-foreground text-foreground hover:border-terracotta hover:text-terracotta'
                                     }`}
                             >
                                 {label}
@@ -173,7 +187,6 @@ export default function SearchBar() {
                         );
                     })}
                 </div>
-
 
                 {/* Row 2: Input */}
                 <div className="flex items-stretch border-b-2 border-foreground">
@@ -193,7 +206,7 @@ export default function SearchBar() {
                     <div className="flex items-stretch border-l-2 border-foreground">
                         {query && (
                             <button
-                                onMouseDown={e => { e.preventDefault(); setQuery(''); setCat('ALL'); setSince(undefined); }}
+                                onMouseDown={e => { e.preventDefault(); setQuery(''); selectCat('ALL'); setSince(undefined); }}
                                 className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest hover:text-terracotta transition-colors border-r-2 border-foreground"
                             >
                                 CLEAR
