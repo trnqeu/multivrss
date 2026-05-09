@@ -172,6 +172,50 @@ export async function renameFeedSource(sourceId: string, newTitle: string): Prom
     }
 }
 
+export async function renameCategory(categoryId: string, newName: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const trimmed = newName.trim().toUpperCase();
+    if (!trimmed) return { success: false, message: "Name cannot be empty." };
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Ownership check on the source category
+            const source = await tx.category.findFirst({
+                where: { id: categoryId, userId: session.user.id },
+            });
+            if (!source) throw new Error("Not authorized.");
+
+            // Check if target name already exists for this user
+            const target = await tx.category.findUnique({
+                where: { userId_name: { userId: session.user.id, name: trimmed } },
+            });
+
+            if (target) {
+                // Merge: move all sources to the existing category, then delete this one
+                await tx.feedSource.updateMany({
+                    where: { categoryId },
+                    data: { categoryId: target.id },
+                });
+                await tx.category.delete({ where: { id: categoryId } });
+            } else {
+                // Simple rename
+                await tx.category.update({
+                    where: { id: categoryId },
+                    data: { name: trimmed },
+                });
+            }
+        });
+
+        revalidatePath("/");
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed. Some sources may already exist in the target category." };
+    }
+}
+
+
 export async function requestPasswordReset(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const email = formData.get("email") as string;
     if (!email) return { success: false, message: "Email is required." };
