@@ -20,13 +20,6 @@ export default async function Sidebar() {
 
     return (
         <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
-            {/* System Brand / Logo Area */}
-            <div className="p-8 border-b-2 border-foreground">
-                <h1 className="!text-xl tracking-[0.2em] !text-terracotta">
-                    <Link href="/">MULTIVRSS</Link>
-                </h1>
-            </div>
-
             <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
                 {/* Main Navigation */}
                 <div className="flex flex-col gap-4">
