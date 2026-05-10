@@ -6,33 +6,36 @@ import type { Category } from "@prisma/client";
 
 interface AddFeedFormProps {
     categories: Category[];
+    alwaysOpen?: boolean;
 }
 
 const initialState: ActionState = {
     success: false,
 };
 
-export default function AddFeedForm({ categories }: AddFeedFormProps) {
-    const [open, setOpen] = useState(false);
+export default function AddFeedForm({ categories, alwaysOpen }: AddFeedFormProps) {
+    const [open, setOpen] = useState(alwaysOpen ?? false);
     const [state, formAction, isPending] = useActionState(createFeedSource, initialState);
 
     return (
         <div className="border-b-2 border-foreground bg-background">
             {/* Toggle bar */}
-            <button
-                type="button"
-                onClick={() => setOpen((v) => !v)}
-                className="w-full flex items-center justify-between px-8 py-4 hover:bg-foreground hover:text-background transition-all group"
-            >
-                <span className="label-system font-bold text-[11px] tracking-widest">
-                    {open ? "CLOSE_FORM ×" : "ADD_SOURCE +"}
-                </span>
-                <span className="label-system text-[10px] opacity-40 group-hover:opacity-100">
-                    {open ? "COLLAPSE" : "EXPAND"}
-                </span>
-            </button>
+            {!alwaysOpen && (
+                <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    className="w-full flex items-center justify-between px-8 py-4 hover:bg-foreground hover:text-background transition-all group"
+                >
+                    <span className="label-system font-bold text-[11px] tracking-widest">
+                        {open ? "CLOSE_FORM ×" : "ADD_SOURCE +"}
+                    </span>
+                    <span className="label-system text-[10px] opacity-40 group-hover:opacity-100">
+                        {open ? "COLLAPSE" : "EXPAND"}
+                    </span>
+                </button>
+            )}
 
-            {open && (
+            {(open || alwaysOpen) && (
             <div className="p-8 relative overflow-hidden border-t-2 border-foreground">
             {/* Structural Accent Line */}
             <div className="absolute top-0 left-0 w-12 h-[4px] bg-foreground"></div>

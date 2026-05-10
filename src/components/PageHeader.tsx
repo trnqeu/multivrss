@@ -1,0 +1,136 @@
+'use client';
+
+import { useRef, useEffect, useState, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { syncAllFeeds } from '@/app/actions';
+import AddFeedForm from './AddFeedForm';
+import type { Category } from '@prisma/client';
+
+type Props = {
+    title: string;
+    count?: number;
+    categories: Category[];
+};
+
+export default function PageHeader({ title, count, categories }: Props) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [inputValue, setInputValue] = useState(searchParams.get('q') ?? '');
+    const [showAdd, setShowAdd] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [syncPending, startSync] = useTransition();
+
+    function handleSync() {
+        startSync(async () => { await syncAllFeeds(); });
+    }
+
+    useEffect(() => {
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.key === '/' && document.activeElement !== inputRef.current) {
+                e.preventDefault();
+                inputRef.current?.focus();
+            }
+            if (e.key === 'Escape' && document.activeElement === inputRef.current) {
+                setInputValue('');
+                pushQuery('');
+                inputRef.current?.blur();
+            }
+        }
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    function pushQuery(q: string) {
+        const next = new URLSearchParams(searchParams.toString());
+        if (q) next.set('q', q); else next.delete('q');
+        router.replace(`?${next}`, { scroll: false });
+    }
+
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const val = e.target.value;
+        setInputValue(val);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => pushQuery(val), 120);
+    }
+
+    return (
+        <>
+            <header className="flex items-center gap-6 px-7 h-14 border-b-2 border-foreground bg-background shrink-0">
+                {/* Title */}
+                <div className="flex items-baseline gap-2 shrink-0">
+                    <span className="text-[13px] font-extrabold uppercase tracking-[0.22em]">
+                        {title}
+                    </span>
+                    {count !== undefined && (
+                        <span className="text-[13px] font-extrabold uppercase tracking-[0.22em] opacity-40">
+                            {count}
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex-1" />
+
+                {/* Search input */}
+                <div className="flex items-center min-w-[280px] h-8 px-3 border border-foreground/20">
+                    <span className="text-terracotta text-[10px] font-bold shrink-0 select-none mr-2">Q</span>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={inputValue}
+                        onChange={handleChange}
+                        placeholder="filter the stream..."
+                        className="flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none appearance-none shadow-none"
+                    />
+                    {inputValue && (
+                        <button
+                            onMouseDown={e => { e.preventDefault(); setInputValue(''); pushQuery(''); }}
+                            className="bg-transparent border-none p-0 text-foreground/40 hover:text-foreground hover:bg-transparent text-[10px] leading-none"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
+
+                {/* + Source */}
+                <button
+                    onClick={() => setShowAdd(true)}
+                    className="bg-transparent text-foreground text-[10px] shrink-0 border border-foreground/30 px-3 py-1 hover:border-foreground hover:bg-transparent transition-colors normal-case tracking-widest"
+                >
+                    + SOURCE
+                </button>
+
+                {/* ↻ Sync */}
+                <button
+                    onClick={handleSync}
+                    disabled={syncPending}
+                    className="bg-transparent border-none p-0 text-terracotta shrink-0 hover:bg-transparent normal-case tracking-widest disabled:opacity-40"
+                >
+                    {syncPending ? 'SYNCING...' : '↻ SYNC'}
+                </button>
+            </header>
+
+            {/* Add feed modal */}
+            {showAdd && (
+                <div
+                    className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center pt-20"
+                    onClick={e => { if (e.target === e.currentTarget) setShowAdd(false); }}
+                >
+                    <div className="w-full max-w-2xl border-2 border-foreground bg-background">
+                        <div className="flex items-center h-12 border-b-2 border-foreground shrink-0">
+                            <button
+                                onClick={() => setShowAdd(false)}
+                                className="px-5 h-full border-r-2 border-foreground text-[11px] font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
+                            >
+                                ✕ CLOSE
+                            </button>
+                            <span className="px-5 label-system text-terracotta">ADD FEED</span>
+                        </div>
+                        <AddFeedForm categories={categories} alwaysOpen />
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
