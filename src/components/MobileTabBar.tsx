@@ -10,8 +10,6 @@ const TABS = [
     { id: 'me',     label: 'ME',     href: null },
 ] as const;
 
-type TabId = typeof TABS[number]['id'];
-
 type Props = {
     onAdd: () => void;
     onMe: () => void;
@@ -34,7 +32,7 @@ export default function MobileTabBar({ onAdd, onMe }: Props) {
     }
 
     return (
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-background border-t-2 border-foreground flex z-50">
+        <nav className="md:hidden h-16 shrink-0 bg-background border-t-2 border-foreground flex z-50">
             {TABS.map((tab) => {
                 const active = isActive(tab);
                 return (

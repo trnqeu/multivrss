@@ -9,7 +9,7 @@ export default async function Home() {
 
     return (
         <>
-            <PageHeader title="RIVER" categories={categories} />
+            <PageHeader categories={categories} />
             <main className="flex-1 min-h-0 overflow-y-auto scroll-smooth bg-background">
                 <SearchBar />
             </main>

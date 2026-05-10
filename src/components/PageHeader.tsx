@@ -9,14 +9,12 @@ import { useMobileSidebar } from './MobileSidebarContext';
 import type { Category } from '@prisma/client';
 
 type Props = {
-    title: string;
-    count?: number;
     categories: Category[];
 };
 
 const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none appearance-none shadow-none";
 
-export default function PageHeader({ title, count, categories }: Props) {
+export default function PageHeader({ categories }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -67,16 +65,14 @@ export default function PageHeader({ title, count, categories }: Props) {
         pushQuery('');
     }
 
-    function ClearButton() {
-        return (
-            <button
-                onMouseDown={e => { e.preventDefault(); setInputValue(''); pushQuery(''); }}
-                className="bg-transparent border-none p-0 text-foreground/40 hover:text-foreground hover:bg-transparent text-[10px] leading-none"
-            >
-                ✕
-            </button>
-        );
-    }
+    const clearBtn = (
+        <button
+            onMouseDown={e => { e.preventDefault(); setInputValue(''); pushQuery(''); }}
+            className="bg-transparent border-none p-0 text-foreground/40 hover:text-foreground hover:bg-transparent text-[10px] leading-none"
+        >
+            ✕
+        </button>
+    );
 
     return (
         <>
@@ -141,7 +137,7 @@ export default function PageHeader({ title, count, categories }: Props) {
                                 placeholder="filter the stream..."
                                 className={INPUT_CLASS}
                             />
-                            {inputValue && <ClearButton />}
+                            {inputValue && clearBtn}
                         </div>
                     </div>
                 )}
@@ -164,7 +160,7 @@ export default function PageHeader({ title, count, categories }: Props) {
                         placeholder="filter the stream..."
                         className={INPUT_CLASS}
                     />
-                    {inputValue && <ClearButton />}
+                    {inputValue && clearBtn}
                 </div>
 
                 <button
