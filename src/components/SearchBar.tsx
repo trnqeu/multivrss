@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 const HL_PRE = '<<HL>>';
@@ -53,23 +53,23 @@ export default function SearchBar() {
     const [baseFacets, setBaseFacets] = useState<{ total: number }>({ total: 0 });
     const [response, setResponse] = useState<SearchResult | null>(null);
 
-    const doFetch = useCallback(async (q: string, category: string) => {
-        const baseParams = new URLSearchParams({ q, limit: '0' });
-        const baseRes = await fetch(`/api/search?${baseParams}`);
-        if (baseRes.ok) {
-            const base: SearchResult = await baseRes.json();
-            setBaseFacets({ total: base.estimatedTotalHits });
-        }
-
-        const resultParams = new URLSearchParams({ q });
-        if (category !== 'ALL') resultParams.set('cat', category);
-        const res = await fetch(`/api/search?${resultParams}`);
-        if (res.ok) setResponse(await res.json());
-    }, []);
-
     useEffect(() => {
-        doFetch(query, cat);
-    }, [query, cat, doFetch]);
+        let cancelled = false;
+        async function run() {
+            const baseParams = new URLSearchParams({ q: query, limit: '0' });
+            const baseRes = await fetch(`/api/search?${baseParams}`);
+            if (!cancelled && baseRes.ok) {
+                const base: SearchResult = await baseRes.json();
+                setBaseFacets({ total: base.estimatedTotalHits });
+            }
+            const resultParams = new URLSearchParams({ q: query });
+            if (cat !== 'ALL') resultParams.set('cat', cat);
+            const res = await fetch(`/api/search?${resultParams}`);
+            if (!cancelled && res.ok) setResponse(await res.json());
+        }
+        void run();
+        return () => { cancelled = true; };
+    }, [query, cat]);
 
     const hits = response?.hits ?? [];
     const timeMs = response?.processingTimeMs ?? 0;
