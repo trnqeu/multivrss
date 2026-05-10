@@ -50,17 +50,19 @@ hr {
 }
 
 /* Integrated Furniture - Sharp Edges */
-button, input, select, textarea {
-  @apply rounded-none border-foreground border-2 outline-none bg-background text-foreground transition-all;
-  font-family: var(--font-sans);
-}
+@layer base {
+  button, input, select, textarea {
+    @apply rounded-none border-foreground border-2 outline-none bg-background text-foreground transition-all;
+    font-family: var(--font-sans);
+  }
 
-button {
-  @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-foreground text-background hover:bg-background hover:text-foreground;
-}
+  button {
+    @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-foreground text-background hover:bg-background hover:text-foreground;
+  }
 
-input, select {
-  @apply px-4 py-3 text-sm;
+  input, select {
+    @apply px-4 py-3 text-sm;
+  }
 }
 
 /* Defined Zones */
