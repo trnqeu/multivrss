@@ -47,7 +47,7 @@ export default function AddFeedForm({ categories, alwaysOpen }: AddFeedFormProps
             <form action={formAction} className="flex flex-col gap-8">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
                     {/* URL Input */}
-                    <div className="md:col-span-5 flex flex-col gap-3">
+                    <div className="md:col-span-4 flex flex-col gap-3">
                         <label className="label-system text-foreground font-bold">RSS_FEED_URL</label>
                         <input
                             name="url"
@@ -78,7 +78,7 @@ export default function AddFeedForm({ categories, alwaysOpen }: AddFeedFormProps
                     </div>
 
                     {/* Submit button with pending state */}
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-4">
                         <button
                             type="submit"
                             disabled={isPending}

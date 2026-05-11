@@ -13,7 +13,9 @@ import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 
 
-const parser = new Parser();
+const parser = new Parser({
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
+});
 
 // Type to handle the Form feedback
 export type ActionState = {

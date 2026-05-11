@@ -1,7 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+
+function dayBucket(pubDate: number | null): string {
+    if (!pubDate) return '';
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+    }).format(new Date(pubDate)).toUpperCase();
+}
 
 const HL_PRE = '<<HL>>';
 const HL_POST = '<</HL>>';
@@ -51,10 +59,15 @@ export default function SearchBar() {
     const cat = searchParams.get('cat') ?? 'ALL';
 
     const [baseFacets, setBaseFacets] = useState<{ total: number }>({ total: 0 });
-    const [response, setResponse] = useState<SearchResult | null>(null);
+    const [allHits, setAllHits] = useState<SearchHit[]>([]);
+    const [totalHits, setTotalHits] = useState(0);
+    const [timeMs, setTimeMs] = useState(0);
+    const [offset, setOffset] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         let cancelled = false;
+        setLoading(true);
         async function run() {
             const baseParams = new URLSearchParams({ q: query, limit: '0' });
             const baseRes = await fetch(`/api/search?${baseParams}`);
@@ -62,17 +75,37 @@ export default function SearchBar() {
                 const base: SearchResult = await baseRes.json();
                 setBaseFacets({ total: base.estimatedTotalHits });
             }
-            const resultParams = new URLSearchParams({ q: query });
+            const resultParams = new URLSearchParams({ q: query, offset: '0' });
             if (cat !== 'ALL') resultParams.set('cat', cat);
             const res = await fetch(`/api/search?${resultParams}`);
-            if (!cancelled && res.ok) setResponse(await res.json());
+            if (!cancelled && res.ok) {
+                const data: SearchResult = await res.json();
+                setAllHits(data.hits);
+                setTotalHits(data.estimatedTotalHits);
+                setTimeMs(data.processingTimeMs);
+                setOffset(data.hits.length);
+            }
+            if (!cancelled) setLoading(false);
         }
         void run();
         return () => { cancelled = true; };
     }, [query, cat]);
 
-    const hits = response?.hits ?? [];
-    const timeMs = response?.processingTimeMs ?? 0;
+    async function loadMore() {
+        setLoading(true);
+        const resultParams = new URLSearchParams({ q: query, offset: String(offset) });
+        if (cat !== 'ALL') resultParams.set('cat', cat);
+        const res = await fetch(`/api/search?${resultParams}`);
+        if (res.ok) {
+            const data: SearchResult = await res.json();
+            setAllHits(prev => [...prev, ...data.hits]);
+            setOffset(prev => prev + data.hits.length);
+            setTimeMs(data.processingTimeMs);
+        }
+        setLoading(false);
+    }
+
+    const hits = allHits;
     const activeFilter = cat !== 'ALL' ? `cat="${cat}"` : '*';
 
     return (
@@ -100,57 +133,87 @@ export default function SearchBar() {
 
             {/* Results river */}
             <section className="p-8 md:p-12">
-                {response === null ? (
+                {loading && allHits.length === 0 ? (
                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">
                         LOADING...
                     </p>
-                ) : hits.length === 0 ? (
+                ) : !loading && allHits.length === 0 ? (
                     <p className="text-[10px] font-bold uppercase tracking-widest italic text-foreground/50">
                         NULL_SET // NO_RESULTS
                     </p>
                 ) : (
-                    <p className="leading-relaxed text-sm text-foreground font-medium">
-                        {hits.map((item, index) => (
-                            <span key={item.id}>
-                                <a
-                                    href={item.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:text-terracotta transition-colors"
-                                >
-                                    {item.sourceTitle && (
-                                        <>
-                                            <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
-                                                {item.sourceTitle}
+                    <div className="leading-relaxed text-sm text-foreground font-medium">
+                        {hits.map((item, index) => {
+                            const currentDay = dayBucket(item.pubDate);
+                            const prevDay    = index > 0 ? dayBucket(hits[index - 1].pubDate) : null;
+                            const nextDay    = index < hits.length - 1 ? dayBucket(hits[index + 1].pubDate) : null;
+                            const isNewDay   = currentDay !== prevDay;
+                            const suppressSeparator = index === hits.length - 1 || currentDay !== nextDay;
+
+                            return (
+                                <Fragment key={item.id}>
+                                    {isNewDay && currentDay && (
+                                        <div className={`flex items-center gap-3 mb-[22px] ${index === 0 ? 'mt-4' : 'mt-8'}`}>
+                                            <span className="text-[9.5px] font-extrabold tracking-[0.32em] text-terracotta shrink-0">
+                                                — {currentDay}
+                                            </span>
+                                            <span className="flex-1 h-px bg-terracotta/35" />
+                                            <span className="text-[9px] text-white/35">→</span>
+                                        </div>
+                                    )}
+                                    <span>
+                                        <a
+                                            href={item.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-terracotta transition-colors"
+                                        >
+                                            {item.sourceTitle && (
+                                                <>
+                                                    <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
+                                                        {item.sourceTitle}
+                                                    </span>
+                                                    <span className="text-foreground/40 mx-2">{'·'}</span>
+                                                </>
+                                            )}
+                                            <span className="text-foreground/50 text-xs">
+                                                {item.pubDate
+                                                    ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                                    : '---'}
                                             </span>
                                             <span className="text-foreground/40 mx-2">{'·'}</span>
-                                        </>
-                                    )}
-                                    <span className="text-foreground/50 text-xs">
-                                        {item.pubDate
-                                            ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                            : '---'}
+                                            <Highlight text={item._formatted?.title ?? item.title} />
+                                            {(item._formatted?.content ?? item.content) && (
+                                                <>
+                                                    <span className="text-foreground/40 mx-2">{'—'}</span>
+                                                    <span className="text-foreground/50 text-xs font-normal">
+                                                        <Highlight
+                                                            text={item._formatted?.content ?? item.content ?? ''}
+                                                            markClass="underline decoration-terracotta"
+                                                        />
+                                                    </span>
+                                                </>
+                                            )}
+                                        </a>
+                                        {!suppressSeparator && (
+                                            <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>
+                                        )}
                                     </span>
-                                    <span className="text-foreground/40 mx-2">{'·'}</span>
-                                    <Highlight text={item._formatted?.title ?? item.title} />
-                                    {(item._formatted?.content ?? item.content) && (
-                                        <>
-                                            <span className="text-foreground/40 mx-2">{'—'}</span>
-                                            <span className="text-foreground/50 text-xs font-normal">
-                                                <Highlight
-                                                    text={item._formatted?.content ?? item.content ?? ''}
-                                                    markClass="underline decoration-terracotta"
-                                                />
-                                            </span>
-                                        </>
-                                    )}
-                                </a>
-                                {index < hits.length - 1 && (
-                                    <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>
-                                )}
-                            </span>
-                        ))}
-                    </p>
+                                </Fragment>
+                            );
+                        })}
+                    </div>
+                )}
+                {allHits.length > 0 && allHits.length < totalHits && (
+                    <div className="mt-8 pt-6 border-t border-foreground/20">
+                        <button
+                            onClick={loadMore}
+                            disabled={loading}
+                            className="bg-background label-system text-foreground/60 hover:text-foreground disabled:opacity-30 border border-foreground/30 px-4 py-2 hover:border-foreground transition-colors"
+                        >
+                            {loading ? 'LOADING...' : `LOAD MORE — ${totalHits - allHits.length} REMAINING`}
+                        </button>
+                    </div>
                 )}
             </section>
         </div>

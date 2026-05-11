@@ -15,9 +15,10 @@ export async function GET(request: NextRequest) {
     const cat = params.get("cat") ?? undefined;
     const since = params.get("since") ?? undefined;
     const limit = Math.min(parseInt(params.get("limit") ?? "30", 10), 200);
+    const offset = Math.max(0, parseInt(params.get("offset") ?? "0", 10));
 
     try {
-        const result = await searchFeedItemsForUser(session.user.id, q, cat, since, limit);
+        const result = await searchFeedItemsForUser(session.user.id, q, cat, since, limit, offset);
         return Response.json(result);
     } catch (err) {
         console.error("[search] Meilisearch error:", err);

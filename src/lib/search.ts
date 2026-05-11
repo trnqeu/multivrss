@@ -31,6 +31,7 @@ export async function searchFeedItemsForUser(
     cat?: string,
     since?: string,
     limit = 30,
+    offset = 0,
 ): Promise<SearchResult> {
     await configureMeiliIndex();
 
@@ -66,6 +67,7 @@ export async function searchFeedItemsForUser(
 
     const results = await meili.index("items").search(query, {
         limit: Math.min(limit, 200),
+        offset,
         filter,
         sort: ["pubDate:desc"],
         facets: ["categoryName", "sourceTitle"],
