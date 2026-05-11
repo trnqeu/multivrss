@@ -67,8 +67,8 @@ export default function SearchBar() {
 
     useEffect(() => {
         let cancelled = false;
-        setLoading(true);
         async function run() {
+            setLoading(true);
             const baseParams = new URLSearchParams({ q: query, limit: '0' });
             const baseRes = await fetch(`/api/search?${baseParams}`);
             if (!cancelled && baseRes.ok) {
