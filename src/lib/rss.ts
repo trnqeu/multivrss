@@ -23,7 +23,9 @@ export async function validateFeedUrl(rawUrl: string): Promise<void> {
   }
 }
 
-const parser = new Parser();
+const parser = new Parser({
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
+});
 
 export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
 
