@@ -1,5 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST, configureMeiliIndex } from "@/lib/meili";
+import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST } from "@/lib/meili";
+import { cacheLife, cacheTag } from 'next/cache';
+
+async function getSourcesForUser(userId: string) {
+    'use cache';
+    cacheLife('minutes');
+    cacheTag(`sources:${userId}`);
+    return prisma.feedSource.findMany({
+        where: { category: { userId } },
+        select: { id: true, category: { select: { name: true } } },
+    });
+}
 
 export { HIGHLIGHT_PRE, HIGHLIGHT_POST };
 
@@ -32,13 +43,9 @@ export async function searchFeedItemsForUser(
     since?: string,
     limit = 30,
     offset = 0,
+    sourceId?: string,
 ): Promise<SearchResult> {
-    await configureMeiliIndex();
-
-    const sources = await prisma.feedSource.findMany({
-        where: { category: { userId } },
-        select: { id: true, category: { select: { name: true } } },
-    });
+    const sources = await getSourcesForUser(userId);
 
     if (sources.length === 0) {
         return { hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null };
@@ -50,6 +57,7 @@ export async function searchFeedItemsForUser(
 
     const ownershipFilter = sources.map((s) => `sourceId = "${s.id}"`).join(" OR ");
     const filter: string[] = [`(${ownershipFilter})`];
+
     if (since) {
         const now = Date.now();
         const sinceMap: Record<string, number> = {
@@ -63,6 +71,10 @@ export async function searchFeedItemsForUser(
 
     if (resolvedCat) {
         filter.push(`categoryName = "${resolvedCat}"`);
+    }
+
+    if (sourceId) {
+        filter.push(`sourceId = "${sourceId}"`);
     }
 
     const results = await meili.index("items").search(query, {
