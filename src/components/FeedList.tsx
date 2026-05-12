@@ -1,13 +1,13 @@
-import { prisma } from '@/lib/prisma';
+import { searchFeedItemsForUser } from '@/lib/search';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import FeedItem from '@/components/FeedItem';
 import { Fragment } from 'react';
-
+import { cacheLife, cacheTag } from 'next/cache';
 
 interface FeedListProps {
     sourceId?: string;
-    categoryId?: string;
+    categoryName?: string;
 }
 
 function dayBucket(date: Date | null): string {
@@ -19,19 +19,32 @@ function dayBucket(date: Date | null): string {
     }).format(date).toUpperCase();
 }
 
-export default async function FeedList({ sourceId, categoryId }: FeedListProps) {
-    const session = await getServerSession(authOptions);
-    const userId = session?.user.id;
-    const items = await prisma.feedItem.findMany({
-        where: sourceId
-            ? { sourceId, source: { category: { userId } } }
-            : categoryId
-                ? { source: { categoryId, category: { userId } } }
-                : { source: { category: { userId } } },
-        take: 100,
-        orderBy: { pubDate: { sort: 'desc', nulls: 'last' } },
-        include: { source: true }
-    });
+async function CachedFeedContent({
+    userId, sourceId, categoryName,
+}: { userId: string; sourceId?: string; categoryName?: string }) {
+    'use cache';
+    cacheLife('seconds');
+    cacheTag(`feed:${userId}`);
+
+    const result = await searchFeedItemsForUser(
+        userId,
+        '',
+        categoryName,
+        undefined,
+        100,
+        0,
+        sourceId,
+    );
+
+    const items = result.hits.map(hit => ({
+        id: hit.id,
+        title: hit.title,
+        link: hit.link,
+        content: hit.content ?? null,
+        pubDate: hit.pubDate ? new Date(hit.pubDate) : null,
+        read: false,
+        source: { title: hit.sourceTitle ?? null },
+    }));
 
     if (items.length === 0) {
         return (
@@ -69,4 +82,14 @@ export default async function FeedList({ sourceId, categoryId }: FeedListProps) 
             </div>
         </section>
     );
+}
+
+export default async function FeedList({ sourceId, categoryName }: FeedListProps) {
+    const session = await getServerSession(authOptions);
+    if (!session) return null;
+    return <CachedFeedContent
+        userId={session.user.id}
+        sourceId={sourceId}
+        categoryName={categoryName}
+    />;
 }

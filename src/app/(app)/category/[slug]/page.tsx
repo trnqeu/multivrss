@@ -50,7 +50,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     </div>
                 </header>
 
-                <FeedList categoryId={category.id} />
+                <FeedList categoryName={category.name} />
             </main>
     );
 }
