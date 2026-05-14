@@ -92,6 +92,7 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [ ] **Export feeds as CSV** — download all feed sources for the logged-in user
 - [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start? Let's add some MultivRSS favourite feeds." screen. They pick one or more interest categories (e.g. News, Tech, Sports, Mind, Art, Literature) and the app auto-creates those categories in their account and populates them with a curated seed list of feeds maintained by MultivRSS. Users can remove or edit anything afterwards. Seed list lives in `notes.md`.
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
+- [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI, covering sites that don't offer RSS natively
 - [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance: full keyboard navigation, semantic HTML, ARIA labels on all interactive elements, sufficient color contrast ratios, screen reader support, focus-visible outlines
 
 ### Monetization
@@ -106,6 +107,7 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [ ] **CDN + security** — Bunny CDN + Bunny Shield in front of the VPS: cache static assets and public pages only, WAF (OWASP Top 10), DDoS protection, bot mitigation, and rate limiting — all upstream before traffic reaches the server. Never cache authenticated dashboard traffic to avoid session data leaks. Free tier covers the basics; Advanced ($9.5/mo) adds complex bot mitigation and AI WAF. Fail2ban on the VPS as a last line of defense.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban as last-resort IP banning at VPS level
 - [ ] **OWASP secure development** — apply OWASP Top 10 mitigations across every feature: input validation at all boundaries, parameterized queries only, CSRF protection on all mutations, `Content-Security-Policy` header, dependency audit (`npm audit`) in CI, secrets never in code or logs
+- [ ] **Reader mode** — extract full article content from saved URLs via `@mozilla/readability` + `jsdom`; apply `validateFeedUrl()` validation before fetching; integrate in the "save external URL" flow
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
 - [ ] **Database backups** — set up periodic automated `pg_dump` backups; evaluate one of: Hetzner Storage Box (SFTP/rsync, cheap, same infra), Backblaze B2, or Cloudflare R2 (S3-compatible object storage, near-zero cost at small scale, geo-separated from Hetzner)

@@ -314,6 +314,7 @@ Near-term:
 - Export feeds as CSV.
 - Add onboarding interest picker using curated seeds from `notes.md`.
 - Add RSS feed creator for sites without feeds.
+- Integrate RSSHub (https://docs.rsshub.app/) to generate RSS feeds for sites that don't offer them natively — allow users to subscribe to RSSHub routes directly from the add-feed UI.
 - Improve accessibility toward WCAG 2.1 AA.
 
 Optional / future:
@@ -326,6 +327,8 @@ Business/infrastructure:
 - Freemium limits and Pro plan.
 - Ads only on public profiles, never private dashboard.
 - Staging protection, CDN/security, server hardening, OWASP practices, backups.
+- AI agent integration — TBD.
+- Vector database — TBD.
 
 ## Docker, Dev, Staging, And Deploy
 
