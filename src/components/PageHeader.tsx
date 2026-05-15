@@ -181,25 +181,11 @@ export default function PageHeader({ categories }: Props) {
             </header>
 
             {/* Add feed modal */}
-            {showAdd && (
-                <div
-                    className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center pt-20 px-4"
-                    onClick={e => { if (e.target === e.currentTarget) setShowAdd(false); }}
-                >
-                    <div className="w-full max-w-2xl border-2 border-foreground bg-background">
-                        <div className="flex items-center h-12 border-b-2 border-foreground shrink-0">
-                            <button
-                                onClick={() => setShowAdd(false)}
-                                className="px-5 h-full border-r-2 border-foreground text-[11px] font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
-                            >
-                                ✕ CLOSE
-                            </button>
-                            <span className="px-5 label-system text-terracotta">ADD FEED</span>
-                        </div>
-                        <AddFeedForm categories={categories} alwaysOpen />
-                    </div>
-                </div>
-            )}
+            <AddFeedForm
+                categories={categories}
+                open={showAdd}
+                onClose={() => setShowAdd(false)}
+            />
         </>
     );
 }

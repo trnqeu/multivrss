@@ -1,117 +1,276 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect, useRef, useCallback } from "react";
 import { createFeedSource, ActionState } from "@/app/actions";
 import type { Category } from "@prisma/client";
 
-interface AddFeedFormProps {
+interface Props {
     categories: Category[];
-    alwaysOpen?: boolean;
+    open: boolean;
+    onClose: () => void;
 }
 
-const initialState: ActionState = {
-    success: false,
-};
+const initialState: ActionState = { success: false };
+const URL_REGEX = /^https?:\/\/.+\..+/;
 
-export default function AddFeedForm({ categories, alwaysOpen }: AddFeedFormProps) {
-    const [open, setOpen] = useState(alwaysOpen ?? false);
+export default function AddFeedForm({ categories, open, onClose }: Props) {
     const [state, formAction, isPending] = useActionState(createFeedSource, initialState);
 
+    const [url, setUrl] = useState("");
+    const [pickedCategoryId, setPickedCategoryId] = useState("");
+    const [creatingNew, setCreatingNew] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState("");
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const newCatInputRef = useRef<HTMLInputElement>(null);
+
+    const resetForm = useCallback(() => {
+        setUrl("");
+        setPickedCategoryId("");
+        setCreatingNew(false);
+        setNewCategoryName("");
+        setDropdownOpen(false);
+    }, []);
+
+    // Close on success
+    useEffect(() => {
+        async function run() {
+            if (state?.success) {
+                onClose();
+                resetForm();
+            }
+        }
+        run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [state?.success]);
+
+    // Reset form fields when modal closes
+    useEffect(() => {
+        async function run() {
+            if (!open) resetForm();
+        }
+        run();
+    }, [open, resetForm]);
+
+    // ESC to dismiss
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+    }, [onClose]);
+
+    useEffect(() => {
+        if (!open) return;
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [open, handleKeyDown]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        if (!dropdownOpen) return;
+        function onOutside(e: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", onOutside);
+        return () => document.removeEventListener("mousedown", onOutside);
+    }, [dropdownOpen]);
+
+    // Autofocus when entering create-new mode
+    useEffect(() => {
+        if (creatingNew) newCatInputRef.current?.focus();
+    }, [creatingNew]);
+
+    if (!open) return null;
+
+    const urlTouched = url.length > 0;
+    const urlValid = URL_REGEX.test(url);
+    const categoryReady = creatingNew
+        ? newCategoryName.trim().length > 0
+        : pickedCategoryId !== "";
+    const canSubmit = urlValid && categoryReady && !isPending;
+
+    const pickedCategory = categories.find(c => c.id === pickedCategoryId);
+
     return (
-        <div className="border-b-2 border-foreground bg-background">
-            {/* Toggle bar */}
-            {!alwaysOpen && (
-                <button
-                    type="button"
-                    onClick={() => setOpen((v) => !v)}
-                    className="w-full flex items-center justify-between px-8 py-4 hover:bg-foreground hover:text-background transition-all group"
-                >
-                    <span className="label-system font-bold text-[11px] tracking-widest">
-                        {open ? "CLOSE_FORM ×" : "ADD_SOURCE +"}
-                    </span>
-                    <span className="label-system text-[10px] opacity-40 group-hover:opacity-100">
-                        {open ? "COLLAPSE" : "EXPAND"}
-                    </span>
-                </button>
-            )}
+        <div
+            className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+            style={{ backgroundColor: "rgba(0,0,0,0.70)" }}
+            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div className="w-full max-w-2xl border-2 border-foreground bg-background">
 
-            {(open || alwaysOpen) && (
-            <div className="p-8 relative overflow-hidden border-t-2 border-foreground">
-            {/* Structural Accent Line */}
-            <div className="absolute top-0 left-0 w-12 h-[4px] bg-foreground"></div>
+                {/* ── Header ── */}
+                <div className="flex items-center justify-between px-[22px] py-[22px] border-b-2 border-foreground">
+                    <div className="flex flex-col gap-1">
+                        <span className="label-system font-mono text-[10px] uppercase tracking-widest text-terracotta">
+                            NEW_SOURCE
+                        </span>
+                        <h2
+                            className="font-bold text-foreground text-[22px]"
+                            style={{ textTransform: "none", letterSpacing: "normal" }}
+                        >
+                            Add a feed to your stream
+                        </h2>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="w-9 h-9 flex items-center justify-center bg-transparent border border-white/40 text-foreground text-xl leading-none normal-case tracking-normal hover:border-foreground hover:bg-transparent transition-colors"
+                    >
+                        ×
+                    </button>
+                </div>
 
-            <h2 className="mb-8 text-terracotta font-bold">
-                Add New Feed Source
-            </h2>
+                {/* ── Body ── */}
+                <form action={formAction} className="px-[26px] pt-[26px] flex flex-col gap-[22px]">
+                    {/* Hidden fields for the server action — do not remove */}
+                    <input type="hidden" name="categoryId" value={creatingNew ? "" : pickedCategoryId} />
+                    <input type="hidden" name="newCategoryName" value={creatingNew ? newCategoryName : ""} />
 
-            <form action={formAction} className="flex flex-col gap-8">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-end">
-                    {/* URL Input */}
-                    <div className="md:col-span-4 flex flex-col gap-3">
-                        <label className="label-system text-foreground font-bold">RSS_FEED_URL</label>
+                    {/* Field 1 — Feed URL */}
+                    <div className="flex flex-col gap-2">
+                        <div className="label-system font-mono text-[10px] uppercase tracking-widest">
+                            <span className="text-terracotta">01</span>
+                            <span className="text-foreground">&nbsp;&nbsp;FEED URL</span>
+                        </div>
                         <input
                             name="url"
                             type="url"
+                            value={url}
+                            onChange={e => setUrl(e.target.value)}
                             placeholder="https://news.ycombinator.com/rss"
-                            className="p-4 bg-background border-2 border-foreground focus:ring-0 outline-none font-mono text-[13px] w-full text-foreground placeholder:text-foreground/20 transition-colors"
                             required
                             disabled={isPending}
+                            className={`w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 outline-none transition-colors ${
+                                urlTouched && urlValid ? "border-terracotta" : "border-foreground"
+                            }`}
                         />
+                        {urlTouched && urlValid && (
+                            <span className="font-mono text-[10px] text-white/55">
+                                {"✓ OK · WE'LL VALIDATE THE FEED ON SUBMIT"}
+                            </span>
+                        )}
+                        {urlTouched && !urlValid && (
+                            <span className="font-mono text-[10px] text-terracotta">
+                                ! NOT A VALID URL
+                            </span>
+                        )}
                     </div>
 
-                    {/* Category Dropdown */}
-                    <div className="md:col-span-4 flex flex-col gap-3">
-                        <label className="label-system text-foreground font-bold">CATEGORY_FOLDER</label>
-                        <div className="relative">
-                            <select
-                                name="categoryId"
-                                className="p-4 bg-background border-2 border-foreground focus:ring-0 outline-none w-full text-[13px] text-foreground appearance-none cursor-pointer transition-colors"
-                                disabled={isPending}
-                            >
-                                <option value="" className="bg-background text-foreground">Select a category...</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id} className="bg-background text-foreground">{cat.name}</option>
-                                ))}
-                            </select>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-foreground text-[10px]">▼</div>
+                    {/* Field 2 — Category (merged picker + create) */}
+                    <div className="flex flex-col gap-2">
+                        <div className="label-system font-mono text-[10px] uppercase tracking-widest">
+                            <span className="text-terracotta">02</span>
+                            <span className="text-foreground">&nbsp;&nbsp;CATEGORY</span>
                         </div>
+
+                        {creatingNew ? (
+                            /* Inline new-category editor */
+                            <div className="flex border-2 border-terracotta">
+                                <input
+                                    ref={newCatInputRef}
+                                    type="text"
+                                    value={newCategoryName}
+                                    onChange={e => setNewCategoryName(e.target.value.toUpperCase())}
+                                    placeholder="NEW CATEGORY NAME…"
+                                    disabled={isPending}
+                                    className="flex-1 px-4 py-3 bg-transparent border-none font-mono text-[13px] text-foreground placeholder:text-white/30 outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => { setCreatingNew(false); setNewCategoryName(""); }}
+                                    className="px-4 border-l-2 border-terracotta bg-transparent text-terracotta font-mono text-[11px] normal-case tracking-widest hover:bg-white/5 hover:text-terracotta transition-colors"
+                                >
+                                    ← BACK
+                                </button>
+                            </div>
+                        ) : (
+                            /* Picker trigger + dropdown */
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setDropdownOpen(v => !v)}
+                                    disabled={isPending}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-transparent border-2 border-foreground font-mono text-[13px] text-left normal-case tracking-normal hover:bg-white/5 hover:text-foreground transition-colors"
+                                >
+                                    <span className={pickedCategory ? "text-foreground" : "text-white/30"}>
+                                        {pickedCategory ? pickedCategory.name : "Select or create a category…"}
+                                    </span>
+                                    <span className="text-terracotta text-[11px] ml-2 shrink-0">▾</span>
+                                </button>
+
+                                {dropdownOpen && (
+                                    <div className="absolute left-0 right-0 top-full z-10 bg-background border-2 border-t-0 border-terracotta">
+                                        {categories.map((cat, i) => (
+                                            <button
+                                                key={cat.id}
+                                                type="button"
+                                                onClick={() => { setPickedCategoryId(cat.id); setDropdownOpen(false); }}
+                                                className={`w-full flex items-center px-4 py-3 font-mono text-[12px] uppercase font-bold tracking-widest text-left normal-case transition-colors hover:bg-white/5 ${
+                                                    i < categories.length - 1 ? "border-b border-white/10" : ""
+                                                } ${
+                                                    pickedCategoryId === cat.id
+                                                        ? "bg-[rgba(226,114,91,0.18)] text-foreground"
+                                                        : "bg-transparent text-foreground"
+                                                }`}
+                                            >
+                                                {cat.name}
+                                            </button>
+                                        ))}
+                                        {categories.length > 0 && (
+                                            <div className="border-t border-white/10" />
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => { setCreatingNew(true); setDropdownOpen(false); }}
+                                            className="w-full px-4 py-3 bg-terracotta text-background font-mono text-[12px] font-bold uppercase tracking-widest text-left normal-case hover:opacity-90 transition-opacity"
+                                        >
+                                            + CREATE NEW CATEGORY…
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {creatingNew && (
+                            <p className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
+                                SYSTEM_NOTE: All categories are normalized to uppercase.
+                            </p>
+                        )}
                     </div>
 
-                    {/* Submit button with pending state */}
-                    <div className="md:col-span-4">
+                    {/* Action error */}
+                    {state?.message && !state.success && (
+                        <p className="font-mono text-[11px] text-terracotta uppercase tracking-widest -mt-2">
+                            {state.message}
+                        </p>
+                    )}
+
+                    {/* ── Footer ── */}
+                    <div className="flex items-center justify-between py-5 -mx-[26px] px-[26px] border-t border-white/20">
+                        <div className="flex items-center gap-1 font-mono text-[10px] text-white/40 normal-case tracking-normal">
+                            <kbd className="border border-white/40 px-[5px] py-px text-[10px] font-mono normal-case">ESC</kbd>
+                            <span>CANCEL</span>
+                            <span className="mx-1">·</span>
+                            <kbd className="border border-white/40 px-[5px] py-px text-[10px] font-mono normal-case">↵</kbd>
+                            <span>SUBMIT</span>
+                        </div>
                         <button
                             type="submit"
-                            disabled={isPending}
-                            className="w-full p-4 bg-terracotta text-background font-bold hover:bg-background hover:text-terracotta border-2 border-terracotta transition-all duration-300 uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2"
+                            disabled={!canSubmit}
+                            className={`px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-widest border-2 transition-all ${
+                                canSubmit
+                                    ? "bg-terracotta text-background border-terracotta hover:bg-background hover:text-terracotta"
+                                    : "bg-[rgba(226,114,91,0.18)] text-white/30 border-[rgba(226,114,91,0.30)] cursor-not-allowed"
+                            }`}
                         >
-                            {isPending ? "INGESTING..." : "ADD_SOURCE"}
-                            {!isPending && <span className="text-lg">→</span>}
+                            {isPending ? "ADDING…" : "ADD SOURCE →"}
                         </button>
                     </div>
-                </div>
-
-                {/* New Category Input Sub-Zone */}
-                <div className="flex flex-col gap-3 pt-6 border-t-2 border-foreground border-dashed">
-                    <label className="label-system text-foreground font-bold">OR_CREATE_NEW_CATEGORY // (Optional)</label>
-                    <input
-                        name="newCategoryName"
-                        type="text"
-                        placeholder="Enter new category name (e.g. Technology, Sport...)"
-                        className="p-4 bg-background border-2 border-foreground focus:ring-0 outline-none font-mono text-[13px] w-full text-foreground placeholder:text-foreground/20 transition-colors"
-                        disabled={isPending}
-                    />
-                    <p className="text-[10px] text-foreground font-mono">SYSTEM_NOTE: All categories are normalized to uppercase for structural integrity.</p>
-                </div>
-            </form>
-
-            {/* Smart Feedback Message */}
-            {state?.message && (
-                <p className={`mt-4 text-sm font-bold uppercase tracking-tight ${state.success ? 'text-green-600' : 'text-accent'}`}>
-                    {state.message}
-                </p>
-            )}
+                </form>
             </div>
-            )}
         </div>
     );
 }
