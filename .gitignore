@@ -46,5 +46,6 @@ next-env.d.ts
 GEMINI.md
 AGENTS.md
 
+notes.md
 
 /src/generated/prisma

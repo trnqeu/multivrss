@@ -19,6 +19,18 @@
 ## Context hub
 Esempio: Use the CLI command chub to get the latest Next js 16 documentation and create a skill to reuse this knowledge. Run 'chub help' to understand how it works
 
+## Adminer
+```
+docker compose -f docker-compose.prod.yml --profile tools up -d adminer
+
+ssh -L 9000:127.0.0.1:8082 joao
+
+http://localhost:9000/
+
+docker compose -f docker-compose.prod.yml stop adminer
+
+```
+
 ## Feeds list
 {
   "TECH": [
