@@ -23,6 +23,34 @@ export async function validateFeedUrl(rawUrl: string): Promise<void> {
   }
 }
 
+const FEED_PATHS = ['/feed', '/rss', '/rss.xml', '/atom.xml', '/feed.xml', '/index.xml'];
+
+export type DiscoveryResult = { url: string; feed: ParsedFeed };
+
+export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
+  try {
+    const feed = await parser.parseURL(rawUrl);
+    return { url: rawUrl, feed };
+  } catch {
+    // Not a feed — continue to discovery paths
+  }
+
+  const base = new URL(rawUrl).origin;
+
+  for (const path of FEED_PATHS) {
+    const feedUrl = `${base}${path}`;
+    await validateFeedUrl(feedUrl);
+    try {
+      const feed = await parser.parseURL(feedUrl);
+      return { url: feedUrl, feed };
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error('No RSS feed found at this URL.');
+}
+
 const parser = new Parser({
     headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
 });

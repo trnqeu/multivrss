@@ -1,21 +1,16 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { syncFeed, ParsedFeed, validateFeedUrl } from "@/lib/rss";
+import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import Parser from 'rss-parser';
 import bcrypt from "bcrypt";
 import { slugify } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 
-
-const parser = new Parser({
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
-});
 
 // Type to handle the Form feedback
 export type ActionState = {
@@ -72,9 +67,9 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             if (!ownedCategory) return { success: false, message: "Invalid category." };
         }
 
-        // 2. Fetch feed once — reused for both slug generation and ingestion
-        const feedMetadata: ParsedFeed = await parser.parseURL(url);
-        const title = feedMetadata.title || url;
+        // 2. Discover feed URL (accepts base URLs like https://tante.cc/)
+        const { url: feedUrl, feed: feedMetadata } = await discoverFeedUrl(url);
+        const title = feedMetadata.title || feedUrl;
         const baseSlug = slugify(title);
 
         // Ensure slug uniqueness (simple suffix if needed)
@@ -88,7 +83,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         // 3. Database creation
         const source = await prisma.feedSource.create({
             data: {
-                url,
+                url: feedUrl,
                 categoryId: finalCategoryId,
                 title: title,
                 slug: slug
