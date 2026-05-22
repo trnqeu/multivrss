@@ -44,7 +44,7 @@ export default function CollapsibleCategory({ category }: Props) {
                     ) : (
                         <>
                             <Link
-                                href={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                href={`/?cat=${encodeURIComponent(category.name)}`}
                                 className="text-terracotta font-bold hover:opacity-70 transition-opacity"
                             >
                                 {nameValue}
@@ -68,7 +68,7 @@ export default function CollapsibleCategory({ category }: Props) {
                 <ul className="flex flex-col gap-2">
                     {category.sources.map((source) => (
                         <li key={source.id} className="group flex items-center relative pr-20">
-                            <RenameFeedTitle sourceId={source.id} title={source.title ?? ''} slug={source.slug} />
+                            <RenameFeedTitle sourceId={source.id} title={source.title ?? ''} />
                         </li>
                     ))}
                     {category.sources.length === 0 && (

@@ -8,10 +8,9 @@ import DeleteFeedButton from './DeleteFeedButton';
 interface Props {
     sourceId: string;
     title: string;
-    slug: string;
 }
 
-export default function RenameFeedTitle({ sourceId, title, slug }: Props) {
+export default function RenameFeedTitle({ sourceId, title }: Props) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(title);
 
@@ -43,7 +42,7 @@ export default function RenameFeedTitle({ sourceId, title, slug }: Props) {
     return (
         <>
             <Link
-                href={`/source/${slug}`}
+                href={`/?source=${sourceId}`}
                 className="text-[13px] text-foreground hover:bg-foreground hover:text-background hover:translate-x-1 transition-all block py-1 font-medium px-2 flex-1"
             >
                 {value}
