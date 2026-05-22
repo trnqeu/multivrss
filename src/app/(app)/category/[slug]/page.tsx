@@ -1,9 +1,11 @@
 import FeedList from "@/components/FeedList";
+import PageHeader from "@/components/PageHeader";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getCategories } from "@/app/actions";
 
 
 interface CategoryPageProps {
@@ -28,9 +30,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         return notFound();
     }
 
+    const categories = await getCategories();
+
     return (
-
-
+        <>
+            <PageHeader categories={categories} />
             <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
                 <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
                     <Link
@@ -52,5 +56,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
                 <FeedList categoryName={category.name} />
             </main>
+        </>
     );
 }

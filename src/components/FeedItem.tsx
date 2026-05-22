@@ -24,7 +24,7 @@ export default function FeedItem( { item, isLast }: Props) {
         await markAsRead(item.id);
     }
     return (
-    <span>
+    <span className={isRead ? 'opacity-30' : ''}>
         <a
             href={item.link}
             target="_blank"
@@ -32,6 +32,9 @@ export default function FeedItem( { item, isLast }: Props) {
             className="hover:text-terracotta transition-colors"
             onClick={handleClick}
         >
+            {!isRead && (
+                <span className="text-terracotta mr-1.5 select-none">●</span>
+            )}
             <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
                 {item.source.title}
             </span>
@@ -42,7 +45,7 @@ export default function FeedItem( { item, isLast }: Props) {
                     : '---'}
             </span>
             <span className="text-foreground/40 mx-2">·</span>
-            <span className={isRead ? 'text-foreground/30' : ''}>{item.title}</span>
+            <span>{item.title}</span>
             {item.content && (
                 <>
                     <span className="text-foreground/40 mx-2">—</span>

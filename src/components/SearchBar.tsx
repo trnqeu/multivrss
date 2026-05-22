@@ -57,6 +57,7 @@ export default function SearchBar() {
 
     const query = searchParams.get('q') ?? '';
     const cat = searchParams.get('cat') ?? 'ALL';
+    const sourceIdParam = searchParams.get('source') ?? undefined;
 
     const [baseFacets, setBaseFacets] = useState<{ total: number }>({ total: 0 });
     const [allHits, setAllHits] = useState<SearchHit[]>([]);
@@ -77,6 +78,7 @@ export default function SearchBar() {
             }
             const resultParams = new URLSearchParams({ q: query, offset: '0' });
             if (cat !== 'ALL') resultParams.set('cat', cat);
+            if (sourceIdParam) resultParams.set('source', sourceIdParam);
             const res = await fetch(`/api/search?${resultParams}`);
             if (!cancelled && res.ok) {
                 const data: SearchResult = await res.json();
@@ -89,12 +91,13 @@ export default function SearchBar() {
         }
         void run();
         return () => { cancelled = true; };
-    }, [query, cat]);
+    }, [query, cat, sourceIdParam]);
 
     async function loadMore() {
         setLoading(true);
         const resultParams = new URLSearchParams({ q: query, offset: String(offset) });
         if (cat !== 'ALL') resultParams.set('cat', cat);
+        if (sourceIdParam) resultParams.set('source', sourceIdParam);
         const res = await fetch(`/api/search?${resultParams}`);
         if (res.ok) {
             const data: SearchResult = await res.json();
@@ -106,7 +109,11 @@ export default function SearchBar() {
     }
 
     const hits = allHits;
-    const activeFilter = cat !== 'ALL' ? `cat="${cat}"` : '*';
+    const activeFilter = sourceIdParam
+        ? `source="${sourceIdParam}"`
+        : cat !== 'ALL'
+            ? `cat="${cat}"`
+            : '*';
 
     return (
         <div>
