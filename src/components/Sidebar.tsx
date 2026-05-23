@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { getServerSession } from "next-auth";
@@ -20,6 +21,23 @@ export default async function Sidebar() {
 
     return (
         <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
+            {/* Brand lockup */}
+            <div className="p-6 border-b-2 border-foreground">
+                <Link href="/" className="flex items-center gap-3.5 hover:opacity-80 transition-opacity">
+                    <Image
+                        src="/logo/multivrss-ico.png"
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 object-contain shrink-0"
+                        priority
+                    />
+                    <span className="text-lg font-extrabold uppercase tracking-[0.18em] text-terracotta">
+                        multivrss
+                    </span>
+                </Link>
+            </div>
+
             <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
                 {/* Main Navigation */}
                 <div className="flex flex-col gap-4">

@@ -1,5 +1,6 @@
 import FeedList from "@/components/FeedList";
 import PageHeader from "@/components/PageHeader";
+import EmptyStream from "@/components/EmptyStream";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -31,6 +32,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     }
 
     const categories = await getCategories();
+
+    if (category._count.sources === 0) {
+        return (
+            <>
+                <PageHeader categories={categories} />
+                <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
+                    <EmptyStream variant="empty-category" contextLabel={category.name} />
+                </main>
+            </>
+        );
+    }
 
     return (
         <>

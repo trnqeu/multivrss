@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useEffect, useState, useTransition } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { syncAllFeeds } from '@/app/actions';
 import AddFeedForm from './AddFeedForm';
 import { useMobileSidebar } from './MobileSidebarContext';
+import { useSync } from './SyncProvider';
 import type { Category } from '@prisma/client';
 
 type Props = {
@@ -22,7 +23,7 @@ export default function PageHeader({ categories }: Props) {
     const [showAdd, setShowAdd] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const [syncPending, startSync] = useTransition();
+    const { startSync, isSyncing } = useSync();
     const { setOpen: setMobileSidebarOpen } = useMobileSidebar();
 
     function handleSync() {
@@ -109,7 +110,7 @@ export default function PageHeader({ categories }: Props) {
                         </button>
                         <button
                             onClick={handleSync}
-                            disabled={syncPending}
+                            disabled={isSyncing}
                             aria-label="Sync feeds"
                             className="bg-transparent border-none p-0 text-terracotta text-lg leading-none disabled:opacity-40"
                         >
@@ -172,10 +173,10 @@ export default function PageHeader({ categories }: Props) {
 
                 <button
                     onClick={handleSync}
-                    disabled={syncPending}
+                    disabled={isSyncing}
                     className="hidden md:block bg-transparent border-none p-0 text-terracotta shrink-0 hover:bg-transparent normal-case tracking-widest disabled:opacity-40"
                 >
-                    {syncPending ? '↻ SYNCING...' : '↻ SYNC'}
+                    {isSyncing ? '↻ SYNCING...' : '↻ SYNC'}
                 </button>
 
             </header>

@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import EmptyStream from "./EmptyStream";
 
 function dayBucket(pubDate: number | null): string {
     if (!pubDate) return '';
@@ -145,9 +146,7 @@ export default function SearchBar() {
                         LOADING...
                     </p>
                 ) : !loading && allHits.length === 0 ? (
-                    <p className="text-[10px] font-bold uppercase tracking-widest italic text-foreground/50">
-                        NULL_SET // NO_RESULTS
-                    </p>
+                    <EmptyStream variant="no-results" contextLabel={query} />
                 ) : (
                     <div className="leading-relaxed text-sm text-foreground font-medium">
                         {hits.map((item, index) => {
