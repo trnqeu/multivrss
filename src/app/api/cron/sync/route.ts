@@ -15,17 +15,21 @@ export async function GET(request: Request) {
 
     for (let i = 0; i < allFeeds.length; i += CONCURRENCY) {
         const chunk = allFeeds.slice(i, i + CONCURRENCY);
-        await Promise.all(
+        const chunkResults = await Promise.all(
             chunk.map(async (source) => {
                 try {
                     await syncFeed(source.id);
-                    results.synced++;
+                    return 'synced' as const;
                 } catch (error) {
                     console.error(`Failed to sync ${source.url}:`, error);
-                    results.failed++;
+                    return 'failed' as const;
                 }
             })
-        )
+        );
+        for (const r of chunkResults) {
+            if (r === 'synced') results.synced++;
+            else results.failed++;
+        }
     }
 
     return NextResponse.json(results);

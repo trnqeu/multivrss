@@ -1,3 +1,14 @@
+/** Formats a date as "MMM DD" uppercase, Rome timezone. */
+export function dayBucket(date: Date | number | null): string {
+    if (date == null) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Europe/Rome',
+    }).format(d).toUpperCase();
+}
+
 /** Converts a string to a URL-friendly slug. */
 export function slugify(text: string): string {
     return text
@@ -11,9 +22,22 @@ export function slugify(text: string): string {
         .replace(/-+$/, '');
 }
 
-/** Returns true if the IP address is a private/reserved address. */
+/** Returns true if the IP address is a private/reserved address (IPv4 + IPv6). */
 export function isPrivateIp(ip: string): boolean {
     if (ip === '::1') return true;
+
+    // IPv6 private ranges: Unique Local (fc00::/7), Link-Local (fe80::/10), Site-Local (fec0::/10)
+    if (ip.includes(':')) {
+        const prefix = ip.toLowerCase().split(':')[0];
+        if (prefix.startsWith('fc') || prefix.startsWith('fd')) return true;
+        if (prefix.startsWith('fe')) {
+            const second = prefix.slice(2);
+            if (second.startsWith('8') || second.startsWith('9')
+                || second.startsWith('a') || second.startsWith('b')
+                || second.startsWith('c') || second.startsWith('d')
+                || second.startsWith('e') || second.startsWith('f')) return true;
+        }
+    }
 
     const ipv4 = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
     const parts = ipv4.split('.').map(Number);

@@ -49,7 +49,7 @@ export default function LoginPage() {
                         placeholder="PASSWORD"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="border-2 border-foreground bg-foreground text-background px-4 py-3 text-sm font-bold tracking-widest hover:bg-background hover:text-foreground transition-colors"
+                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
                     />
                     <button
                         type="submit"

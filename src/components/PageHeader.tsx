@@ -145,10 +145,6 @@ export default function PageHeader({ categories }: Props) {
 
                 {/* ── DESKTOP: always visible ── */}
 
-                <Link href="/" className="hidden md:block text-[13px] font-extrabold uppercase tracking-[0.22em] text-terracotta shrink-0">
-                    MULTIVRSS
-                </Link>
-
                 <div className="hidden md:block flex-1" />
 
                 <div className="hidden md:flex items-center min-w-[280px] h-8 px-3 border border-foreground/20">

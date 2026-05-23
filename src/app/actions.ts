@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import bcrypt from "bcrypt";
-import { slugify } from "@/lib/utils";
+import { slugify, PASSWORD_REGEX } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 
@@ -112,10 +112,10 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
 
 export async function deleteFeedSource(sourceId: string) {
     const session = await getServerSession(authOptions);
-    const userId = session?.user.id;
+    if (!session) return { success: false, message: "Unauthorized" };
     try {
         await prisma.feedSource.delete({
-            where: { id: sourceId, category: { userId } }
+            where: { id: sourceId, category: { userId: session.user.id } }
         });
     } catch (error) {
         console.error("❌ Error deleting feed source:", error);
@@ -132,8 +132,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
     try {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-        if (!passwordRegex.test(password)) {
+        if (!PASSWORD_REGEX.test(password)) {
             return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
         }
         const hashed = await bcrypt.hash(password, 10);
@@ -250,8 +249,7 @@ export async function resetPassword(prevState: ActionState | null, formData: For
     if (!token || !password || !confirm) return { success: false, message: "All fields are required." };
     if (password !== confirm) return { success: false, message: "Passwords do not match." };
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-    if (!passwordRegex.test(password)) {
+    if (!PASSWORD_REGEX.test(password)) {
         return { success: false, message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character." };
     }
 

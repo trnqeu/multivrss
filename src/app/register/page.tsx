@@ -35,14 +35,14 @@ export default function RegisterPage() {
                         name="username"
                         type="text"
                         placeholder="USERNAME"
-                        className="border-2 border-foreground bg-background text-background px-4 py-3 text-sm font-bold tracking-widest hover:bg-background hover:text-foreground transition-colors"
+                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
                     />
                     <input
                         name="password"
                         type="password"
                         placeholder="PASSWORD"
                         onChange={(e) => setPassword(e.target.value)}
-                        className="border-2 border-foreground bg-background text-background px-4 py-3 text-sm font-bold tracking-widest hover:bg-background hover:text-foreground transition-colors"
+                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
 
                     />
                     {password.length > 0 && (

@@ -84,6 +84,11 @@ hr {
   background: #000000;
 }
 
+/* System label: compact uppercase label for status/metrics */
+.label-system {
+  @apply text-[10px] font-bold uppercase tracking-widest;
+}
+
 /* Sync scan line animation */
 @keyframes scan {
   0% { transform: translateY(-100%); }

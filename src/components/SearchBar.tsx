@@ -2,50 +2,23 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { dayBucket } from '@/lib/utils';
+import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import EmptyStream from "./EmptyStream";
 
-function dayBucket(pubDate: number | null): string {
-    if (!pubDate) return '';
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-    }).format(new Date(pubDate)).toUpperCase();
-}
-
-const HL_PRE = '<<HL>>';
-const HL_POST = '<</HL>>';
-
-type SearchHit = {
-    id: string;
-    link: string;
-    title: string;
-    pubDate: number | null;
-    content?: string;
-    sourceTitle?: string;
-    categoryName?: string;
-    _formatted?: { title?: string; content?: string };
-};
-
-type SearchResult = {
-    hits: SearchHit[];
-    estimatedTotalHits: number;
-    processingTimeMs: number;
-    facetDistribution: Record<string, Record<string, number>> | null;
-};
-
 function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text: string; markClass?: string }) {
-    if (!text.includes(HL_PRE)) return <>{text}</>;
-    const parts = text.split(HL_PRE);
+    if (!text.includes(HIGHLIGHT_PRE)) return <>{text}</>;
+    const parts = text.split(HIGHLIGHT_PRE);
     return (
         <>
             {parts[0]}
             {parts.slice(1).map((part, i) => {
-                const sep = part.indexOf(HL_POST);
+                const sep = part.indexOf(HIGHLIGHT_POST);
                 if (sep === -1) return <span key={i}>{part}</span>;
                 return (
                     <span key={i}>
                         <mark className={`${markClass} px-0.5 not-italic`}>{part.slice(0, sep)}</mark>
-                        {part.slice(sep + HL_POST.length)}
+                        {part.slice(sep + HIGHLIGHT_POST.length)}
                     </span>
                 );
             })}
