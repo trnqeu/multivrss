@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import LogoutButton from "./LogoutButton";
-import CollapsibleCategory from "./CollapsibleCategory";
+import SidebarCategories from "./SidebarCategories";
 
 
 export default async function Sidebar() {
@@ -36,9 +36,7 @@ export default async function Sidebar() {
                 </div>
 
                 {/* Categories as Modules */}
-                {categories.map((category) => (
-                    <CollapsibleCategory key={category.id} category={category} />
-                ))}
+                <SidebarCategories categories={categories} />
             </nav>
 
             {/* System Footer */}
