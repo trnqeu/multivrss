@@ -12,6 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "MultivRSS | Digital Organicism",
   description: "A Frank Lloyd Wright inspired RSS aggregator",
+  icons: "/multivrss_icon.svg",
 };
 
 export default function RootLayout({
