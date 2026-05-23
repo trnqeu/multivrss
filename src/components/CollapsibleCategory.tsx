@@ -28,7 +28,7 @@ export default function CollapsibleCategory({ category, isOpen, onToggle }: Prop
                     onClick={onToggle}
                     aria-expanded={isOpen}
                     aria-label={isOpen ? `Chiudi ${category.name}` : `Apri ${category.name}`}
-                    className="w-[22px] h-[22px] border-2 border-terracotta text-terracotta inline-flex items-center justify-center font-mono text-sm font-extrabold leading-none shrink-0 hover:bg-terracotta hover:text-background transition-colors"
+                    className="w-[22px] h-[22px] border-2 border-terracotta text-terracotta bg-background inline-flex items-center justify-center font-mono text-sm font-extrabold leading-none shrink-0 hover:bg-terracotta hover:text-background transition-colors"
                 >
                     {isOpen ? '–' : '+'}
                 </button>

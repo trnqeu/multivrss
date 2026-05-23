@@ -22,7 +22,7 @@ export default function DeleteFeedButton({ sourceId }: DeleteFeedButtonProps) {
         <button
             onClick={handleDelete}
             disabled={isPending}
-            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-foreground hover:bg-foreground hover:text-background px-1 border border-foreground font-mono disabled:opacity-20"
+            className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] text-terracotta bg-background hover:bg-terracotta hover:text-background px-1 border-2 border-terracotta font-mono disabled:opacity-20"
             title="DELETE_SOURCE"
         >
             {isPending ? "..." : "[X]"}

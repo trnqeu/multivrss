@@ -58,7 +58,7 @@ export default function RenameCategoryTitle({ categoryId, name }: Props) {
             <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-transparent border-0 normal-case tracking-normal px-0.5 py-0 font-mono text-[9px] text-foreground/30 hover:text-foreground hover:bg-transparent"
+                className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] px-1 border-2 border-terracotta text-terracotta bg-background hover:bg-terracotta hover:text-background font-mono"
                 title="RENAME_CATEGORY"
             >
                 [✎]
