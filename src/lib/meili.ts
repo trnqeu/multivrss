@@ -10,11 +10,37 @@ export const meili = new MeiliSearch({
 export const HIGHLIGHT_PRE = '<<HL>>';
 export const HIGHLIGHT_POST = '<</HL>>';
 
-// Configure index settings — call this at runtime, not at import time
+export type SearchHit = {
+    id: string;
+    link: string;
+    title: string;
+    pubDate: number | null;
+    content?: string;
+    sourceTitle?: string;
+    categoryName?: string;
+    _formatted?: { title?: string; content?: string };
+};
+
+export type SearchResult = {
+    hits: SearchHit[];
+    estimatedTotalHits: number;
+    processingTimeMs: number;
+    facetDistribution: Record<string, Record<string, number>> | null;
+};
+
+let _meiliConfigured = false;
+
+// Configure index settings — runs at most once (idempotent after first call)
 export async function configureMeiliIndex() {
-    await meili.index('items').updateSettings({
-        searchableAttributes: ['title', 'content'],
-        filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate'],
-        sortableAttributes: ['pubDate'],
-    });
+    if (_meiliConfigured) return;
+    _meiliConfigured = true;
+    try {
+        await meili.index('items').updateSettings({
+            searchableAttributes: ['title', 'content'],
+            filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate'],
+            sortableAttributes: ['pubDate'],
+        });
+    } catch {
+        _meiliConfigured = false;
+    }
 }

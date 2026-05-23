@@ -1,6 +1,6 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
-import { meili, configureMeiliIndex } from './meili';
+import { meili } from './meili';
 import dns from 'dns';
 import { isPrivateIp } from './utils';
 
@@ -57,9 +57,9 @@ const parser = new Parser({
 
 export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
 
-export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
-    await configureMeiliIndex();
+const UPSERT_CONCURRENCY = 10;
 
+export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 1. Find source in the database (include category for Meili denormalization)
     const source = await prisma.feedSource.findUnique({
         where: { id: sourceId },
@@ -71,28 +71,33 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 2. Download RSS feed (skip if already fetched by the caller)
     const feed = prefetchedFeed ?? await parser.parseURL(source.url);
 
-    // 3. Save articles (upsert)
-    const syncResults = await Promise.all(
-        feed.items.map(async (item) => {
-            const externalId = item.guid || item.link || '';
+    // 3. Save articles (upsert) — batched to avoid saturating the DB connection pool
+    const syncResults: Awaited<ReturnType<typeof prisma.feedItem.upsert>>[] = [];
+    for (let i = 0; i < feed.items.length; i += UPSERT_CONCURRENCY) {
+        const chunk = feed.items.slice(i, i + UPSERT_CONCURRENCY);
+        const results = await Promise.all(
+            chunk.map(async (item) => {
+                const externalId = item.guid || item.link || '';
 
-            return prisma.feedItem.upsert({
-                where: { sourceId_externalId: { sourceId: source.id, externalId } },
-                update: {
-                    title: item.title || 'Untitled',
-                    content: item.contentSnippet || item.summary || item.content || '',
-                },
-                create: {
-                    externalId,
-                    title: item.title || 'Untitled',
-                    link: item.link || '',
-                    content: item.contentSnippet || item.summary || item.content || '',
-                    pubDate: item.isoDate ? new Date(item.isoDate) : null,
-                    sourceId: source.id,
-                },
-            });
-        })
-    );
+                return prisma.feedItem.upsert({
+                    where: { sourceId_externalId: { sourceId: source.id, externalId } },
+                    update: {
+                        title: item.title || 'Untitled',
+                        content: item.contentSnippet || item.summary || item.content || '',
+                    },
+                    create: {
+                        externalId,
+                        title: item.title || 'Untitled',
+                        link: item.link || '',
+                        content: item.contentSnippet || item.summary || item.content || '',
+                        pubDate: item.isoDate ? new Date(item.isoDate) : null,
+                        sourceId: source.id,
+                    },
+                });
+            })
+        );
+        syncResults.push(...results);
+    }
 
     // 4. Sync to Meilisearch
     // We send only the necessary data for searching

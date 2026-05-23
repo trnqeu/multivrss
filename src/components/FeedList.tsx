@@ -1,4 +1,5 @@
 import { searchFeedItemsForUser } from '@/lib/search';
+import { dayBucket } from '@/lib/utils';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import FeedItem from '@/components/FeedItem';
@@ -8,15 +9,6 @@ import { cacheLife, cacheTag } from 'next/cache';
 interface FeedListProps {
     sourceId?: string;
     categoryName?: string;
-}
-
-function dayBucket(date: Date | null): string {
-    if (!date) return '';
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'Europe/Rome',
-    }).format(date).toUpperCase();
 }
 
 async function CachedFeedContent({

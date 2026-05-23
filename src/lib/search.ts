@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST } from "@/lib/meili";
+import { meili, HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from "@/lib/meili";
 import { cacheLife, cacheTag } from 'next/cache';
 
 async function getSourcesForUser(userId: string) {
@@ -13,28 +13,7 @@ async function getSourcesForUser(userId: string) {
 }
 
 export { HIGHLIGHT_PRE, HIGHLIGHT_POST };
-
-export type SearchHit = {
-    id: string;
-    link: string;
-    title: string;
-    pubDate: number | null;
-    content?: string;
-    sourceTitle?: string;
-    categoryId?: string;
-    categoryName?: string;
-    _formatted?: {
-        title?: string;
-        content?: string;
-    };
-};
-
-export type SearchResult = {
-    hits: SearchHit[];
-    estimatedTotalHits: number;
-    processingTimeMs: number;
-    facetDistribution: Record<string, Record<string, number>> | null;
-};
+export type { SearchHit, SearchResult };
 
 export async function searchFeedItemsForUser(
     userId: string,
