@@ -2,6 +2,8 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function proxy(req: NextRequest) {
+    const { pathname } = req.nextUrl;
+
     if (process.env.STAGING_PASSWORD) {
         const auth = req.headers.get("authorization");
         if (!auth || !auth.startsWith("Basic ")) {
@@ -15,12 +17,17 @@ export async function proxy(req: NextRequest) {
             return new Response("Unauthorized", { status: 401 });
         }
     }
-    const token = await getToken({ req });
-    if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url));
+
+    if (pathname.startsWith("/u")) {
+        const token = await getToken({ req });
+        if (!token) {
+            return NextResponse.redirect(new URL("/login", req.url));
+        }
     }
+
     return NextResponse.next();
 }
+
 export const config = {
-    matcher: ["/u/:path*"],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
