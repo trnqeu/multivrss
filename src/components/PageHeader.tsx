@@ -11,11 +11,12 @@ import type { Category } from '@prisma/client';
 
 type Props = {
     categories: Category[];
+    username: string;
 };
 
 const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none appearance-none shadow-none";
 
-export default function PageHeader({ categories }: Props) {
+export default function PageHeader({ categories, username }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +91,7 @@ export default function PageHeader({ categories }: Props) {
                             ☰
                         </button>
                         <Link
-                            href="/"
+                            href={`/u/${username}`}
                             className="text-terracotta text-[13px] font-extrabold uppercase tracking-[0.22em] flex-1"
                         >
                             MULTIVRSS

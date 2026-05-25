@@ -11,9 +11,10 @@ type Props = {
         name: string;
         sources: { id: string; title: string | null; slug: string }[];
     }[];
+    username: string;
 };
 
-export default function SidebarCategories({ categories }: Props) {
+export default function SidebarCategories({ categories, username }: Props) {
     const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
     const restored = useRef(false);
 
@@ -51,6 +52,7 @@ export default function SidebarCategories({ categories }: Props) {
                     category={category}
                     isOpen={openCategories.has(category.id)}
                     onToggle={() => toggle(category.id)}
+                    username={username}
                 />
             ))}
         </>

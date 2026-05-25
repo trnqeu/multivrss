@@ -8,9 +8,10 @@ import DeleteFeedButton from './DeleteFeedButton';
 interface Props {
     sourceId: string;
     title: string;
+    username: string;
 }
 
-export default function RenameFeedTitle({ sourceId, title }: Props) {
+export default function RenameFeedTitle({ sourceId, title, username }: Props) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(title);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -54,7 +55,7 @@ export default function RenameFeedTitle({ sourceId, title }: Props) {
     return (
         <div className="flex-1 flex items-center">
             <Link
-                href={`/?source=${sourceId}`}
+                href={`/u/${username}?source=${sourceId}`}
                 className="flex-1 py-1 text-[12px] font-medium text-foreground/85 hover:text-foreground transition-colors"
             >
                 {value}

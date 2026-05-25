@@ -7,9 +7,10 @@ import { renameCategory } from '@/app/actions';
 interface Props {
     categoryId: string;
     name: string;
+    username: string;
 }
 
-export default function RenameCategoryTitle({ categoryId, name }: Props) {
+export default function RenameCategoryTitle({ categoryId, name, username }: Props) {
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState(name);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +51,7 @@ export default function RenameCategoryTitle({ categoryId, name }: Props) {
     return (
         <span className="inline-flex items-center gap-1 min-w-0">
             <Link
-                href={`/?cat=${encodeURIComponent(value)}`}
+                href={`/u/${username}?cat=${encodeURIComponent(value)}`}
                 className="text-[13px] font-bold uppercase tracking-[0.18em] text-terracotta py-1 hover:text-terracotta/70 transition-colors truncate"
             >
                 {value}
