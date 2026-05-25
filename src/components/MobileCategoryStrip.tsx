@@ -4,9 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 type Props = {
     categories: { id: string; name: string }[];
+    username: string;
 };
 
-export default function MobileCategoryStrip({ categories }: Props) {
+export default function MobileCategoryStrip({ categories, username }: Props) {
     const router = useRouter();
     const params = useSearchParams();
     const activeCat = params.get('cat');
@@ -15,7 +16,7 @@ export default function MobileCategoryStrip({ categories }: Props) {
         const next = new URLSearchParams(params.toString());
         if (name) next.set('cat', name);
         else next.delete('cat');
-        router.replace(`/?${next}`);
+        router.replace(`/u/${username}?${next}`);
     }
 
     return (

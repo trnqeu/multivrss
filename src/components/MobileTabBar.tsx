@@ -3,21 +3,22 @@
 import { usePathname, useRouter } from 'next/navigation';
 
 
-const TABS = [
-    { id: 'feed',   label: 'FEED',   href: '/' },
-    { id: 'search', label: 'SEARCH', href: '/search' },
-    { id: 'add',    label: 'ADD',    href: null },
-    { id: 'me',     label: 'ME',     href: null },
-] as const;
-
 type Props = {
     onAdd: () => void;
     onMe: () => void;
+    username: string;
 };
 
-export default function MobileTabBar({ onAdd, onMe }: Props) {
+export default function MobileTabBar({ onAdd, onMe, username }: Props) {
     const pathname = usePathname();
     const router = useRouter();
+
+    const TABS = [
+        { id: 'feed',   label: 'FEED',   href: `/u/${username}` },
+        { id: 'search', label: 'SEARCH', href: `/u/${username}/search` },
+        { id: 'add',    label: 'ADD',    href: null },
+        { id: 'me',     label: 'ME',     href: null },
+    ] as const;
 
     function handleTab(tab: typeof TABS[number]) {
         if (tab.href) router.push(tab.href);
@@ -26,7 +27,7 @@ export default function MobileTabBar({ onAdd, onMe }: Props) {
     }
 
     function isActive(tab: typeof TABS[number]): boolean {
-        if (tab.href === '/') return pathname === '/';
+        if (tab.href === `/u/${username}`) return pathname === `/u/${username}`;
         if (tab.href) return pathname.startsWith(tab.href);
         return false;
     }

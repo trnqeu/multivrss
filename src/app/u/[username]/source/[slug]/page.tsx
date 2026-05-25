@@ -30,12 +30,12 @@ export default async function SourcePage({ params }: SourcePageProps) {
 
     return (
         <>
-            <PageHeader categories={categories} />
+            <PageHeader categories={categories} username={session.user.username} />
             <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
                 {/* Minimalist Source Header */}
                 <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
                     <Link 
-                        href="/" 
+                        href={`/u/${session.user.username}`} 
                         className="label-system text-[10px] hover:bg-foreground hover:text-background w-fit px-1 transition-all border border-foreground font-bold"
                     >
                         ← BACK_TO_ALL

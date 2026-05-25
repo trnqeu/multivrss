@@ -18,7 +18,7 @@ export default function LoginPage() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        await signIn("credentials", { email, password, callbackUrl: "/" });
+        await signIn("credentials", { email, password, callbackUrl: "/u" });
     }
 
     return (
@@ -68,13 +68,13 @@ export default function LoginPage() {
                 <div className="px-8 pb-8 flex flex-col gap-3">
                     <div className="border-t-2 border-foreground pt-4 flex flex-col gap-3">
                         <button
-                            onClick={() => signIn("github", { callbackUrl: "/" })}
+                            onClick={() => signIn("github", { callbackUrl: "/u" })}
                             className="border-2 border-foreground px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
                         >
                             /GITHUB/
                         </button>
                         <button
-                            onClick={() => signIn("google", { callbackUrl: "/" })}
+                            onClick={() => signIn("google", { callbackUrl: "/u" })}
                             className="border-2 border-foreground px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors"
                         >
                             /GOOGLE/

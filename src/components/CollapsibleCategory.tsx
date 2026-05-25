@@ -11,14 +11,15 @@ type Props = {
     };
     isOpen: boolean;
     onToggle: () => void;
+    username: string;
 };
 
-export default function CollapsibleCategory({ category, isOpen, onToggle }: Props) {
+export default function CollapsibleCategory({ category, isOpen, onToggle, username }: Props) {
     return (
         <div className="flex flex-col gap-4">
             <div className="group flex items-center justify-between border-b-2 border-terracotta pb-2 gap-2">
                 <div className="flex items-baseline gap-2.5 flex-1 min-w-0">
-                    <RenameCategoryTitle categoryId={category.id} name={category.name} />
+                    <RenameCategoryTitle categoryId={category.id} name={category.name} username={username} />
                     <span className="font-mono text-[10px] font-bold text-foreground/40 tracking-wider shrink-0">
                         {category.sources.length.toString().padStart(2, '0')}
                     </span>
@@ -38,7 +39,7 @@ export default function CollapsibleCategory({ category, isOpen, onToggle }: Prop
                 <ul className="flex flex-col gap-2">
                     {category.sources.map((source) => (
                         <li key={source.id} className="group flex items-center relative pr-16">
-                            <RenameFeedTitle sourceId={source.id} title={source.title ?? ''} />
+                            <RenameFeedTitle sourceId={source.id} title={source.title ?? ''} username={username} />
                         </li>
                     ))}
                     {category.sources.length === 0 && (

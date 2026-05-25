@@ -31,6 +31,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
     const userId = session.user.id;
+    const username = session.user.username;
     const url = formData.get("url") as string;
     const categoryId = formData.get("categoryId") as string;
     const newCategoryName = formData.get("newCategoryName") as string;
@@ -98,7 +99,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             throw syncError;
         }
 
-        revalidatePath("/");
+        revalidatePath(`/u/${username}`);
         return { success: true, message: "Feed source added successfully" };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -122,8 +123,9 @@ export async function deleteFeedSource(sourceId: string) {
         return { success: false, message: "Failed to delete feed source." };
     }
 
-    revalidatePath("/");
-    redirect("/");
+    const username = session.user.username;
+    revalidatePath(`/u/${username}`);
+    redirect(`/u/${username}`);
 }
 
 // action to create user
@@ -151,6 +153,7 @@ export async function renameFeedSource(sourceId: string, newTitle: string): Prom
     const session = await getServerSession(authOptions);
     const userId = session?.user.id;
     if (!session) return { success: false, message: "Unauthorized" };
+    const username = session.user.username;
 
 
     const trimmed = newTitle.trim();
@@ -161,7 +164,7 @@ export async function renameFeedSource(sourceId: string, newTitle: string): Prom
             where: { id: sourceId, category: { userId } },
             data: { title: trimmed },
         });
-        revalidatePath("/");
+        revalidatePath(`/u/${username}`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to rename feed." };
@@ -204,7 +207,7 @@ export async function renameCategory(categoryId: string, newName: string): Promi
             }
         });
 
-        revalidatePath("/");
+        revalidatePath(`/u/${session.user.username}`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed. Some sources may already exist in the target category." };
@@ -312,7 +315,8 @@ export async function syncAllFeeds(): Promise<ActionState> {
         synced += results.reduce((a: number, b: number) => a + b, 0);
     }
 
-    revalidatePath("/");
+    const username = session.user.username;
+    revalidatePath(`/u/${username}`);
     return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
 
 }
