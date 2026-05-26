@@ -3,6 +3,7 @@ import { prisma } from './prisma';
 import { meili } from './meili';
 import dns from 'dns';
 import { isPrivateIp } from './utils';
+import { resolveYouTubeFeedUrl } from './youtube';
 
 export async function validateFeedUrl(rawUrl: string): Promise<void> {
   let parsed: URL;
@@ -33,6 +34,13 @@ export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> 
     return { url: rawUrl, feed };
   } catch {
     // Not a feed — continue to discovery paths
+  }
+
+  const youtubeFeedUrl = await resolveYouTubeFeedUrl(rawUrl);
+  if (youtubeFeedUrl) {
+    await validateFeedUrl(youtubeFeedUrl);
+    const feed = await parser.parseURL(youtubeFeedUrl);
+    return { url: youtubeFeedUrl, feed };
   }
 
   const base = new URL(rawUrl).origin;
