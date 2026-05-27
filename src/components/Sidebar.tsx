@@ -3,14 +3,23 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { cacheLife, cacheTag } from 'next/cache';
 import LogoutButton from "./LogoutButton";
 import SidebarCategories from "./SidebarCategories";
 
 
 export default async function Sidebar({ username }: { username: string }) {
     const session = await getServerSession(authOptions);
+    return <CachedSidebar username={username} userId={session?.user.id} />;
+}
+
+async function CachedSidebar({ username, userId }: { username: string; userId?: string }) {
+    'use cache';
+    cacheLife('minutes');
+    cacheTag(`sidebar:${userId}`);
+
     const categories = await prisma.category.findMany({
-        where: { userId: session?.user.id },
+        where: { userId },
         include: {
             sources: {
                 orderBy: { title: 'asc' }

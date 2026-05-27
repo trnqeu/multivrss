@@ -72,8 +72,6 @@ const parser = new Parser({
 
 export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
 
-const UPSERT_CONCURRENCY = 10;
-
 export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 1. Find source in the database (include category for Meili denormalization)
     const source = await prisma.feedSource.findUnique({
@@ -86,33 +84,47 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 2. Download RSS feed (skip if already fetched by the caller)
     const feed = prefetchedFeed ?? await parser.parseURL(source.url);
 
-    // 3. Save articles (upsert) — batched to avoid saturating the DB connection pool
-    const syncResults: Awaited<ReturnType<typeof prisma.feedItem.upsert>>[] = [];
-    for (let i = 0; i < feed.items.length; i += UPSERT_CONCURRENCY) {
-        const chunk = feed.items.slice(i, i + UPSERT_CONCURRENCY);
-        const results = await Promise.all(
-            chunk.map(async (item) => {
-                const externalId = item.guid || item.link || '';
+    // 3. Save articles — batch insert new items, update changed ones
+    const existingItems = await prisma.feedItem.findMany({
+        where: { sourceId: source.id },
+    });
+    const existingByExtId = new Map(existingItems.map(i => [i.externalId, i]));
 
-                return prisma.feedItem.upsert({
-                    where: { sourceId_externalId: { sourceId: source.id, externalId } },
-                    update: {
-                        title: item.title || 'Untitled',
-                        content: item.contentSnippet || item.summary || item.content || '',
-                    },
-                    create: {
-                        externalId,
-                        title: item.title || 'Untitled',
-                        link: item.link || '',
-                        content: item.contentSnippet || item.summary || item.content || '',
-                        pubDate: item.isoDate ? new Date(item.isoDate) : null,
-                        sourceId: source.id,
-                    },
-                });
-            })
-        );
-        syncResults.push(...results);
+    const toCreate: Array<{
+        externalId: string; title: string; link: string;
+        content: string; pubDate: Date | null; sourceId: string;
+    }> = [];
+
+    for (const item of feed.items) {
+        const externalId = item.guid || item.link || '';
+        const title = item.title || 'Untitled';
+        const content = item.contentSnippet || item.summary || item.content || '';
+
+        const existing = existingByExtId.get(externalId);
+        if (!existing) {
+            toCreate.push({
+                externalId, title, link: item.link || '', content,
+                pubDate: item.isoDate ? new Date(item.isoDate) : null,
+                sourceId: source.id,
+            });
+        } else if (existing.title !== title || existing.content !== content) {
+            await prisma.feedItem.update({
+                where: { sourceId_externalId: { sourceId: source.id, externalId } },
+                data: { title, content },
+            });
+        }
     }
+
+    let created: typeof existingItems = [];
+    if (toCreate.length > 0) {
+        created = await prisma.feedItem.createManyAndReturn({ data: toCreate });
+    }
+
+    const syncedExtIds = new Set(feed.items.map(i => i.guid || i.link || ''));
+    const syncResults = [
+        ...existingItems.filter(i => syncedExtIds.has(i.externalId)),
+        ...created,
+    ];
 
     // 4. Sync to Meilisearch
     // We send only the necessary data for searching

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncFeed } from '@/lib/rss';
+import { revalidateTag, revalidatePath } from 'next/cache';
 
 
 export async function GET(request: Request) {
@@ -9,7 +10,11 @@ export async function GET(request: Request) {
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const allFeeds = await prisma.feedSource.findMany()
+    const allFeeds = await prisma.feedSource.findMany({
+        include: { category: { select: { userId: true } } },
+    });
+
+    const affectedUserIds = new Set<string>();
 
     const CONCURRENCY = 5;
 
@@ -19,6 +24,7 @@ export async function GET(request: Request) {
             chunk.map(async (source) => {
                 try {
                     await syncFeed(source.id);
+                    affectedUserIds.add(source.category.userId);
                     return 'synced' as const;
                 } catch (error) {
                     console.error(`Failed to sync ${source.url}:`, error);
@@ -30,6 +36,11 @@ export async function GET(request: Request) {
             if (r === 'synced') results.synced++;
             else results.failed++;
         }
+    }
+
+    for (const userId of affectedUserIds) {
+        revalidateTag(`feed:${userId}`, 'max');
+        revalidateTag(`sidebar:${userId}`, 'max');
     }
 
     return NextResponse.json(results);
