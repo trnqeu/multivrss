@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -99,7 +99,10 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             throw syncError;
         }
 
-        revalidatePath(`/u/${username}`);
+        updateTag(`feed:${userId}`);
+        updateTag(`sources:${userId}`);
+        updateTag(`sidebar:${userId}`);
+        revalidatePath(`/u/${username}`, 'layout');
         return { success: true, message: "Feed source added successfully" };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -124,7 +127,10 @@ export async function deleteFeedSource(sourceId: string) {
     }
 
     const username = session.user.username;
-    revalidatePath(`/u/${username}`);
+    updateTag(`feed:${session.user.id}`);
+    updateTag(`sources:${session.user.id}`);
+    updateTag(`sidebar:${session.user.id}`);
+    revalidatePath(`/u/${username}`, 'layout');
     redirect(`/u/${username}`);
 }
 
@@ -164,7 +170,9 @@ export async function renameFeedSource(sourceId: string, newTitle: string): Prom
             where: { id: sourceId, category: { userId } },
             data: { title: trimmed },
         });
-        revalidatePath(`/u/${username}`);
+        updateTag(`feed:${userId}`);
+        updateTag(`sidebar:${userId}`);
+        revalidatePath(`/u/${username}`, 'layout');
         return { success: true };
     } catch {
         return { success: false, message: "Failed to rename feed." };
@@ -207,7 +215,10 @@ export async function renameCategory(categoryId: string, newName: string): Promi
             }
         });
 
-        revalidatePath(`/u/${session.user.username}`);
+        updateTag(`feed:${session.user.id}`);
+        updateTag(`sources:${session.user.id}`);
+        updateTag(`sidebar:${session.user.id}`);
+        revalidatePath(`/u/${session.user.username}`, 'layout');
         return { success: true };
     } catch {
         return { success: false, message: "Failed. Some sources may already exist in the target category." };
@@ -316,7 +327,9 @@ export async function syncAllFeeds(): Promise<ActionState> {
     }
 
     const username = session.user.username;
-    revalidatePath(`/u/${username}`);
+    updateTag(`feed:${session.user.id}`);
+    updateTag(`sidebar:${session.user.id}`);
+    revalidatePath(`/u/${username}`, 'layout');
     return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
 
 }
@@ -332,6 +345,7 @@ export async function markAsRead(itemId: string): Promise<ActionState> {
             },
             data: { read: true }
         });
+        updateTag(`feed:${session.user.id}`);
         return { success: true, message: "Marked as read." }
     } catch {
         return { success: false, message: "Failed to mark as read." }
