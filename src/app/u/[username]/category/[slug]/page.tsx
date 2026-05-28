@@ -37,7 +37,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         return (
             <>
                 <PageHeader categories={categories} username={session.user.username} />
-                <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
+                <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
                     <EmptyStream variant="empty-category" contextLabel={category.name} />
                 </main>
             </>
