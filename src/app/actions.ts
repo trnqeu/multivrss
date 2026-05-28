@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { meili } from "@/lib/meili";
 import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -345,9 +346,29 @@ export async function markAsRead(itemId: string): Promise<ActionState> {
             },
             data: { read: true }
         });
+        await meili.index('items').updateDocuments([{ id: itemId, read: true }]);
         updateTag(`feed:${session.user.id}`);
         return { success: true, message: "Marked as read." }
     } catch {
         return { success: false, message: "Failed to mark as read." }
+    }
+}
+
+export async function markAsUnread(itemId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    try {
+        await prisma.feedItem.update({
+            where: {
+                id: itemId,
+                source: { category: { userId: session.user.id } }
+            },
+            data: { read: false }
+        });
+        await meili.index('items').updateDocuments([{ id: itemId, read: false }]);
+        updateTag(`feed:${session.user.id}`);
+        return { success: true, message: "Marked as unread." }
+    } catch {
+        return { success: false, message: "Failed to mark as unread." }
     }
 }

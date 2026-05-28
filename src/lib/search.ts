@@ -23,6 +23,7 @@ export async function searchFeedItemsForUser(
     limit = 30,
     offset = 0,
     sourceId?: string,
+    read?: string,
 ): Promise<SearchResult> {
     const sources = await getSourcesForUser(userId);
 
@@ -54,6 +55,12 @@ export async function searchFeedItemsForUser(
 
     if (sourceId) {
         filter.push(`sourceId = "${sourceId}"`);
+    }
+
+    if (read === "read") {
+        filter.push(`read = true`);
+    } else if (read === "unread") {
+        filter.push(`read = false`);
     }
 
     const results = await meili.index("items").search(query, {

@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { dayBucket } from '@/lib/utils';
+import { markAsRead, markAsUnread } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import EmptyStream from "./EmptyStream";
 
@@ -39,6 +40,7 @@ export default function SearchBar() {
     const [timeMs, setTimeMs] = useState(0);
     const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [readFilter, setReadFilter] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         let cancelled = false;
@@ -53,6 +55,7 @@ export default function SearchBar() {
             const resultParams = new URLSearchParams({ q: query, offset: '0' });
             if (cat !== 'ALL') resultParams.set('cat', cat);
             if (sourceIdParam) resultParams.set('source', sourceIdParam);
+            if (readFilter) resultParams.set('read', readFilter);
             const res = await fetch(`/api/search?${resultParams}`);
             if (!cancelled && res.ok) {
                 const data: SearchResult = await res.json();
@@ -65,13 +68,14 @@ export default function SearchBar() {
         }
         void run();
         return () => { cancelled = true; };
-    }, [query, cat, sourceIdParam]);
+    }, [query, cat, sourceIdParam, readFilter]);
 
     async function loadMore() {
         setLoading(true);
         const resultParams = new URLSearchParams({ q: query, offset: String(offset) });
         if (cat !== 'ALL') resultParams.set('cat', cat);
         if (sourceIdParam) resultParams.set('source', sourceIdParam);
+        if (readFilter) resultParams.set('read', readFilter);
         const res = await fetch(`/api/search?${resultParams}`);
         if (res.ok) {
             const data: SearchResult = await res.json();
@@ -83,11 +87,24 @@ export default function SearchBar() {
     }
 
     const hits = allHits;
+
+    async function toggleRead(item: SearchHit) {
+        const wasRead = item.read ?? false;
+        setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: !wasRead } : h));
+        if (wasRead) {
+            await markAsUnread(item.id);
+        } else {
+            await markAsRead(item.id);
+        }
+    }
+
     const activeFilter = sourceIdParam
         ? `source="${sourceIdParam}"`
         : cat !== 'ALL'
             ? `cat="${cat}"`
-            : '*';
+            : readFilter
+                ? readFilter === 'unread' ? 'UNREAD' : 'READ'
+                : '*';
 
     return (
         <div>
@@ -101,7 +118,30 @@ export default function SearchBar() {
                     <span className="text-foreground">{`${timeMs} MS`}</span>
                     <span className="mx-3">{'·'}</span>
                     {'FILTER: '}
-                    <span className="text-foreground">{activeFilter}</span>
+                    {sourceIdParam || cat !== 'ALL' ? (
+                        <span className="text-foreground">{activeFilter}</span>
+                    ) : (
+                        <span className="inline whitespace-nowrap">
+                            {(['ALL', 'UNREAD', 'READ'] as const).map((f, i) => {
+                                const isActive = f === 'ALL' ? !readFilter : readFilter === f.toLowerCase();
+                                return (
+                                    <span key={f}>
+                                        {i > 0 && <span className="mx-1 text-foreground/30">{'·'}</span>}
+                                        <button
+                                            onClick={() => setReadFilter(f === 'ALL' ? undefined : f.toLowerCase())}
+                                            className={`bg-transparent border-0 px-0 py-0 transition-colors cursor-pointer inline text-[10px] font-bold uppercase tracking-widest ${
+                                                isActive
+                                                    ? 'text-foreground underline underline-offset-4 decoration-terracotta'
+                                                    : 'text-foreground/30 hover:text-foreground/60'
+                                            }`}
+                                        >
+                                            {f}
+                                        </button>
+                                    </span>
+                                );
+                            })}
+                        </span>
+                    )}
                     {query && (
                         <>
                             <span className="mx-3">{'·'}</span>
@@ -121,7 +161,7 @@ export default function SearchBar() {
                 ) : !loading && allHits.length === 0 ? (
                     <EmptyStream variant="no-results" contextLabel={query} />
                 ) : (
-                    <div className="leading-relaxed text-sm text-foreground font-medium">
+                    <div className="leading-[1.8] text-sm text-foreground font-medium">
                         {hits.map((item, index) => {
                             const currentDay = dayBucket(item.pubDate);
                             const prevDay    = index > 0 ? dayBucket(hits[index - 1].pubDate) : null;
@@ -140,11 +180,24 @@ export default function SearchBar() {
                                             <span className="text-[9px] text-white/35">→</span>
                                         </div>
                                     )}
-                                    <span>
+                                    <span className={`transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
+                                        <button
+                                            onClick={() => toggleRead(item)}
+                                            className="bg-transparent border-0 px-0 py-0 text-terracotta cursor-pointer select-none align-middle leading-[0] hover:opacity-80 transition-opacity text-[15px] mr-0.5"
+                                            title={item.read ? 'Mark as unread' : 'Mark as read'}
+                                        >
+                                            {item.read ? '\u25CF' : '\u25CB'}
+                                        </button>
                                         <a
                                             href={item.link}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            onClick={() => {
+                                                if (!(item.read ?? false)) {
+                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                                    markAsRead(item.id);
+                                                }
+                                            }}
                                             className="hover:text-terracotta transition-colors"
                                         >
                                             {item.sourceTitle && (
@@ -165,7 +218,7 @@ export default function SearchBar() {
                                             {(item._formatted?.content ?? item.content) && (
                                                 <>
                                                     <span className="text-foreground/40 mx-2">{'—'}</span>
-                                                    <span className="text-foreground/50 text-xs font-normal">
+                                                    <span className="text-foreground/50 text-sm font-normal">
                                                         <Highlight
                                                             text={item._formatted?.content ?? item.content ?? ''}
                                                             markClass="underline decoration-terracotta"
