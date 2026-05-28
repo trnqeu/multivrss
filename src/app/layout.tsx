@@ -10,9 +10,12 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MultivRSS | Digital Organicism",
-  description: "A Frank Lloyd Wright inspired RSS aggregator",
-  icons: "/multivrss_icon.svg",
+  title: "MultivRSS",
+  description: "A future-proof RSS aggregator",
+  icons: [
+    { rel: "icon", url: "/favicon.ico", sizes: "any" },
+    { rel: "icon", url: "/icon.png", type: "image/png", sizes: "32x32" },
+  ],
 };
 
 export default function RootLayout({
@@ -21,8 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-foreground selection:text-background">
+    <html lang="en" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`
+        }} />
+      </head>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         {/* FLW Detail: Structural Roofline */}
         <div className="h-1 w-full bg-black sticky top-0 z-50" />
         <Providers>

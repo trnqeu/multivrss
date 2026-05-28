@@ -1,14 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #FFFFFF;
+  --background: #f6f3ec;   /* warm paper — light mode default */
+  --foreground: #000000;
   --line-thin: 1px;
   --line-bold: 2px;
   --line-roof: 4px;
 
   /* Organic Palette — Frank Lloyd Wright material tones */
-  --terracotta:#E2725B; /* headings, accents, interactive elements */
+  --terracotta: #E2725B;
+
+  --scrollbar-bg: #000000;
+  --scrollbar-thumb: #f6f3ec;
+  --selection-fg: #f6f3ec;
+  --selection-bg: #000000;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --scrollbar-bg: #FFFFFF;
+  --scrollbar-thumb: #000000;
+  --selection-fg: #000000;
+  --selection-bg: #FFFFFF;
 }
 
 @theme inline {
@@ -27,7 +41,12 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
-  @apply antialiased selection:bg-black selection:text-white;
+  @apply antialiased;
+}
+
+::selection {
+  background-color: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 /* Structural Headings - FLW Style */
@@ -42,7 +61,8 @@ h3 { @apply text-sm font-semibold; }
 
 /* Structural Horizontal Motif */
 hr {
-  @apply border-none bg-black;
+  @apply border-none;
+  background-color: var(--foreground);
   height: var(--line-thin);
   margin: 2rem 0;
 }
@@ -70,7 +90,7 @@ hr {
 /* Defined Zones */
 .structural-divider-v {
   width: var(--line-thin);
-  background-color: #000000;
+  background-color: var(--foreground);
 }
 
 /* Scrollbar - Minimalist */
@@ -79,11 +99,11 @@ hr {
 }
 
 ::-webkit-scrollbar-track {
-  background: #FFFFFF;
+  background: var(--scrollbar-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #000000;
+  background: var(--scrollbar-thumb);
 }
 
 /* System label: compact uppercase label for status/metrics */
