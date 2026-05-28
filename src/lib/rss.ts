@@ -141,6 +141,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
             sourceTitle: source.title || '',
             categoryId: source.category.id,
             categoryName: source.category.name,
+            read: false,
         })),
         { primaryKey: 'id' }
     );

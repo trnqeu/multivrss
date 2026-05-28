@@ -20,7 +20,7 @@ async function reindex() {
     console.log('⚙️  Applying index settings...');
     await meili.index('items').updateSettings({
         searchableAttributes: ['title', 'content'],
-        filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate'],
+        filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate', 'read'],
         sortableAttributes: ['pubDate'],
     });
 
@@ -40,6 +40,7 @@ async function reindex() {
         sourceTitle: item.source.title || '',
         categoryId: item.source.category.id,
         categoryName: item.source.category.name,
+        read: false,
     }));
 
     const task = await meili.index('items').addDocuments(docs, { primaryKey: 'id' });
