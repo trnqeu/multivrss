@@ -16,7 +16,7 @@ export default async function SearchPage() {
     return (
         <>
             <PageHeader categories={categories} username={session.user.username} />
-            <main className="flex-1 min-h-0 overflow-y-auto scroll-smooth bg-background">
+            <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden scroll-smooth bg-background">
                 <SearchBar />
             </main>
         </>
