@@ -39,7 +39,7 @@ export default function SearchBar() {
     const [totalHits, setTotalHits] = useState(0);
     const [timeMs, setTimeMs] = useState(0);
     const [offset, setOffset] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [readFilter, setReadFilter] = useState<string | undefined>(undefined);
 
     useEffect(() => {

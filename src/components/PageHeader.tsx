@@ -7,6 +7,7 @@ import { syncAllFeeds } from '@/app/actions';
 import AddFeedForm from './AddFeedForm';
 import { useMobileSidebar } from './MobileSidebarContext';
 import { useSync } from './SyncProvider';
+import ThemeToggle from './ThemeToggle';
 import type { Category } from '@prisma/client';
 
 type Props = {
@@ -175,6 +176,10 @@ export default function PageHeader({ categories, username }: Props) {
                 >
                     {isSyncing ? '↻ SYNCING...' : '↻ SYNC'}
                 </button>
+
+                <div className="hidden md:block ml-3">
+                    <ThemeToggle />
+                </div>
 
             </header>
 
