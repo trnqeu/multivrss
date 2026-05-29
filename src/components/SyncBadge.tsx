@@ -8,7 +8,7 @@ export default function SyncBadge() {
     const [dots, setDots] = useState('');
 
     useEffect(() => {
-        if (!isSyncing) { setDots(''); return; }
+        if (!isSyncing) return;
         const interval = setInterval(() => {
             setDots(prev => prev.length >= 3 ? '' : prev + '.');
         }, 400);
