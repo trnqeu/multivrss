@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     const affectedUserIds = new Set<string>();
 
-    const CONCURRENCY = 5;
+    const CONCURRENCY = 15;
 
     for (let i = 0; i < allFeeds.length; i += CONCURRENCY) {
         const chunk = allFeeds.slice(i, i + CONCURRENCY);

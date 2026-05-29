@@ -67,7 +67,8 @@ export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> 
 }
 
 const parser = new Parser({
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
+  timeout: 10000,
+  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
 });
 
 export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
@@ -95,6 +96,11 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         content: string; pubDate: Date | null; sourceId: string;
     }> = [];
 
+    const updatedItems: Array<{
+        id: string; externalId: string; title: string; content: string;
+        link: string; pubDate: Date | null; sourceId: string;
+    }> = [];
+
     for (const item of feed.items) {
         const externalId = item.guid || item.link || '';
         const title = item.title || 'Untitled';
@@ -112,6 +118,11 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 where: { sourceId_externalId: { sourceId: source.id, externalId } },
                 data: { title, content },
             });
+            updatedItems.push({
+                id: existing.id, externalId, title, content,
+                link: item.link || '', pubDate: existing.pubDate,
+                sourceId: source.id,
+            });
         }
     }
 
@@ -120,32 +131,29 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         created = await prisma.feedItem.createManyAndReturn({ data: toCreate });
     }
 
-    const syncedExtIds = new Set(feed.items.map(i => i.guid || i.link || ''));
-    const syncResults = [
-        ...existingItems.filter(i => syncedExtIds.has(i.externalId)),
-        ...created,
-    ];
+    const meiliItems = [...created, ...updatedItems];
 
-    // 4. Sync to Meilisearch
-    // We send only the necessary data for searching
-    console.log(`📡 Syncing ${syncResults.length} items to Meilisearch...`);
-    const meiliTask = await meili.index('items').addDocuments(
-        syncResults.map((item) => ({
-            id: item.id,
-            externalId: item.externalId,
-            title: item.title,
-            content: item.content,
-            link: item.link,
-            pubDate: item.pubDate ? item.pubDate.getTime() : null,
-            sourceId: item.sourceId,
-            sourceTitle: source.title || '',
-            categoryId: source.category.id,
-            categoryName: source.category.name,
-            read: false,
-        })),
-        { primaryKey: 'id' }
-    );
-    console.log(`✅ Meilisearch sync task submitted. Task UID: ${meiliTask.taskUid}`);
+    // 4. Sync to Meilisearch — only new and updated items
+    if (meiliItems.length > 0) {
+        console.log(`📡 Syncing ${meiliItems.length} items to Meilisearch...`);
+        const meiliTask = await meili.index('items').addDocuments(
+            meiliItems.map((item) => ({
+                id: item.id,
+                externalId: item.externalId,
+                title: item.title,
+                content: item.content,
+                link: item.link,
+                pubDate: item.pubDate ? (item.pubDate instanceof Date ? item.pubDate.getTime() : item.pubDate) : null,
+                sourceId: item.sourceId,
+                sourceTitle: source.title || '',
+                categoryId: source.category.id,
+                categoryName: source.category.name,
+                read: false,
+            })),
+            { primaryKey: 'id' }
+        );
+        console.log(`✅ Meilisearch sync task submitted. Task UID: ${meiliTask.taskUid}`);
+    }
 
     // 5. Update the last sync date of the source
     await prisma.feedSource.update({
@@ -156,5 +164,5 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         },
     });
 
-    return syncResults;
+    return created;
 }

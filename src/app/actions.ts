@@ -309,7 +309,7 @@ export async function syncAllFeeds(): Promise<ActionState> {
         return { success: true, message: "All feeds are up to date." };
     }
 
-    const CONCURRENCY = 5;
+    const CONCURRENCY = 8;
     let synced = 0;
 
     for (let i = 0; i < staleFeeds.length; i += CONCURRENCY) {
