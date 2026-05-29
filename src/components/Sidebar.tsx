@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
 import LogoutButton from "./LogoutButton";
 import SidebarCategories from "./SidebarCategories";
-import ThemeToggle from "./ThemeToggle";
+
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
 
@@ -74,9 +74,8 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
 
             {/* System Footer */}
             <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
-                <div className="flex flex-col gap-2">
+                <div>
                     <LogoutButton />
-                    <ThemeToggle />
                 </div>
                 <div className="label-system text-[9px] text-foreground font-bold">
                     Connection: [PROTECTED]
