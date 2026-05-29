@@ -7,6 +7,8 @@ import { cacheLife, cacheTag } from 'next/cache';
 import LogoutButton from "./LogoutButton";
 import SidebarCategories from "./SidebarCategories";
 import ThemeToggle from "./ThemeToggle";
+import SpinningWrapper from "./SpinningWrapper";
+import SyncBadge from "./SyncBadge";
 
 
 export default async function Sidebar({ username }: { username: string }) {
@@ -34,18 +36,21 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
             {/* Brand lockup */}
             <div className="p-6 border-b-2 border-foreground">
                 <Link href={`/u/${username}`} className="flex items-center gap-3.5 hover:opacity-80 transition-opacity">
-                    <Image
-                        src="/logo/multivrss-ico.png"
-                        alt=""
-                        width={40}
-                        height={40}
-                        className="w-10 h-10 object-contain shrink-0"
-                        priority
-                    />
+                    <SpinningWrapper>
+                        <Image
+                            src="/logo/multivrss-ico.png"
+                            alt=""
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 object-contain shrink-0"
+                            priority
+                        />
+                    </SpinningWrapper>
                     <span className="text-lg font-extrabold uppercase tracking-[0.18em] text-terracotta">
                         multivrss
                     </span>
                 </Link>
+                <SyncBadge />
             </div>
 
             <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
