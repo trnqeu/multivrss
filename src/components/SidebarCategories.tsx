@@ -9,7 +9,7 @@ type Props = {
     categories: {
         id: string;
         name: string;
-        sources: { id: string; title: string | null; slug: string }[];
+        sources: { id: string; title: string | null; slug: string; categoryId: string }[];
     }[];
     username: string;
 };
@@ -50,6 +50,7 @@ export default function SidebarCategories({ categories, username }: Props) {
                 <CollapsibleCategory
                     key={category.id}
                     category={category}
+                    allCategories={categories}
                     isOpen={openCategories.has(category.id)}
                     onToggle={() => toggle(category.id)}
                     username={username}
