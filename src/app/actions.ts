@@ -180,6 +180,49 @@ export async function renameFeedSource(sourceId: string, newTitle: string): Prom
     }
 }
 
+export async function updateFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const sourceId = formData.get("sourceId") as string;
+    const title = (formData.get("title") as string)?.trim();
+    const categoryId = formData.get("categoryId") as string;
+    const newCategoryName = formData.get("newCategoryName") as string;
+
+    if (!sourceId) return { success: false, message: "Source ID is required." };
+    if (!title) return { success: false, message: "Title cannot be empty." };
+    if (!categoryId && !newCategoryName?.trim()) {
+        return { success: false, message: "Please select a category or create a new one." };
+    }
+
+    try {
+        let finalCategoryId = categoryId;
+
+        if (newCategoryName?.trim()) {
+            const normalized = newCategoryName.trim().toUpperCase();
+            const cat = await prisma.category.upsert({
+                where: { userId_name: { userId: session.user.id, name: normalized } },
+                update: {},
+                create: { name: normalized, userId: session.user.id }
+            });
+            finalCategoryId = cat.id;
+        }
+
+        await prisma.feedSource.update({
+            where: { id: sourceId, category: { userId: session.user.id } },
+            data: { title, categoryId: finalCategoryId }
+        });
+
+        updateTag(`feed:${session.user.id}`);
+        updateTag(`sources:${session.user.id}`);
+        updateTag(`sidebar:${session.user.id}`);
+        revalidatePath(`/u/${session.user.username}`, 'layout');
+        return { success: true, message: "Source updated." };
+    } catch {
+        return { success: false, message: "Failed to update source." };
+    }
+}
+
 export async function renameCategory(categoryId: string, newName: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
@@ -226,6 +269,79 @@ export async function renameCategory(categoryId: string, newName: string): Promi
     }
 }
 
+
+export async function deleteCategory(categoryId: string, moveToCategoryId?: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        const category = await prisma.category.findFirst({
+            where: { id: categoryId, userId: session.user.id },
+            include: { _count: { select: { sources: true } } }
+        });
+        if (!category) return { success: false, message: "Category not found." };
+
+        if (category._count.sources > 0) {
+            if (moveToCategoryId) {
+                await prisma.feedSource.updateMany({
+                    where: { categoryId },
+                    data: { categoryId: moveToCategoryId }
+                });
+            } else {
+                const unsorted = await prisma.category.upsert({
+                    where: { userId_name: { userId: session.user.id, name: 'UNSORTED' } },
+                    update: {},
+                    create: { name: 'UNSORTED', userId: session.user.id }
+                });
+                await prisma.feedSource.updateMany({
+                    where: { categoryId },
+                    data: { categoryId: unsorted.id }
+                });
+            }
+        }
+
+        await prisma.category.delete({ where: { id: categoryId } });
+
+        updateTag(`feed:${session.user.id}`);
+        updateTag(`sources:${session.user.id}`);
+        updateTag(`sidebar:${session.user.id}`);
+        revalidatePath(`/u/${session.user.username}`, 'layout');
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to delete category." };
+    }
+}
+
+export async function moveFeedSource(sourceId: string, newCategoryId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        const [source, targetCat] = await Promise.all([
+            prisma.feedSource.findFirst({
+                where: { id: sourceId, category: { userId: session.user.id } }
+            }),
+            prisma.category.findFirst({
+                where: { id: newCategoryId, userId: session.user.id }
+            })
+        ]);
+        if (!source) return { success: false, message: "Source not found." };
+        if (!targetCat) return { success: false, message: "Target category not found." };
+
+        await prisma.feedSource.update({
+            where: { id: sourceId },
+            data: { categoryId: newCategoryId }
+        });
+
+        updateTag(`feed:${session.user.id}`);
+        updateTag(`sources:${session.user.id}`);
+        updateTag(`sidebar:${session.user.id}`);
+        revalidatePath(`/u/${session.user.username}`, 'layout');
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to move feed source." };
+    }
+}
 
 export async function requestPasswordReset(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const email = formData.get("email") as string;
