@@ -45,7 +45,10 @@ next-env.d.ts
 # notes and instructions
 GEMINI.md
 AGENTS.md
-
 notes.md
+
+# agent configuration
+.agent-skills/
+.claude
 
 /src/generated/prisma

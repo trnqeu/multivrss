@@ -20,6 +20,13 @@ This project is a **learning exercise**. Do NOT write code for the user unless e
 
 Only write code directly if the user says "write it for me", "fallo tu", or "go ahead".
 
+## Guiding Principles
+
+1. **Step-by-step:** Break tasks into small modules — do not generate the entire feature at once.
+2. **Type safety:** Strict TypeScript. No `any`, no shortcuts.
+3. **English only:** All code, comments, and UI strings must be in English — never Italian.
+4. **Verify before moving on:** After each major step, confirm it works before proceeding.
+
 ## Commands
 
 ```bash
@@ -60,6 +67,7 @@ Note: `tsconfig.test.json` uses CommonJS / `moduleResolution: node` for ts-node 
   - `src/lib/search.ts` caches `getSourcesForUser()` with `cacheLife('minutes')` and `cacheTag('sources:${userId}')`.
   - Do not put request-specific/private data inside shared `"use cache"` scope.
   - Use `connection()` to defer a route to request time when needed.
+- **Key patterns:** Server Components by default; `"use client"` only for interactive forms. Server Actions handle all mutations. Prisma client uses `@prisma/adapter-pg` with a `pg.Pool` instance. Meilisearch is synced inside the RSS ingestion engine (`src/lib/rss.ts`) after each upsert.
 
 ## Auth & Security — Mandatory
 
@@ -77,6 +85,11 @@ Never trust client-supplied IDs. Always filter by `userId`.
 - **Password reset:** never reveal whether an email exists (generic response)
 - **Server Actions:** validate + normalize inputs at the top of each action
 - **No raw SQL** — Prisma parameterized queries only
+- **Injection:** Never interpolate user input into SQL, shell commands, or search filters without sanitization.
+- **Sensitive data:** Secrets, keys, and passwords live only in `.env` / `.env.production` — never in code, logs, or committed files.
+- **Dependencies:** Prefer minimal dependencies. Flag any new package with known CVEs or excessive permissions.
+- **Infrastructure:** No service (Postgres, Meilisearch) exposed to public internet. All inter-service communication on internal Docker network.
+- **Headers:** Nginx must set `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers in production.
 
 ## Data Model
 
@@ -85,6 +98,8 @@ Never trust client-supplied IDs. Always filter by `userId`.
 - `FeedItem`: unique by `[sourceId, externalId]` (NOT globally unique)
 - `PasswordResetToken`: per-user
 - Cascade deletes: `Category → FeedSource → FeedItem`
+- `FeedItem.externalId` is unique per source — used to deduplicate on upsert.
+- Indexes on `FeedItem.sourceId` and `FeedItem.pubDate`.
 
 ## Design System
 
@@ -93,6 +108,8 @@ Never trust client-supplied IDs. Always filter by `userId`.
 - **Font:** Inter (via `--font-inter`). Headings: bold, all-caps, wide tracking.
 - **Layout:** Sharp 2px horizontal borders. No rounded corners.
 - **Tailwind v4:** configured via `@import "tailwindcss"` + `@theme inline` in `src/app/globals.css`.
+- **Inspiration:** Frank Lloyd Wright — black/white base with sparse organic palette used only for headings and accents.
+- **Components:** Inputs and buttons feel "built into" the layout — not floating or superimposed.
 
 ## Repo Map
 
@@ -143,26 +160,28 @@ Caveat: `chub` can hang while flushing PostHog telemetry. Use `timeout 25s chub 
 
 Load the relevant skill before coding in the corresponding area:
 
-| Skill | When to use | Where |
-|-------|-------------|-------|
-| `nextjs16` | App Router, RSC, layouts, metadata, images, route handlers | `~/.agent-skills/skills/` |
-| `nextjs16-caching` | `"use cache"`, `cacheLife`, `cacheTag`, PPR, revalidation | `~/.agent-skills/skills/` |
-| `cache-components` | Cache Components deep dives, lifetime/tag debugging | `.agent-skills/skills/` |
-| `prisma` | Schema changes, queries, migrations, Prisma client | `~/.agent-skills/skills/` |
-| `nextauth-v4` | Auth setup, session handling, OAuth, route protection | `~/.agent-skills/skills/` |
-| `react19-forms` | Forms (`action` prop, `useActionState`, `useFormStatus`) | `~/.agent-skills/skills/` |
-| `meilisearch` | Indexing, search, index settings, filter/sort config | `~/.agent-skills/skills/` |
-| `rss-parser` | Feed fetching, RSS parsing, `syncFeed` | `~/.agent-skills/skills/` |
-| `next-best-practices` | Hydration errors, async APIs, route conventions | `.agent-skills/skills/` |
-| `react-best-practices` | Performance profiling, bundle size, re-renders | `.agent-skills/skills/` |
-| `security-and-hardening` | OWASP prevention, input validation, secure auth, SSRF guards | `~/.agent-skills/skills/` |
-| `chrome-devtools` | Browser debugging, DOM, network, LCP/CLS/INP | `.agent-skills/skills/` |
-| `frontend-design` | Building polished UI components, pages, layouts | `.agent-skills/skills/` |
-| `postgres-semantic-search` | pgvector, full-text search, ParadeDB, hybrid search | `.agent-skills/skills/` |
+| Skill | When to use |
+|-------|-------------|
+| `nextjs16` | App Router, RSC, layouts, metadata, images, route handlers |
+| `nextjs16-caching` | `"use cache"`, `cacheLife`, `cacheTag`, PPR, revalidation |
+| `cache-components` | Cache Components deep dives, lifetime/tag debugging |
+| `prisma` | Schema changes, queries, migrations, Prisma client |
+| `nextauth-v4` | Auth setup, session handling, OAuth, route protection |
+| `react19-forms` | Forms (`action` prop, `useActionState`, `useFormStatus`) |
+| `meilisearch` | Indexing, search, index settings, filter/sort config |
+| `rss-parser` | Feed fetching, RSS parsing, `syncFeed` |
+| `next-best-practices` | Hydration errors, async APIs, route conventions |
+| `react-best-practices` | Performance profiling, bundle size, re-renders |
+| `security-and-hardening` | OWASP prevention, input validation, secure auth, SSRF guards |
+| `chrome-devtools` | Browser debugging, DOM, network, LCP/CLS/INP |
+| `frontend-design` | Building polished UI components, pages, layouts |
+| `postgres-semantic-search` | pgvector, full-text search, ParadeDB, hybrid search |
+
+Project-level skill definitions: `.agent-skills/skills/`. System skills: pre-installed.
 
 ## Known Gotchas
 
-- `.gitignore` excludes `AGENTS.md`, ``, `notes.md`, `GEMINI.md` — instruction files exist **only locally**, never committed.
+- `.gitignore` excludes `AGENTS.md`, `notes.md`, `GEMINI.md` — instruction files exist **only locally**, never committed.
 - No `opencode.json` exists in the repo.
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - `PASSWORD_REGEX` duplicated in both `src/lib/utils.ts` and `src/app/actions.ts`.
@@ -216,5 +235,4 @@ Email transport uses Resend (`RESEND_API_KEY`) — see `src/lib/email.ts`.
 ## References
 
 - `README.md` — product vision, roadmap, tips & tricks
-- `` —  specific guidance
 - `notes.md` — personal todos, Adminer recipe, curated feed seed list
