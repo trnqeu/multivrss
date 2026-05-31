@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import Link from 'next/link';
+import MobileNavLink from './MobileNavLink';
 import { renameCategory } from '@/app/actions';
 
 interface Props {
@@ -39,12 +39,12 @@ export default function RenameCategoryTitle({ categoryId, name, username, editin
 
     return (
         <span className="inline-flex items-center gap-1 min-w-0">
-            <Link
+            <MobileNavLink
                 href={`/u/${username}?cat=${encodeURIComponent(name)}`}
                 className="text-[13px] font-bold uppercase tracking-[0.18em] text-terracotta py-1 hover:text-terracotta/70 transition-colors truncate"
             >
                 {name}
-            </Link>
+            </MobileNavLink>
         </span>
     );
 }
