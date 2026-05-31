@@ -15,6 +15,13 @@ const eslintConfig = defineConfig([
     // Static assets and design mockups
     "public/**",
   ]),
+  // Relax strict TS rules in test files
+  {
+    files: ["tests/**/*.test.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
