@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
-import Link from 'next/link';
+import MobileNavLink from './MobileNavLink';
 import { renameFeedSource } from '@/app/actions';
 
 interface Props {
@@ -39,12 +39,12 @@ export default function RenameFeedTitle({ sourceId, title, username, editing, on
 
     return (
         <div className="flex-1 flex items-center">
-            <Link
+            <MobileNavLink
                 href={`/u/${username}?source=${sourceId}`}
                 className="flex-1 py-1 text-[12px] font-medium text-foreground/85 hover:text-foreground transition-colors"
             >
                 {title}
-            </Link>
+            </MobileNavLink>
         </div>
     );
 }
