@@ -1,0 +1,404 @@
+url,category,title
+https://rss.nytimes.com/services/xml/rss/nyt/World.xml,NEWS,NYT World
+https://rss.nytimes.com/services/xml/rss/nyt/US.xml,NEWS,NYT US
+https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml,NEWS,NYT Politics
+https://rss.nytimes.com/services/xml/rss/nyt/Business.xml,NEWS,NYT Business
+https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml,NEWS,NYT Technology
+https://rss.nytimes.com/services/xml/rss/nyt/Science.xml,NEWS,NYT Science
+https://rss.nytimes.com/services/xml/rss/nyt/Health.xml,NEWS,NYT Health
+https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml,NEWS,NYT Sports
+https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml,NEWS,NYT Arts
+https://rss.nytimes.com/services/xml/rss/nyt/Books.xml,NEWS,NYT Books
+https://feeds.bbci.co.uk/news/rss.xml,NEWS,BBC News
+https://feeds.bbci.co.uk/news/world/rss.xml,NEWS,BBC World
+https://feeds.bbci.co.uk/news/politics/rss.xml,NEWS,BBC Politics
+https://feeds.bbci.co.uk/news/business/rss.xml,NEWS,BBC Business
+https://feeds.bbci.co.uk/news/technology/rss.xml,NEWS,BBC Technology
+https://feeds.bbci.co.uk/news/science_and_environment/rss.xml,NEWS,BBC Science
+https://feeds.bbci.co.uk/news/health/rss.xml,NEWS,BBC Health
+https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml,NEWS,BBC Entertainment
+https://www.theguardian.com/world/rss,NEWS,Guardian World
+https://www.theguardian.com/uk-news/rss,NEWS,Guardian UK
+https://www.theguardian.com/politics/rss,NEWS,Guardian Politics
+https://www.theguardian.com/business/rss,NEWS,Guardian Business
+https://www.theguardian.com/technology/rss,NEWS,Guardian Technology
+https://www.theguardian.com/science/rss,NEWS,Guardian Science
+https://www.theguardian.com/books/rss,NEWS,Guardian Books
+https://www.theguardian.com/film/rss,NEWS,Guardian Film
+https://www.theguardian.com/music/rss,NEWS,Guardian Music
+https://www.theguardian.com/sport/rss,NEWS,Guardian Sport
+https://www.repubblica.it/rss/homepage/rss2.0.xml,NEWS,La Repubblica
+https://www.repubblica.it/rss/motori/rss2.0.xml,NEWS,La Repubblica Motori
+https://www.repubblica.it/rss/cultura/rss2.0.xml,NEWS,La Repubblica Cultura
+https://www.repubblica.it/rss/economia/rss2.0.xml,NEWS,La Repubblica Economia
+https://www.repubblica.it/rss/esteri/rss2.0.xml,NEWS,La Repubblica Esteri
+https://www.repubblica.it/rss/sport/rss2.0.xml,NEWS,La Repubblica Sport
+https://www.repubblica.it/rss/tecnologia/rss2.0.xml,NEWS,La Repubblica Tecnologia
+https://www.corriere.it/rss/homepage.xml,NEWS,Corriere della Sera
+https://www.corriere.it/rss/esteri.xml,NEWS,Corriere Esteri
+https://www.corriere.it/rss/economia.xml,NEWS,Corriere Economia
+https://www.ilsole24ore.com/rss/primapagina.xml,NEWS,Il Sole 24 Ore
+https://www.ilsole24ore.com/rss/economia.xml,NEWS,Il Sole 24 Ore Economia
+https://www.ilsole24ore.com/rss/tecnologia.xml,NEWS,Il Sole 24 Ore Tecnologia
+https://www.adnkronos.com/rss/ultimora,NEWS,Adnkronos Ultimora
+https://www.adnkronos.com/rss/politica,NEWS,Adnkronos Politica
+https://www.adnkronos.com/rss/cronaca,NEWS,Adnkronos Cronaca
+https://www.adnkronos.com/rss/esteri,NEWS,Adnkronos Esteri
+https://feeds.washingtonpost.com/rss/world,NEWS,Washington Post World
+https://feeds.washingtonpost.com/rss/national,NEWS,Washington Post National
+https://feeds.washingtonpost.com/rss/politics,NEWS,Washington Post Politics
+https://feeds.washingtonpost.com/rss/business,NEWS,Washington Post Business
+https://feeds.washingtonpost.com/rss/technology,NEWS,Washington Post Technology
+https://feeds.washingtonpost.com/rss/opinions,NEWS,Washington Post Opinions
+https://www.economist.com/feeds/print-sections/77/business.xml,NEWS,The Economist Business
+https://www.economist.com/feeds/print-sections/78/technology.xml,NEWS,The Economist Technology
+https://www.economist.com/feeds/print-sections/79/international.xml,NEWS,The Economist International
+https://www.economist.com/feeds/print-sections/80/united-states.xml,NEWS,The Economist US
+https://www.economist.com/feeds/print-sections/81/europe.xml,NEWS,The Economist Europe
+https://www.economist.com/feeds/print-sections/82/asia.xml,NEWS,The Economist Asia
+https://feeds.ap.org/ap/rss/topnews,NEWS,AP Top News
+https://feeds.ap.org/ap/rss/world,NEWS,AP World
+https://feeds.ap.org/ap/rss/politics,NEWS,AP Politics
+https://feeds.ap.org/ap/rss/business,NEWS,AP Business
+https://feeds.ap.org/ap/rss/technology,NEWS,AP Technology
+https://feeds.ap.org/ap/rss/science,NEWS,AP Science
+https://feeds.ap.org/ap/rss/sports,NEWS,AP Sports
+https://www.aljazeera.com/xml/rss/all.xml,NEWS,Al Jazeera
+https://www.aljazeera.com/xml/rss/news.xml,NEWS,Al Jazeera News
+https://www.aljazeera.com/xml/rss/business.xml,NEWS,Al Jazeera Business
+https://www.aljazeera.com/xml/rss/sport.xml,NEWS,Al Jazeera Sport
+https://www.dw.com/rss/all.xml,NEWS,Deutsche Welle
+https://www.dw.com/rss/news.xml,NEWS,Deutsche Welle News
+https://www.dw.com/rss/business.xml,NEWS,Deutsche Welle Business
+https://www.dw.com/rss/culture.xml,NEWS,Deutsche Welle Culture
+https://www.dw.com/rss/science.xml,NEWS,Deutsche Welle Science
+https://www.dw.com/rss/sports.xml,NEWS,Deutsche Welle Sports
+https://www.lemonde.fr/rss/une.xml,NEWS,Le Monde
+https://www.lemonde.fr/rss/international.xml,NEWS,Le Monde International
+https://www.lemonde.fr/rss/economie.xml,NEWS,Le Monde Economie
+https://www.lemonde.fr/rss/sciences.xml,NEWS,Le Monde Sciences
+https://www.lemonde.fr/rss/culture.xml,NEWS,Le Monde Culture
+https://www.lemonde.fr/rss/sport.xml,NEWS,Le Monde Sport
+https://elpais.com/rss/elpais/portada.xml,NEWS,El Pais
+https://elpais.com/rss/elpais/internacional.xml,NEWS,El Pais Internacional
+https://elpais.com/rss/elpais/economia.xml,NEWS,El Pais Economia
+https://elpais.com/rss/elpais/tecnologia.xml,NEWS,El Pais Tecnologia
+https://elpais.com/rss/elpais/deportes.xml,NEWS,El Pais Deportes
+https://www.faz.net/rss/aktuell,NEWS,FAZ Aktuell
+https://www.faz.net/rss/aktuell/politik,NEWS,FAZ Politik
+https://www.faz.net/rss/aktuell/wirtschaft,NEWS,FAZ Wirtschaft
+https://www.faz.net/rss/aktuell/feuilleton,NEWS,FAZ Feuilleton
+https://www.faz.net/rss/aktuell/sport,NEWS,FAZ Sport
+https://www.reuters.com/tools/rss,NEWS,Reuters Top News
+https://www.reuters.com/world/rss,NEWS,Reuters World
+https://www.reuters.com/business/rss,NEWS,Reuters Business
+https://www.reuters.com/technology/rss,NEWS,Reuters Technology
+https://www.reuters.com/science/rss,NEWS,Reuters Science
+https://www.reuters.com/legal/rss,NEWS,Reuters Legal
+https://www.reuters.com/sports/rss,NEWS,Reuters Sports
+https://abcnews.go.com/abcnews/usheadlines,NEWS,ABC News US
+https://abcnews.go.com/abcnews/internationalheadlines,NEWS,ABC News International
+https://abcnews.go.com/abcnews/politicsheadlines,NEWS,ABC News Politics
+https://abcnews.go.com/abcnews/businessheadlines,NEWS,ABC News Business
+https://abcnews.go.com/abcnews/technologyheadlines,NEWS,ABC News Technology
+https://abcnews.go.com/abcnews/healthheadlines,NEWS,ABC News Health
+https://abcnews.go.com/abcnews/sportsheadlines,NEWS,ABC News Sports
+https://www.npr.org/rss/rss.php,NEWS,NPR News
+https://www.npr.org/rss/podcast.php,NEWS,NPR Podcasts
+https://www.npr.org/rss/topics/politics.xml,NEWS,NPR Politics
+https://www.npr.org/rss/topics/business.xml,NEWS,NPR Business
+https://www.npr.org/rss/topics/technology.xml,NEWS,NPR Technology
+https://www.npr.org/rss/topics/science.xml,NEWS,NPR Science
+https://www.npr.org/rss/topics/health.xml,NEWS,NPR Health
+https://www.npr.org/rss/topics/arts.xml,NEWS,NPR Arts
+https://www.npr.org/rss/topics/books.xml,NEWS,NPR Books
+https://www.npr.org/rss/topics/music.xml,NEWS,NPR Music
+https://news.ycombinator.com/rss,TECH,Hacker News
+https://techcrunch.com/feed,TECH,TechCrunch
+https://www.wired.com/feed/rss,TECH,Wired
+https://arstechnica.com/feed,TECH,Ars Technica
+https://www.theverge.com/rss/index.xml,TECH,The Verge
+https://www.engadget.com/rss.xml,TECH,Engadget
+https://www.zdnet.com/news/rss.xml,TECH,ZDNet
+https://www.cnet.com/rss/news,TECH,CNET News
+https://www.cnet.com/rss/reviews,TECH,CNET Reviews
+https://www.infoworld.com/index.rss,TECH,InfoWorld
+https://www.pcworld.com/feed,TECH,PCWorld
+https://www.tomsguide.com/feeds/all,TECH,Tom's Guide
+https://www.anandtech.com/rss,TECH,AnandTech
+https://www.tomshardware.com/feeds/all,TECH,Tom's Hardware
+https://www.extremetech.com/feed,TECH,ExtremeTech
+https://www.slashdot.org/index.rss,TECH,Slashdot
+https://news.slashdot.org/slashdot.rss,TECH,Slashdot News
+https://developers.slashdot.org/slashdot.rss,TECH,Slashdot Developers
+https://www.theregister.com/headlines.rss,TECH,The Register
+https://www.theregister.com/software.rss,TECH,The Register Software
+https://www.theregister.com/security.rss,TECH,The Register Security
+https://www.theregister.com/cloud.rss,TECH,The Register Cloud
+https://www.theregister.com/devops.rss,TECH,The Register DevOps
+https://blog.github.com/engineering/feed.xml,TECH,GitHub Engineering
+https://github.blog/changelog/feed,TECH,GitHub Changelog
+https://stackoverflow.blog/feed,TECH,Stack Overflow Blog
+https://stackoverflow.blog/engineering/feed,TECH,Stack Overflow Engineering
+https://blog.google/technology/feed,TECH,Google Blog Technology
+https://blog.google/products/feed,TECH,Google Blog Products
+https://developers.googleblog.com/feeds/posts/default,TECH,Google Developers
+https://ai.googleblog.com/feeds/posts/default,TECH,Google AI Blog
+https://security.googleblog.com/feeds/posts/default,TECH,Google Security
+https://www.microsoft.com/en-us/research/feed,TECH,Microsoft Research
+https://devblogs.microsoft.com/visualstudio/feed,TECH,MS Visual Studio Blog
+https://devblogs.microsoft.com/dotnet/feed,TECH,MS .NET Blog
+https://devblogs.microsoft.com/typescript/feed,TECH,MS TypeScript Blog
+https://devblogs.microsoft.com/azure-sdk/feed,TECH,MS Azure SDK
+https://aws.amazon.com/blogs/aws/feed,TECH,AWS Blog
+https://aws.amazon.com/blogs/security/feed,TECH,AWS Security
+https://aws.amazon.com/blogs/architecture/feed,TECH,AWS Architecture
+https://aws.amazon.com/blogs/developer/feed,TECH,AWS Developer
+https://netflixtechblog.com/feed,TECH,Netflix Tech Blog
+https://engineering.fb.com/feed,TECH,Meta Engineering
+https://engineering.linkedin.com/blog.rss,TECH,LinkedIn Engineering
+https://blog.twitter.com/engineering/en_us/blog.rss,TECH,X Engineering
+https://blog.rust-lang.org/feed.xml,TECH,Rust Blog
+https://blog.python.org/feeds/posts/default,TECH,Python Blog
+https://nodejs.org/en/feed/blog.xml,TECH,Node.js Blog
+https://deno.com/blog/feed.xml,TECH,Deno Blog
+https://reactnative.dev/blog/feed.xml,TECH,React Native Blog
+https://react.dev/blog/feed.xml,TECH,React Blog
+https://tailwindcss.com/blog/feed.xml,TECH,Tailwind CSS Blog
+https://www.prisma.io/blog/feed.xml,TECH,Prisma Blog
+https://www.mongodb.com/blog/feed,TECH,MongoDB Blog
+https://blog.postgresql.org/feed,TECH,PostgreSQL Blog
+https://www.docker.com/blog/feed,TECH,Docker Blog
+https://kubernetes.io/feed.xml,TECH,Kubernetes Blog
+https://www.linuxfoundation.org/feed,TECH,Linux Foundation
+https://lwn.net/headlines/rss,TECH,LWN.net
+https://www.phoronix.com/rss.php,TECH,Phoronix
+https://www.omgubuntu.co.uk/feed,TECH,OMG Ubuntu
+https://www.joelonsoftware.com/feed,TECH,Joel on Software
+https://martinfowler.com/feed.atom,TECH,Martin Fowler
+https://simonwillison.net/atom/entries,TECH,Simon Willison
+https://macwright.com/rss.xml,TECH,Tom MacWright
+https://www.youtube.com/feeds/videos.xml?channel_id=UCXuqSBlHAE6Xw-yeJA0Tunw,TECH,Youtube Tech - Linus Tech Tips
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,TECH,Youtube Tech - Marques Brownlee
+https://www.youtube.com/feeds/videos.xml?channel_id=UCBJycsmduvYEL83R_U4JriQ,TECH,Youtube Tech - MKBHD
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJHA_jMfCvEnv-3kRjTCQXw,TECH,Youtube Tech - Fireship
+https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ2lWNubArHWmf3FIHbfcQ,TECH,Youtube Tech - TechLinked
+https://www.youtube.com/feeds/videos.xml?channel_id=UC4xKdmAXFh4ACyhpiQ_3qBw,YOUTUBE,Youtube Tech - NetworkChuck
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8a3Z5Vgx1i9sJREwPsp_cw,YOUTUBE,Youtube News - Philip DeFranco
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq6VFHwMzcMXbuKyG7SQYIg,YOUTUBE,Youtube News - Kurzgesagt
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q,YOUTUBE,Youtube News - Kurzgesagt
+https://www.youtube.com/feeds/videos.xml?channel_id=UCaXkIU1QidjPwiAYu6GcHjg,YOUTUBE,Youtube News - BBC News
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq6VFHwMzcMXbuKyG7SQYIg,YOUTUBE,Youtube News - Vox
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsT0YIqwnpJCM-mx7-gSA4Q,YOUTUBE,Youtube News - Veritasium
+https://www.youtube.com/feeds/videos.xml?channel_id=UCX6b17PVsYBQ0ip5gyeme-Q,YOUTUBE,Youtube News - CrashCourse
+https://www.youtube.com/feeds/videos.xml?channel_id=UCfM3zsQOnfWNUbBMGRdLYZw,YOUTUBE,Youtube News - SciShow
+https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcsSLi9Z4T4OeQhXeR9A,YOUTUBE,Youtube News - Two Minute Papers
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0rddc4G5JoYoWHjmNYR5Tg,YOUTUBE,Youtube Science - Physics Girl
+https://www.youtube.com/feeds/videos.xml?channel_id=UCUHW94eEFW7hkUMVaZz4eDg,YOUTUBE,Youtube Science - MinutePhysics
+https://www.youtube.com/feeds/videos.xml?channel_id=UC7DdEm33SyaTDtWYGO2CwdA,YOUTUBE,Youtube Science - PBS Space Time
+https://www.youtube.com/feeds/videos.xml?channel_id=UCAuUUnT6oDeKwE6v1NGQxug,YOUTUBE,Youtube Science - VSauce
+https://www.youtube.com/feeds/videos.xml?channel_id=UCpVm7bg6pXKo1Pr6k5kxG9A,YOUTUBE,Youtube Programming - Bro Code
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8butISFwT-Wl7EV0hUK0BQ,YOUTUBE,Youtube Programming - freeCodeCamp
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsBjURrPoezykLs9EqgamOA,YOUTUBE,Youtube Programming - The Net Ninja
+https://www.youtube.com/feeds/videos.xml?channel_id=UCW5YeuERMmlnqo4oq8vwUpg,YOUTUBE,Youtube Programming - The Net Ninja
+https://www.youtube.com/feeds/videos.xml?channel_id=UCyIe-61Y8C4_o-zZCtO4ETQ,YOUTUBE,Youtube Programming - Academind
+https://www.youtube.com/feeds/videos.xml?channel_id=UCtxCXg-UvSnTKPOzLH4wJaQ,YOUTUBE,Youtube Programming - Traversy Media
+https://www.youtube.com/feeds/videos.xml?channel_id=UC29ju8bIPH5as8OGnQzwJyA,YOUTUBE,Youtube Programming - Programming with Mosh
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8p1vwvWtl6T73JiExfWs1g,YOUTUBE,Youtube Music - Andrew Huang
+https://www.youtube.com/feeds/videos.xml?channel_id=UC_aEa8K-EOJ3D6gOs7HcyNg,YOUTUBE,Youtube Music - Nahre Sol
+https://www.youtube.com/feeds/videos.xml?channel_id=UCJquYOG5EL82s0V3c0ZJ6jg,YOUTUBE,Youtube Music - Adam Neely
+https://www.youtube.com/feeds/videos.xml?channel_id=UCSzJ-fsVgqpsbYph2EyR_Vw,YOUTUBE,Youtube Music - Rick Beato
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsT0YIqwnpJCM-mx7-gSA4Q,YOUTUBE,Youtube Music - Polyphonic
+https://www.youtube.com/feeds/videos.xml?channel_id=UC-lHJZR3Gqxm24_Vd_RJg1Q,YOUTUBE,Youtube Music - Vox Earworm
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9RM-iSvTu1uPJb8X5yp3EQ,YOUTUBE,Youtube Music - 12tone
+https://www.youtube.com/feeds/videos.xml?channel_id=UCy0tKL1T7HKs099hkXOSGJg,YOUTUBE,Youtube Music - Sideways
+https://www.youtube.com/feeds/videos.xml?channel_id=UCo6V9kGIf-X1GLvsLJRYNpA,YOUTUBE,Youtube Music - Tantacrul
+https://www.youtube.com/feeds/videos.xml?channel_id=UC8EQAfueDGNe7aUQPe2s3KA,YOUTUBE,Youtube Music - David Bruce
+https://www.youtube.com/feeds/videos.xml?channel_id=UClLO8nGGyH48utQz3wqsG2A,YOUTUBE,Youtube Art - Art Assignment
+https://www.youtube.com/feeds/videos.xml?channel_id=UC5qgowrq9sMGlVBLkEOUj5A,YOUTUBE,Youtube Art - The Canvas
+https://www.youtube.com/feeds/videos.xml?channel_id=UCg6gPGh8nP9W3F1inV2Y4aQ,YOUTUBE,Youtube Art - Great Art Explained
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq6VFHwMzcMXbuKyG7SQYIg,YOUTUBE,Youtube Art - Nerdwriter1
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,YOUTUBE,Youtube Science - SmarterEveryDay
+https://www.youtube.com/feeds/videos.xml?channel_id=UC6107grRI4m0o2-emgoDnAA,YOUTUBE,Youtube Science - Tom Scott
+https://www.youtube.com/feeds/videos.xml?channel_id=UCYbKFAHqkGelMiNPXa6YrpQ,YOUTUBE,Youtube Science - Steve Mould
+https://www.youtube.com/feeds/videos.xml?channel_id=UCvqK1IesK3_E0BZBj_CwB3g,YOUTUBE,Youtube Science - Steve Mould
+https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcsSLi9Z4T4OeQhXeR9A,YOUTUBE,Youtube Science - Up and Atom
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,YOUTUBE,Youtube Science - Sabine Hossenfelder
+https://www.youtube.com/feeds/videos.xml?channel_id=UC1usFRN4LCMcfIV7UjHNuQg,YOUTUBE,Youtube Science - Sixty Symbols
+https://www.youtube.com/feeds/videos.xml?channel_id=UCy0tKL1T7HKs099hkXOSGJg,YOUTUBE,Youtube Science - Numberphile
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,YOUTUBE,Youtube Science - Periodic Videos
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq6VFHwMzcMXbuKyG7SQYIg,YOUTUBE,Youtube Science - Computerphile
+https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw,YOUTUBE,Youtube Science - 3Blue1Brown
+https://www.youtube.com/feeds/videos.xml?channel_id=UC624B2hGJ5GEvMZGiHPJc7Q,YOUTUBE,Youtube Science - Stand-up Maths
+https://www.youtube.com/feeds/videos.xml?channel_id=UC4a-Gbdw7vOaccHmFo40b9g,YOUTUBE,Youtube Science - Numberphile 2
+https://www.youtube.com/feeds/videos.xml?channel_id=UCRIWTSgd1Fy0Q2cGBBmR7pQ,YOUTUBE,Youtube Science - Objectivity
+https://www.youtube.com/feeds/videos.xml?channel_id=UC7_gcsSLi9Z4T4OeQhXeR9A,YOUTUBE,Youtube Tech - The 8-Bit Guy
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9RM-iSvTu1uPJb8X5yp3EQ,YOUTUBE,Youtube Tech - LGR
+https://www.youtube.com/feeds/videos.xml?channel_id=UCy0tKL1T7HKs099hkXOSGJg,YOUTUBE,Youtube Tech - Techmoan
+https://www.youtube.com/feeds/videos.xml?channel_id=UCsXVk37bltHxD1rDPwtNM8Q,YOUTUBE,Youtube Tech - ElectroBOOM
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,YOUTUBE,Youtube Tech - EEVblog
+https://www.youtube.com/feeds/videos.xml?channel_id=UCq6VFHwMzcMXbuKyG7SQYIg,YOUTUBE,Youtube Tech - BigClive
+https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw,YOUTUBE,Youtube Tech - Mikeselectricstuff
+https://www.youtube.com/feeds/videos.xml?channel_id=UC0vBXGSyV14uvJ4hECDOl0Q,YOUTUBE,Youtube Tech - Strange Parts
+https://www.espn.com/espn/rss/news,SPORT,ESPN News
+https://www.espn.com/espn/rss/nfl,SPORT,ESPN NFL
+https://www.espn.com/espn/rss/nba,SPORT,ESPN NBA
+https://www.espn.com/espn/rss/mlb,SPORT,ESPN MLB
+https://www.espn.com/espn/rss/soccer,SPORT,ESPN Soccer
+https://www.espn.com/espn/rss/tennis,SPORT,ESPN Tennis
+https://www.espn.com/espn/rss/boxing,SPORT,ESPN Boxing
+https://www.skysports.com/rss/12040,SPORT,Sky Sports News
+https://www.skysports.com/rss/12050,SPORT,Sky Sports Premier League
+https://www.skysports.com/rss/12060,SPORT,Sky Sports Football
+https://www.skysports.com/rss/12070,SPORT,Sky Sports F1
+https://www.skysports.com/rss/12080,SPORT,Sky Sports Cricket
+https://www.skysports.com/rss/12090,SPORT,Sky Sports Rugby
+https://www.skysports.com/rss/12100,SPORT,Sky Sports Boxing
+https://www.skysports.com/rss/12110,SPORT,Sky Sports Tennis
+https://www.skysports.com/rss/12120,SPORT,Sky Sports Golf
+https://www.skysports.com/rss/12130,SPORT,Sky Sports NFL
+https://www.gazzetta.it/rss/home.xml,SPORT,La Gazzetta dello Sport
+https://www.gazzetta.it/rss/calcio.xml,SPORT,Gazzetta Calcio
+https://www.gazzetta.it/rss/motori.xml,SPORT,Gazzetta Motori
+https://www.gazzetta.it/rss/basket.xml,SPORT,Gazzetta Basket
+https://www.gazzetta.it/rss/ciclismo.xml,SPORT,Gazzetta Ciclismo
+https://www.gazzetta.it/rss/tennis.xml,SPORT,Gazzetta Tennis
+https://www.sportmediaset.mediaset.it/rss,SPORT,Sport Mediaset
+https://www.theguardian.com/football/rss,SPORT,Guardian Football
+https://www.theguardian.com/sport/rss,SPORT,Guardian Sport
+https://www.theguardian.com/formulaone/rss,SPORT,Guardian F1
+https://www.cbssports.com/rss/headlines,SPORT,CBS Sports
+https://www.cbssports.com/rss/nfl,SPORT,CBS Sports NFL
+https://www.cbssports.com/rss/nba,SPORT,CBS Sports NBA
+https://www.cbssports.com/rss/mlb,SPORT,CBS Sports MLB
+https://www.cbssports.com/rss/nhl,SPORT,CBS Sports NHL
+https://www.cbssports.com/rss/collegefootball,SPORT,CBS Sports College Football
+https://www.cbssports.com/rss/collegebasketball,SPORT,CBS Sports College Basketball
+https://www.cbssports.com/rss/soccer,SPORT,CBS Sports Soccer
+https://www.cbssports.com/rss/golf,SPORT,CBS Sports Golf
+https://www.cbssports.com/rss/tennis,SPORT,CBS Sports Tennis
+https://www.nba.com/rss/nba.rss,SPORT,NBA News
+https://www.nba.com/rss/warriors.rss,SPORT,NBA Warriors
+https://www.nba.com/rss/lakers.rss,SPORT,NBA Lakers
+https://www.nba.com/rss/celtics.rss,SPORT,NBA Celtics
+https://www.mlb.com/feeds/news/rss.xml,SPORT,MLB News
+https://www.mlb.com/feeds/news/yankees.rss,SPORT,MLB Yankees
+https://www.mlb.com/feeds/news/dodgers.rss,SPORT,MLB Dodgers
+https://www.fifa.com/rss news.xml,SPORT,FIFA News
+https://www.uefa.com/rss/news.xml,SPORT,UEFA News
+https://www.nfl.com/rss/news,SPORT,NFL News
+https://www.f1.com/rss/news,SPORT,F1 News
+https://www.bbc.com/sport/football/rss,SPORT,BBC Sport Football
+https://www.bbc.com/sport/formula1/rss,SPORT,BBC Sport F1
+https://www.bbc.com/sport/tennis/rss,SPORT,BBC Sport Tennis
+https://www.bbc.com/sport/golf/rss,SPORT,BBC Sport Golf
+https://www.bbc.com/sport/cricket/rss,SPORT,BBC Sport Cricket
+https://www.bbc.com/sport/rugby-union/rss,SPORT,BBC Sport Rugby
+https://www.bbc.com/sport/boxing/rss,SPORT,BBC Sport Boxing
+https://www.bbc.com/sport/athletics/rss,SPORT,BBC Sport Athletics
+https://www.bbc.com/sport/swimming/rss,SPORT,BBC Sport Swimming
+https://www.bbc.com/sport/snooker/rss,SPORT,BBC Sport Snooker
+https://www.bbc.com/sport/darts/rss,SPORT,BBC Sport Darts
+https://www.bbc.com/sport/cycling/rss,SPORT,BBC Sport Cycling
+https://podcasts.files.bbci.co.uk/p02nq0gn.rss,CULTURE,In Our Time
+https://podcasts.files.bbci.co.uk/p02pc9qc.rss,CULTURE,The History Hour
+https://podcasts.files.bbci.co.uk/p02nq0lx.rss,CULTURE,Start the Week
+https://podcasts.files.bbci.co.uk/p02nq0l3.rss,CULTURE,Front Row
+https://www.theguardian.com/books/rss,CULTURE,Guardian Books
+https://www.theguardian.com/film/rss,CULTURE,Guardian Film
+https://www.theguardian.com/music/rss,CULTURE,Guardian Music
+https://www.theguardian.com/artanddesign/rss,CULTURE,Guardian Art
+https://www.theguardian.com/stage/rss,CULTURE,Guardian Stage
+https://www.nybooks.com/feed,CULTURE,NYRB
+https://www.lrb.co.uk/feed,CULTURE,LRB
+https://www.newyorker.com/feed/culture,CULTURE,New Yorker Culture
+https://www.newyorker.com/feed/books,CULTURE,New Yorker Books
+https://www.newyorker.com/feed/humor,CULTURE,New Yorker Humor
+https://www.economist.com/feeds/print-sections/83/culture.xml,CULTURE,Economist Culture
+https://www.economist.com/feeds/print-sections/84/books-and-arts.xml,CULTURE,Economist Books
+https://www.nature.com/nature.rss,SCIENCE,Nature
+https://www.nature.com/news.rss,SCIENCE,Nature News
+https://www.science.org/feeds/rss/current.xml,SCIENCE,Science Magazine
+https://www.science.org/feeds/rss/news.xml,SCIENCE,Science News
+https://www.sciencedaily.com/rss/all.xml,SCIENCE,Science Daily
+https://www.sciencedaily.com/rss/earth_climate.xml,SCIENCE,Science Daily Climate
+https://www.sciencedaily.com/rss/space_time.xml,SCIENCE,Science Daily Space
+https://www.sciencedaily.com/rss/matter_energy.xml,SCIENCE,Science Daily Physics
+https://www.sciencedaily.com/rss/computers_math.xml,SCIENCE,Science Daily CS
+https://www.sciencedaily.com/rss/plants_animals.xml,SCIENCE,Science Daily Biology
+https://www.sciencedaily.com/rss/fossils_ruins.xml,SCIENCE,Science Daily Paleontology
+https://www.sciencedaily.com/rss/health_medicine.xml,SCIENCE,Science Daily Health
+https://www.quantamagazine.org/feed,SCIENCE,Quanta Magazine
+https://www.quantamagazine.org/feed/physics,SCIENCE,Quanta Physics
+https://www.quantamagazine.org/feed/biology,SCIENCE,Quanta Biology
+https://www.quantamagazine.org/feed/computer-science,SCIENCE,Quanta CS
+https://www.quantamagazine.org/feed/mathematics,SCIENCE,Quanta Math
+https://arstechnica.com/science/feed,SCIENCE,Ars Technica Science
+https://www.newscientist.com/feed/home,SCIENCE,New Scientist
+https://www.nationalgeographic.com/rss/science,SCIENCE,National Geographic Science
+https://www.nationalgeographic.com/rss/history,SCIENCE,National Geographic History
+https://www.space.com/feeds/all,SCIENCE,Space.com
+https://www.space.com/feeds/news,SCIENCE,Space.com News
+https://www.nasa.gov/rss/dyn/breaking_news.rss,SCIENCE,NASA Breaking News
+https://www.nasa.gov/rss/dyn/image_of_the_day.rss,SCIENCE,NASA Image of the Day
+https://www.eso.org/public/rss/news.xml,SCIENCE,ESO News
+https://www.esa.int/rss/headlines,SCIENCE,ESA Headlines
+https://www.cern.ch/rss/news,SCIENCE,CERN News
+https://www.ipcc.ch/feed,SCIENCE,IPCC Reports
+https://www.who.int/rss/news,SCIENCE,WHO News
+https://www.cdc.gov/rss/news,SCIENCE,CDC News
+https://xkcd.com/rss.xml,HUMOR,XKCD
+https://www.commitstrip.com/en/feed,HUMOR,CommitStrip
+https://www.monkeyuser.com/feed,HUMOR,MonkeyUser
+https://www.smbc-comics.com/rss,HUMOR,SMBC
+https://www.dilbert.com/feed,HUMOR,Dilbert
+https://www.theonion.com/rss,HUMOR,The Onion
+https://www.theonion.com/rss/news,HUMOR,The Onion News
+https://harddrive.lol/rss,HUMOR,Hard Drive
+https://www.theshovel.com.au/feed,HUMOR,The Shovel
+https://www.newyorker.com/feed/humor,HUMOR,New Yorker Humor
+https://clickhole.com/feed,HUMOR,ClickHole
+https://www.bees.help/feed,HUMOR,Bees Help
+https://data.gdeltproject.org/blog/feed,DESIGN,GDELT Blog
+https://www.smashingmagazine.com/feed,DESIGN,Smashing Magazine
+https://alistapart.com/main/feed,DESIGN,A List Apart
+https://css-tricks.com/feed,DESIGN,CSS-Tricks
+https://uxdesign.cc/feed,DESIGN,UX Design
+https://www.creativebloq.com/rss.xml,DESIGN,Creative Bloq
+https://www.designboom.com/feed,DESIGN,Designboom
+https://www.dezeen.com/feed,DESIGN,Dezeen
+https://www.archdaily.com/feed,DESIGN,ArchDaily
+https://www.behance.net/feeds/recent,DESIGN,Behance
+https://dribbble.com/stories/feed,DESIGN,Dribbble Stories
+https://www.designweek.co.uk/feed,DESIGN,Design Week
+https://www.itsnicethat.com/feed,DESIGN,Its Nice That
+https://eyeondesign.aiga.org/feed,DESIGN,Eye on Design
+https://www.fonts.com/rss/news,DESIGN,Fonts News
+https://feeds.feedburner.com/TEDTalks,DESIGN,TED Talks
+https://www.designmodo.com/feed,DESIGN,Designmodo
+https://www.webdesignerdepot.com/rss,DESIGN,Web Designer Depot
+https://landing.google.com/sre/feed.xml,WORK,Google SRE
+https://stories.jobbio.com/feed,WORK,Business of Work
+https://charlesleifer.com/feed,WORK,Charles Leifer
+https://kalzumeus.com/feed,WORK,Kalzumeus
+https://www.kitchensoap.com/feed,WORK,Kitchen Soap
+https://www.humanresourcesonline.net/feed,WORK,HR Online
+https://www.managementtoday.co.uk/rss,WORK,Management Today
+https://www.forbes.com/work/feed,WORK,Forbes Work
+https://www.bloomberg.com/feed/business,WORK,Bloomberg Business
+https://hbr.org/rss/section/life-at-work,WORK,HBR Life at Work
+https://news.harvard.edu/gazette/rss/all,WORK,Harvard Gazette
+https://www.mckinsey.com/feed,WORK,McKinsey
+https://www.bcg.com/feed,WORK,BCG Insights
+https://www.strategy-business.com/feed,WORK,Strategy+Business
+https://www.zephoria.org/thoughts/feed,WORK,Zephoria
+https://otherinter.net/feed,,Other Inter
+https://www.404media.co/feed,,404 Media
+https://www.niemanlab.org/feed,,Nieman Lab
+https://ethanmarcotte.com/feed,,Ethan Marcotte
+https://adactio.com/feed,,Adactio
+https://lethain.com/feed,,Lethain
+https://apenwarr.ca/feed,,Apenwarr
+https://blog.nelhage.com/feed,,NELHAGE
+https://gist.github.com/feed,,Gist Blog
+https://www.jeffgeerling.com/blog/feed,,Jeff Geerling

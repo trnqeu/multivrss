@@ -12,6 +12,7 @@ type SourceData = {
     title: string | null;
     slug: string;
     categoryId: string;
+    lastSync: Date | null;
 };
 
 type Props = {
@@ -109,6 +110,11 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                                 editing={false}
                                 onDone={() => {}}
                             />
+                            {!source.lastSync && (
+                                <span className="font-mono text-[8px] uppercase tracking-[0.15em] text-terracotta/70 ml-auto animate-pulse shrink-0">
+                                    PENDING
+                                </span>
+                            )}
                         </li>
                     ))}
                     {category.sources.length === 0 && (

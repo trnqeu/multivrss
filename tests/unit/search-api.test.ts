@@ -16,6 +16,10 @@ vi.mock('@/lib/search', () => ({
     searchFeedItemsForUser: vi.fn(),
 }));
 
+vi.mock('@/lib/meili', () => ({
+    configureMeiliIndex: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockedGetServerSession = vi.mocked(getServerSession);
 const mockedSearchFeedItemsForUser = vi.mocked(searchFeedItemsForUser);
 
@@ -47,13 +51,13 @@ describe('GET /api/search', () => {
             user: { id: 'user_1' },
             expires: new Date(Date.now() + 1000).toISOString(),
         });
-        mockedSearchFeedItemsForUser.mockResolvedValue(hits);
+        mockedSearchFeedItemsForUser.mockResolvedValue({ hits, estimatedTotalHits: 1, processingTimeMs: 5, facetDistribution: null });
 
         const response = await GET(new NextRequest('https://multivrss.test/api/search?q=rss'));
 
-        expect(mockedSearchFeedItemsForUser).toHaveBeenCalledWith('user_1', 'rss');
+        expect(mockedSearchFeedItemsForUser).toHaveBeenCalledWith('user_1', 'rss', undefined, undefined, 30, 0, undefined, undefined);
         expect(response.status).toBe(200);
-        await expect(response.json()).resolves.toEqual(hits);
+        await expect(response.json()).resolves.toEqual({ hits, estimatedTotalHits: 1, processingTimeMs: 5, facetDistribution: null });
     });
 
     it('passes an empty query when q is missing', async () => {
@@ -61,12 +65,12 @@ describe('GET /api/search', () => {
             user: { id: 'user_1' },
             expires: new Date(Date.now() + 1000).toISOString(),
         });
-        mockedSearchFeedItemsForUser.mockResolvedValue([]);
+        mockedSearchFeedItemsForUser.mockResolvedValue({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null });
 
         const response = await GET(new NextRequest('https://multivrss.test/api/search'));
 
-        expect(mockedSearchFeedItemsForUser).toHaveBeenCalledWith('user_1', '');
+        expect(mockedSearchFeedItemsForUser).toHaveBeenCalledWith('user_1', '', undefined, undefined, 30, 0, undefined, undefined);
         expect(response.status).toBe(200);
-        await expect(response.json()).resolves.toEqual([]);
+        await expect(response.json()).resolves.toEqual({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null });
     });
 });

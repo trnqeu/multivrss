@@ -47,10 +47,11 @@ MultivRSS is three things in one:
 
 | URL | Who sees it | What it is |
 |-----|-------------|------------|
-| `multivrss.com/` | Authenticated users today; everyone later | Current private RSS dashboard. Future marketing landing page once the private dashboard is moved or separated. |
-| `multivrss.com/search` | Authenticated users | Full-text search over indexed feed items |
-| `multivrss.com/category/[slug]` | Authenticated users | Filtered view by category |
-| `multivrss.com/source/[slug]` | Authenticated users | Filtered view by feed source |
+| `multivrss.com/` | Unauthenticated users: marketing landing. Authenticated users: redirect to `/u/{username}` | Marketing homepage / project presentation |
+| `multivrss.com/u/{username}` | Authenticated users | Private RSS dashboard |
+| `multivrss.com/u/{username}/search` | Authenticated users | Full-text search over indexed feed items |
+| `multivrss.com/u/{username}/category/{slug}` | Authenticated users | Filtered view by category |
+| `multivrss.com/u/{username}/source/{slug}` | Authenticated users | Filtered view by feed source |
 | `multivrss.com/saved` | Authenticated users | Planned private reading list (all saved links) |
 | `multivrss.com/[username]` | Everyone | User's public "best-of" reading list |
 
@@ -63,15 +64,25 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 ### Done
 
 - [x] OAuth sign-in (GitHub + Google) with Prisma Adapter
-- [x] Meilisearch full-text search bar
+- [x] Meilisearch full-text search bar (+ filters by category, time range, source, read status)
 - [x] Sidebar toggle (open/close)
 - [x] Collapsible sidebar categories
 - [x] Alphabetical feed sorting within categories
 - [x] Manual sync button (syncs all feeds for the logged-in user)
+- [x] Accelerated sync with concurrency, Meili delta, timeout, non-blocking overlay
+- [x] Read / unread toggle (pallino + opacity) with dual Prisma+Meilisearch write
+- [x] Light / dark mode with paper as default, persisted in localStorage
+- [x] Marketing landing page (`/`) with hero, pillars, live preview, tips, pricing
+- [x] Protected staging via Basic Auth (`STAGING_PASSWORD` in proxy.ts)
+- [x] Edit source modal (rename + change category with merge)
+- [x] Category rename with auto-merge when target name exists
+- [x] Server Actions test suite (56 Vitest tests across 7 files)
+- [x] Dynamic route restructure: all private routes under `/u/{username}/`
 
-### In progress
+### In progress / planned
 
-- [ ] **Article view** — verify and complete `src/app/source/[slug]/page.tsx`
+- [ ] **Search UX revision** — keyboard shortcut (`/` to focus), results layout, empty/loading states
+- [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
 
 ### Reading List (Instapaper/Pocket-style)
 
@@ -84,33 +95,27 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 ### Core features
 
-- [ ] **Mark as read** — `FeedItem.read` field exists; needs server action + UI toggle
-- [ ] **Search UX revision** — keyboard shortcut (`/` to focus), results layout, empty/loading states
-- [ ] **Light / dark mode** — theme toggle; persist preference in `localStorage`
-- [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
 - [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click (depends on REST API)
 - [ ] **Export feeds as CSV** — download all feed sources for the logged-in user
-- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start? Let's add some MultivRSS favourite feeds." screen. They pick one or more interest categories (e.g. News, Tech, Sports, Mind, Art, Literature) and the app auto-creates those categories in their account and populates them with a curated seed list of feeds maintained by MultivRSS. Users can remove or edit anything afterwards. Seed list lives in `notes.md`.
+- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `notes.md`).
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
-- [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI, covering sites that don't offer RSS natively
-- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance: full keyboard navigation, semantic HTML, ARIA labels on all interactive elements, sufficient color contrast ratios, screen reader support, focus-visible outlines
+- [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
+- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance: full keyboard navigation, semantic HTML, ARIA labels, sufficient contrast, screen reader support, focus-visible outlines
 
 ### Monetization
 
-- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors); keep the private authenticated dashboard ad-free
-- [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access. Key design challenge: restrict the free tier enough to drive upgrades without frustrating users.
+- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors)
+- [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access.
 
 ### Marketing & Infrastructure
 
-- [ ] **Landing page** — `multivrss.com/` with project presentation, feature highlights, login/register, curated feed examples, and a Tips & Tricks section (see below)
-- [ ] **Protect staging** — HTTP basic auth or IP allowlist via Nginx for `staging.multivrss.com`
-- [ ] **CDN + security** — Bunny CDN + Bunny Shield in front of the VPS: cache static assets and public pages only, WAF (OWASP Top 10), DDoS protection, bot mitigation, and rate limiting — all upstream before traffic reaches the server. Never cache authenticated dashboard traffic to avoid session data leaks. Free tier covers the basics; Advanced ($9.5/mo) adds complex bot mitigation and AI WAF. Fail2ban on the VPS as a last line of defense.
-- [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban as last-resort IP banning at VPS level
-- [ ] **OWASP secure development** — apply OWASP Top 10 mitigations across every feature: input validation at all boundaries, parameterized queries only, CSRF protection on all mutations, `Content-Security-Policy` header, dependency audit (`npm audit`) in CI, secrets never in code or logs
-- [ ] **Reader mode** — extract full article content from saved URLs via `@mozilla/readability` + `jsdom`; apply `validateFeedUrl()` validation before fetching; integrate in the "save external URL" flow
+- [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
+- [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
+- [ ] **OWASP secure development** — apply OWASP Top 10 across every feature: input validation, parameterized queries, CSRF protection, CSP header, `npm audit` in CI, secrets never in code/logs
+- [ ] **Reader mode** — extract full article content from saved URLs via `@mozilla/readability` + `jsdom`
+- [ ] **Database backups** — periodic automated `pg_dump`; evaluate Hetzner Storage Box, Backblaze B2, or Cloudflare R2
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
-- [ ] **Database backups** — set up periodic automated `pg_dump` backups; evaluate one of: Hetzner Storage Box (SFTP/rsync, cheap, same infra), Backblaze B2, or Cloudflare R2 (S3-compatible object storage, near-zero cost at small scale, geo-separated from Hetzner)
 
 ---
 

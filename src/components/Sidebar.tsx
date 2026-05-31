@@ -1,14 +1,16 @@
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
-import Link from 'next/link';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
 import LogoutButton from "./LogoutButton";
 import SidebarCategories from "./SidebarCategories";
+import MobileNavLink from "./MobileNavLink";
 
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
+import ExportCsvButton from "./ExportCsvButton";
+import ImportCsvForm from "./ImportCsvForm";
 
 
 export default async function Sidebar({ username }: { username: string }) {
@@ -35,7 +37,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
         <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
             {/* Brand lockup */}
             <div className="p-6 border-b-2 border-foreground">
-                <Link href={`/u/${username}`} className="flex items-center gap-3.5 hover:opacity-80 transition-opacity">
+                <MobileNavLink href={`/u/${username}`} className="flex items-center gap-3.5 hover:opacity-80 transition-opacity">
                     <SpinningWrapper>
                         <Image
                             src="/logo/multivrss-ico.png"
@@ -49,7 +51,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                     <span className="text-lg font-extrabold uppercase tracking-[0.18em] text-terracotta">
                         multivrss
                     </span>
-                </Link>
+                </MobileNavLink>
                 <SyncBadge />
             </div>
 
@@ -57,7 +59,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                 {/* Main Navigation */}
                 <div className="flex flex-col gap-4">
                     <span className="label-system text-foreground">NAV_ROOT</span>
-                    <Link
+                    <MobileNavLink
                         href={`/u/${username}`}
                         className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
                     >
@@ -65,7 +67,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                             _
                         </span>
                         All Feeds
-                    </Link>
+                    </MobileNavLink>
                 </div>
 
                 {/* Categories as Modules */}
@@ -74,6 +76,10 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
 
             {/* System Footer */}
             <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                    <ExportCsvButton />
+                    <ImportCsvForm />
+                </div>
                 <div>
                     <LogoutButton />
                 </div>
