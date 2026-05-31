@@ -58,8 +58,8 @@ Note: `tsconfig.test.json` uses CommonJS / `moduleResolution: node` for ts-node 
 ## Stack & Quick Facts
 
 - **Stack:** Next.js 16.2, React 19, TypeScript 5, Tailwind CSS 4, PostgreSQL 16, Prisma 7 (`@prisma/adapter-pg`), Meilisearch, NextAuth v4 (JWT), Docker.
-- **Router:** App Router under `src/`. Private UI in route group `(app)` mounted at `/`.
-- **Proxy:** `src/proxy.ts` (not middleware.ts). Matcher covers `/`, `/search/*`, `/category/*`, `/source/*`, `/saved/*`.
+- **Router:** App Router under `src/`. Private dashboard at `/u/{username}/`. Marketing homepage at `/` (redirects authenticated users).
+- **Proxy:** `src/proxy.ts` (not middleware.ts). Matcher covers all non-public paths via regex. Protects `/u/*` routes via JWT. Supports staging Basic Auth via `STAGING_PASSWORD`.
 - **Caching:** `cacheComponents: true` in `next.config.ts`. Use Next.js 16 Cache Components model.
 - **Dynamic params:** `params: Promise<{ slug: string }>` — must be awaited.
 - **Order matters:** call `revalidatePath()` before `redirect()` (redirect throws).
@@ -123,6 +123,9 @@ src/app/
     source/[slug]/          Source-filtered feed list
     search/page.tsx         Search results
     layout.tsx              App shell with sidebar
+  (marketing)/              Marketing route group at /
+    page.tsx                Landing page (redirects authenticated users)
+    layout.tsx
   actions.ts                Server Actions (CRUD, sync, auth, password)
   api/
     auth/[...nextauth]/     NextAuth route
@@ -140,7 +143,7 @@ src/lib/
   utils.ts                  slugify, private IP check, PASSWORD_REGEX
 
 src/proxy.ts                Request proxy (replaces middleware.ts)
-tests/unit/                 Vitest unit tests
+tests/unit/                 Vitest unit tests (56 tests, 7 files)
 ```
 
 ## Dependency Docs With Chub
@@ -234,5 +237,7 @@ Email transport uses Resend (`RESEND_API_KEY`) — see `src/lib/email.ts`.
 
 ## References
 
-- `README.md` — product vision, roadmap, tips & tricks
-- `notes.md` — personal todos, Adminer recipe, curated feed seed list
+- `README.md` — product vision, roadmap, tips & tricks (keep the roadmap section updated after each feature)
+- `notes.md` — Adminer recipe, curated feed seed list for onboarding, personal notes
+
+Every task should be checked against the roadmap in `README.md` to mark items as done or adjust scope.

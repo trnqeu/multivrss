@@ -9,7 +9,7 @@ type Props = {
     categories: {
         id: string;
         name: string;
-        sources: { id: string; title: string | null; slug: string; categoryId: string }[];
+        sources: { id: string; title: string | null; slug: string; categoryId: string; lastSync: Date | null }[];
     }[];
     username: string;
 };
