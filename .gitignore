@@ -51,4 +51,18 @@ notes.md
 .agent-skills/
 .claude
 
+# design mockups and experiments
+.codex
+public/home-page.html
+public/multivrss_home_page/
+public/multivrss_home_page_files/
+public/multivrss_logo_minuscolo/
+public/multivrss_icon.png
+public/multivrss_icon.svg
+public/A _ INLINE _ PALLINO _ OPACITY  _recommended_.html
+public/A_ _ INLINE _ PALLINO _ WARM-GREY FADE  _paper_lightmode_read_unread.html
+public/C _ NEWSPAPER _ Paper_ ink_ no dark mode.html
+public/C _ NEWSPAPER _ Paper_ ink_ no dark mode.png
+public/_ RACCOMANDATO _ PlusMinus _ Click-to-edit.html
+
 /src/generated/prisma
