@@ -89,9 +89,13 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [ ] **Save from feed** — one-click bookmark on any feed item
 - [ ] **Save external link** — add any URL manually (title + description auto-fetched from og:title/og:description)
 - [ ] **Private saved list** — view and manage saved links at `/saved`
+- [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved links are exempt
+
+### TBD / Future
+
 - [ ] **Public toggle** — mark any saved link as "public" to include it in the user's public profile
-- [ ] **Public profile page** — `multivrss.com/[username]` readable without login; shows the user's curated public links
-- [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved/public links are exempt
+- [ ] **Public profile page** — `multivrss.com/[username]` readable without login
+- [ ] **Advertising** — monetization via public pages
 
 ### Core features
 
@@ -104,7 +108,6 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 ### Monetization
 
-- [ ] **Advertising on public profile pages** — display ads on `multivrss.com/[username]` (visible to unauthenticated visitors)
 - [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access.
 
 ### Marketing & Infrastructure
