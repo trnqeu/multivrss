@@ -1,10 +1,12 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
+
 export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
-    if (process.env.STAGING_PASSWORD) {
+    if (process.env.STAGING_PASSWORD && !AUTH_PATHS.includes(pathname)) {
         const auth = req.headers.get("authorization");
         if (!auth || !auth.startsWith("Basic ")) {
             return new Response("Unauthorized", {
