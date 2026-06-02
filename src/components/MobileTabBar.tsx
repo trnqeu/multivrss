@@ -15,7 +15,6 @@ export default function MobileTabBar({ onAdd, onMe, username }: Props) {
 
     const TABS = [
         { id: 'feed',   label: 'FEED',   href: `/u/${username}` },
-        { id: 'search', label: 'SEARCH', href: `/u/${username}/search` },
         { id: 'add',    label: 'ADD',    href: null },
         { id: 'me',     label: 'ME',     href: null },
     ] as const;
