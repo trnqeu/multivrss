@@ -81,7 +81,7 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 ### In progress / planned
 
-- [ ] **Search UX revision** — keyboard shortcut (`/` to focus), results layout, empty/loading states
+- [x] **Search UX revision** — removed redundant `/search` page, search lives inline on the dashboard via `?q=`
 - [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
 
 ### Reading List (Instapaper/Pocket-style)
