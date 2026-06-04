@@ -8,16 +8,18 @@ import AddFeedForm from './AddFeedForm';
 import { useMobileSidebar } from './MobileSidebarContext';
 import { useSync } from './SyncProvider';
 import ThemeToggle from './ThemeToggle';
+import SettingsMenu from './SettingsMenu';
 import type { Category } from '@prisma/client';
 
 type Props = {
     categories: Category[];
     username: string;
+    email?: string | null;
 };
 
 const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none appearance-none shadow-none";
 
-export default function PageHeader({ categories, username }: Props) {
+export default function PageHeader({ categories, username, email }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -118,6 +120,8 @@ export default function PageHeader({ categories, username }: Props) {
                         >
                             ↻
                         </button>
+                        <ThemeToggle />
+                        <SettingsMenu username={username} email={email} />
                     </div>
                 )}
 
@@ -177,8 +181,9 @@ export default function PageHeader({ categories, username }: Props) {
                     {isSyncing ? '↻ SYNCING...' : '↻ SYNC'}
                 </button>
 
-                <div className="hidden md:block ml-3">
+                <div className="hidden md:flex items-center gap-3 ml-3">
                     <ThemeToggle />
+                    <SettingsMenu username={username} email={email} />
                 </div>
 
             </header>

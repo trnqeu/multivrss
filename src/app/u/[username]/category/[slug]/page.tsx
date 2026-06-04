@@ -36,7 +36,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     if (category._count.sources === 0) {
         return (
             <>
-                <PageHeader categories={categories} username={session.user.username} />
+                <PageHeader categories={categories} username={session.user.username} email={session.user.email} />
                 <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
                     <EmptyStream variant="empty-category" contextLabel={category.name} />
                 </main>
