@@ -3,14 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
-import LogoutButton from "./LogoutButton";
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
-import ExportCsvButton from "./ExportCsvButton";
-import ImportCsvForm from "./ImportCsvForm";
 
 
 export default async function Sidebar({ username }: { username: string }) {
@@ -75,14 +72,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
             </nav>
 
             {/* System Footer */}
-            <div className="p-8 border-t-2 border-foreground flex flex-col gap-3">
-                <div className="flex flex-col gap-2">
-                    <ExportCsvButton />
-                    <ImportCsvForm />
-                </div>
-                <div>
-                    <LogoutButton />
-                </div>
+            <div className="p-8 border-t-2 border-foreground">
                 <div className="label-system text-[9px] text-foreground font-bold">
                     Connection: [PROTECTED]
                     <br />

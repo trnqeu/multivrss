@@ -24,10 +24,10 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="bg-transparent border-0 p-0 text-foreground/60 hover:text-foreground transition-colors cursor-pointer text-[10px] font-bold uppercase tracking-widest"
+      className="bg-transparent border-0 p-0 text-foreground/60 hover:text-foreground transition-colors cursor-pointer text-[13px] leading-none inline-flex items-center"
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
-      {theme === 'light' ? '☾ DARK' : '☀ LIGHT'}
+      {theme === 'light' ? '☾' : '☀'}
     </button>
   );
 }
