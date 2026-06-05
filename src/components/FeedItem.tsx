@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead } from '@/app/actions';
+import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { useState } from 'react';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
         content: string | null;
         pubDate: Date | null;
         read: boolean;
+        savedAt: Date | null;
         source: { title: string | null };
     };
     isLast: boolean;
@@ -18,10 +19,22 @@ interface Props {
 
 export default function FeedItem( { item, isLast }: Props) {
     const [isRead, setIsRead] = useState(item.read);
+    const [isSaved, setIsSaved] = useState(!!item.savedAt);
     async function handleClick() {
         if (isRead) return;
         setIsRead(true);
         await markAsRead(item.id);
+    }
+    async function handleSave(e: React.MouseEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isSaved) {
+            setIsSaved(false);
+            await unsaveFeedItem(item.id);
+        } else {
+            setIsSaved(true);
+            await saveFeedItem(item.id);
+        }
     }
     return (
     <span className={isRead ? 'opacity-30' : ''}>
@@ -55,6 +68,15 @@ export default function FeedItem( { item, isLast }: Props) {
                 </>
             )}
         </a>
+        <button
+            onClick={handleSave}
+            className="bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest transition-colors align-baseline mx-1"
+            title={isSaved ? 'Remove from saved' : 'Save'}
+        >
+            <span className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}>
+                [{isSaved ? 'SAVED' : 'SAVE'}]
+            </span>
+        </button>
         {!isLast && (
             <span className="text-terracotta font-bold mx-3 select-none">{'/ /'}</span>
         )}

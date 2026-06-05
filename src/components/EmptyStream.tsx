@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-type Variant = "no-sources" | "empty-category" | "no-results";
+type Variant = "no-sources" | "empty-category" | "no-results" | "no-saved";
 
 type Props = {
     variant: Variant;
@@ -25,6 +25,11 @@ const COPY: Record<Variant, { label: string; title: (ctx?: string) => string; bo
         label: "ZERO HITS",
         title: (ctx) => `No matches for "${ctx ?? ""}".`,
         body: "Try a different query or remove filters.",
+    },
+    "no-saved": {
+        label: "EMPTY ARCHIVE",
+        title: () => "Nothing saved yet.",
+        body: "Save articles from your feeds or add external links to build your reading list.",
     },
 };
 

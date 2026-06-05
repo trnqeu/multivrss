@@ -489,6 +489,99 @@ export async function markAsUnread(itemId: string): Promise<ActionState> {
     }
 }
 
+export async function saveFeedItem(itemId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        const now = new Date();
+        await prisma.feedItem.update({
+            where: {
+                id: itemId,
+                source: { category: { userId: session.user.id } }
+            },
+            data: { savedAt: now }
+        });
+        await meili.index('items').updateDocuments([{ id: itemId, savedAt: now.getTime() }]);
+        updateTag(`feed:${session.user.id}`);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to save item." };
+    }
+}
+
+export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        await prisma.feedItem.update({
+            where: {
+                id: itemId,
+                source: { category: { userId: session.user.id } }
+            },
+            data: { savedAt: null }
+        });
+        await meili.index('items').updateDocuments([{ id: itemId, savedAt: null }]);
+        updateTag(`feed:${session.user.id}`);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to unsave item." };
+    }
+}
+
+export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const url = formData.get("url") as string;
+    const title = formData.get("title") as string;
+    const description = formData.get("description") as string;
+
+    if (!url) return { success: false, message: "URL is required." };
+
+    try {
+        new URL(url);
+    } catch {
+        return { success: false, message: "Invalid URL." };
+    }
+
+    try {
+        await prisma.savedLink.create({
+            data: {
+                userId: session.user.id,
+                url,
+                title: title?.trim() || null,
+                description: description?.trim() || null,
+            }
+        });
+        const username = session.user.username;
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${username}/saved`);
+        return { success: true, message: "Link saved." };
+    } catch (error) {
+        console.error("Error saving external link:", error);
+        return { success: false, message: "Failed to save link." };
+    }
+}
+
+export async function deleteSavedLink(linkId: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        await prisma.savedLink.delete({
+            where: { id: linkId, userId: session.user.id }
+        });
+        const username = session.user.username;
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${username}/saved`);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to delete saved link." };
+    }
+}
+
 function escapeCsv(value: string): string {
     if (value.includes(',') || value.includes('"') || value.includes('\n')) {
         return `"${value.replace(/"/g, '""')}"`;

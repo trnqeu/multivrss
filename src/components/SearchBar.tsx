@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { dayBucket } from '@/lib/utils';
-import { markAsRead, markAsUnread } from '@/app/actions';
+import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import EmptyStream from "./EmptyStream";
 
@@ -95,6 +95,16 @@ export default function SearchBar() {
             await markAsUnread(item.id);
         } else {
             await markAsRead(item.id);
+        }
+    }
+
+    async function toggleSave(item: SearchHit) {
+        const wasSaved = !!item.savedAt;
+        setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, savedAt: wasSaved ? null : Date.now() } : h));
+        if (wasSaved) {
+            await unsaveFeedItem(item.id);
+        } else {
+            await saveFeedItem(item.id);
         }
     }
 
@@ -227,6 +237,15 @@ export default function SearchBar() {
                                                 </>
                                             )}
                                         </a>
+                                        <button
+                                            onClick={() => toggleSave(item)}
+                                            className="bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest transition-colors align-baseline mx-1"
+                                            title={item.savedAt ? 'Remove from saved' : 'Save'}
+                                        >
+                                            <span className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}>
+                                                [{item.savedAt ? 'SAVED' : 'SAVE'}]
+                                            </span>
+                                        </button>
                                         {!suppressSeparator && (
                                             <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>
                                         )}

@@ -17,6 +17,7 @@ model User {
   accounts   Account[]
   sessions   Session[]
   passwordResetTokens PasswordResetToken[]
+  savedLinks          SavedLink[]
 }
 
 model Account {
@@ -90,6 +91,7 @@ model FeedItem {
   content    String?
   pubDate    DateTime?
   read       Boolean    @default(false)
+  savedAt    DateTime?
   sourceId   String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
@@ -107,4 +109,17 @@ model PasswordResetToken {
   expires   DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedLink {
+  id          String   @id @default(cuid())
+  userId      String
+  url         String
+  title       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

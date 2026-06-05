@@ -19,6 +19,7 @@ export type SearchHit = {
     sourceTitle?: string;
     categoryName?: string;
     read?: boolean;
+    savedAt?: number | null;
     _formatted?: { title?: string; content?: string };
 };
 
@@ -38,7 +39,7 @@ export async function configureMeiliIndex() {
     try {
         await meili.index('items').updateSettings({
             searchableAttributes: ['title', 'content'],
-            filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate', 'read'],
+            filterableAttributes: ['sourceId', 'categoryId', 'sourceTitle', 'categoryName', 'pubDate', 'read', 'savedAt'],
             sortableAttributes: ['pubDate'],
         });
     } catch {

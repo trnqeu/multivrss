@@ -65,6 +65,15 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                         </span>
                         All Feeds
                     </MobileNavLink>
+                    <MobileNavLink
+                        href={`/u/${username}/saved`}
+                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
+                    >
+                        <span className="text-foreground group-hover:text-background transition-colors">
+                            #
+                        </span>
+                        Saved
+                    </MobileNavLink>
                 </div>
 
                 {/* Categories as Modules */}

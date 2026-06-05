@@ -98,7 +98,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
 
     const updatedItems: Array<{
         id: string; externalId: string; title: string; content: string;
-        link: string; pubDate: Date | null; sourceId: string;
+        link: string; pubDate: Date | null; sourceId: string; savedAt: Date | null;
     }> = [];
 
     for (const item of feed.items) {
@@ -121,7 +121,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
             updatedItems.push({
                 id: existing.id, externalId, title, content,
                 link: item.link || '', pubDate: existing.pubDate,
-                sourceId: source.id,
+                sourceId: source.id, savedAt: existing.savedAt,
             });
         }
     }
@@ -149,6 +149,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 categoryId: source.category.id,
                 categoryName: source.category.name,
                 read: false,
+                savedAt: item.savedAt ? (item.savedAt instanceof Date ? item.savedAt.getTime() : item.savedAt) : null,
             })),
             { primaryKey: 'id' }
         );
