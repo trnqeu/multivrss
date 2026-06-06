@@ -17,6 +17,7 @@ export async function GET(request: Request) {
                 { lastSync: { lt: new Date(Date.now() - 30 * 60 * 1000) } }
             ]
         },
+        orderBy: { lastSync: { sort: 'asc', nulls: 'first' } },
         include: { category: { select: { userId: true } } },
     });
 
