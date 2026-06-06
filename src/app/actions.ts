@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { meili } from "@/lib/meili";
 import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
+import { DomainGate } from "@/lib/domain-gate";
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -427,6 +428,7 @@ export async function syncAllFeeds(): Promise<ActionState> {
     }
 
     const CONCURRENCY = 8;
+    const gate = new DomainGate(2);
     let synced = 0;
 
     for (let i = 0; i < staleFeeds.length; i += CONCURRENCY) {
@@ -434,7 +436,7 @@ export async function syncAllFeeds(): Promise<ActionState> {
         const results = await Promise.all(
             chunk.map(async (source) => {
                 try {
-                    await syncFeed(source.id);
+                    await gate.run(source.url, () => syncFeed(source.id));
                     return 1;
                 } catch {
                     return 0;
