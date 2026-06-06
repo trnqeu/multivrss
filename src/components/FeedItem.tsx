@@ -2,6 +2,7 @@
 
 import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { useState } from 'react';
+import { Bookmark } from '@/components/icons/Bookmark';
 
 interface Props {
     item: {
@@ -37,7 +38,7 @@ export default function FeedItem( { item, isLast }: Props) {
         }
     }
     return (
-    <span className={isRead ? 'opacity-30' : ''}>
+    <span className={`group/item ${isRead ? 'opacity-30' : ''}`}>
         <a
             href={item.link}
             target="_blank"
@@ -70,12 +71,13 @@ export default function FeedItem( { item, isLast }: Props) {
         </a>
         <button
             onClick={handleSave}
-            className="bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest transition-colors align-baseline mx-1"
             title={isSaved ? 'Remove from saved' : 'Save'}
+            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity ${isSaved ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-100'}`}
         >
-            <span className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}>
-                [{isSaved ? 'SAVED' : 'SAVE'}]
-            </span>
+            <Bookmark
+                filled={isSaved}
+                className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+            />
         </button>
         {!isLast && (
             <span className="text-terracotta font-bold mx-3 select-none">{'/ /'}</span>
@@ -84,4 +86,3 @@ export default function FeedItem( { item, isLast }: Props) {
 );
 
 }
-

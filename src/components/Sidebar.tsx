@@ -6,6 +6,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 
+import { Bookmark } from '@/components/icons/Bookmark';
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
 
@@ -20,15 +21,20 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
     cacheLife('minutes');
     cacheTag(`sidebar:${userId}`);
 
-    const categories = await prisma.category.findMany({
-        where: { userId },
-        include: {
-            sources: {
-                orderBy: { title: 'asc' }
+    const [categories, savedFeedCount, savedLinkCount] = await Promise.all([
+        prisma.category.findMany({
+            where: { userId },
+            include: {
+                sources: {
+                    orderBy: { title: 'asc' }
+                },
             },
-        },
-        orderBy: { name: 'asc' }
-    });
+            orderBy: { name: 'asc' }
+        }),
+        prisma.feedItem.count({ where: { savedAt: { not: null }, source: { category: { userId } } } }),
+        prisma.savedLink.count({ where: { userId } }),
+    ]);
+    const savedCount = savedFeedCount + savedLinkCount;
 
     return (
         <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
@@ -69,10 +75,11 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                         href={`/u/${username}/saved`}
                         className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
                     >
-                        <span className="text-foreground group-hover:text-background transition-colors">
-                            #
+                        <Bookmark className="text-foreground group-hover:text-background transition-colors" size={12} />
+                        <span className="flex-1">Saved</span>
+                        <span className="label-system text-[10px] text-foreground/50 group-hover:text-background">
+                            {savedCount.toString().padStart(2, '0')}
                         </span>
-                        Saved
                     </MobileNavLink>
                 </div>
 
