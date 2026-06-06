@@ -96,7 +96,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         content: string; pubDate: Date | null; sourceId: string;
     }> = [];
 
-    const updatedItems: Array<{
+    const toUpdate: Array<{
         id: string; externalId: string; title: string; content: string;
         link: string; pubDate: Date | null; sourceId: string; savedAt: Date | null;
     }> = [];
@@ -114,11 +114,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 sourceId: source.id,
             });
         } else if (existing.title !== title || existing.content !== content) {
-            await prisma.feedItem.update({
-                where: { sourceId_externalId: { sourceId: source.id, externalId } },
-                data: { title, content },
-            });
-            updatedItems.push({
+            toUpdate.push({
                 id: existing.id, externalId, title, content,
                 link: item.link || '', pubDate: existing.pubDate,
                 sourceId: source.id, savedAt: existing.savedAt,
@@ -126,17 +122,27 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         }
     }
 
+    if (toUpdate.length > 0) {
+        await prisma.$transaction(
+            toUpdate.map(u =>
+                prisma.feedItem.update({
+                    where: { id: u.id },
+                    data: { title: u.title, content: u.content },
+                })
+            )
+        );
+    }
+
     let created: typeof existingItems = [];
     if (toCreate.length > 0) {
         created = await prisma.feedItem.createManyAndReturn({ data: toCreate });
     }
 
-    const meiliItems = [...created, ...updatedItems];
+    const meiliItems = [...created, ...toUpdate];
 
-    // 4. Sync to Meilisearch — only new and updated items
+    // 4. Sync to Meilisearch — fire-and-forget, non bloccante
     if (meiliItems.length > 0) {
-        console.log(`📡 Syncing ${meiliItems.length} items to Meilisearch...`);
-        const meiliTask = await meili.index('items').addDocuments(
+        meili.index('items').addDocuments(
             meiliItems.map((item) => ({
                 id: item.id,
                 externalId: item.externalId,
@@ -152,8 +158,9 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 savedAt: item.savedAt ? (item.savedAt instanceof Date ? item.savedAt.getTime() : item.savedAt) : null,
             })),
             { primaryKey: 'id' }
-        );
-        console.log(`✅ Meilisearch sync task submitted. Task UID: ${meiliTask.taskUid}`);
+        ).catch((error: unknown) => {
+            console.error(`Meilisearch sync failed for source ${sourceId}:`, error);
+        });
     }
 
     // 5. Update the last sync date of the source

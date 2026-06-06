@@ -10,7 +10,13 @@ export async function GET(request: Request) {
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const allFeeds = await prisma.feedSource.findMany({
+    const staleFeeds = await prisma.feedSource.findMany({
+        where: {
+            OR: [
+                { lastSync: null },
+                { lastSync: { lt: new Date(Date.now() - 30 * 60 * 1000) } }
+            ]
+        },
         include: { category: { select: { userId: true } } },
     });
 
@@ -18,8 +24,8 @@ export async function GET(request: Request) {
 
     const CONCURRENCY = 15;
 
-    for (let i = 0; i < allFeeds.length; i += CONCURRENCY) {
-        const chunk = allFeeds.slice(i, i + CONCURRENCY);
+    for (let i = 0; i < staleFeeds.length; i += CONCURRENCY) {
+        const chunk = staleFeeds.slice(i, i + CONCURRENCY);
         const chunkResults = await Promise.all(
             chunk.map(async (source) => {
                 try {
