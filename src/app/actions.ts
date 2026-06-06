@@ -418,7 +418,8 @@ export async function syncAllFeeds(): Promise<ActionState> {
                 { lastSync: null },
                 { lastSync: { lt: new Date(Date.now() - 30 * 60 * 1000) } }
             ]
-        }
+        },
+        orderBy: { lastSync: { sort: 'asc', nulls: 'first' } },
     });
 
     if (staleFeeds.length === 0) {

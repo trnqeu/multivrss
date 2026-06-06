@@ -89,7 +89,7 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [x] **Staleness filter nel cron** — sincronizzare solo feed con `lastSync < 30min fa` o `null`, invece di tutti i feed a ogni tick
 - [x] **Batch UPDATE per item cambiati** — sostituire gli update uno-a-uno dentro il loop con `prisma.$transaction`
 - [x] **Meilisearch fire-and-forget** — `addDocuments()` lanciato senza await con `.catch()` per errori
-- [ ] **Priorità feed mai sincronizzati** — i feed con `lastSync = null` vanno processati per primi
+- [x] **Priorità feed mai sincronizzati** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in cron e syncAllFeeds
 - [ ] **Rate limiting per dominio** — max 2 richieste concorrenti allo stesso host (evitare 429/block)
 - [ ] **Coda di job (PgBoss / Bull)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring
 
