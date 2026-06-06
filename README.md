@@ -84,6 +84,15 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [x] **Search UX revision** — removed redundant `/search` page, search lives inline on the dashboard via `?q=`
 - [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
 
+### Sync Performance & Scalability
+
+- [x] **Staleness filter nel cron** — sincronizzare solo feed con `lastSync < 30min fa` o `null`, invece di tutti i feed a ogni tick
+- [x] **Batch UPDATE per item cambiati** — sostituire gli update uno-a-uno dentro il loop con `prisma.$transaction`
+- [x] **Meilisearch fire-and-forget** — `addDocuments()` lanciato senza await con `.catch()` per errori
+- [ ] **Priorità feed mai sincronizzati** — i feed con `lastSync = null` vanno processati per primi
+- [ ] **Rate limiting per dominio** — max 2 richieste concorrenti allo stesso host (evitare 429/block)
+- [ ] **Coda di job (PgBoss / Bull)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring
+
 ### Reading List (Instapaper/Pocket-style)
 
 - [ ] **Save from feed** — one-click bookmark on any feed item
@@ -104,7 +113,19 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `notes.md`).
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
 - [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
-- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance: full keyboard navigation, semantic HTML, ARIA labels, sufficient contrast, screen reader support, focus-visible outlines
+- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance
+  - **CRITICAL**
+    - [ ] **Focus indicator** — rimuovere `outline-none` globale su `button, input, select, textarea` (`src/app/globals.css:78`); definire `:focus-visible` personalizzato (outline terracotta 2px)
+    - [ ] **Form label** — tutti gli input usano solo `placeholder` come etichetta (login, register, forgot-password, reset-password, AddFeedForm, EditSourceForm, PageHeader, SaveLinkBar). Aggiungere `<label htmlFor>` con `sr-only` se hidden
+    - [ ] **Skip-to-content** — manca link "skip to main content" nel root layout (`src/app/layout.tsx`); aggiungere `href="#main-content"` + `id="main-content"` su `<main>`
+  - **HIGH**
+    - [ ] **Contrasto colore** — terracotta `#E2725B` su carta `#F6F3EC` = 3.89:1 (soglia 4.5:1); testo `/30`, `/40` scende a 2.1:1 (Sidebar, FeedItem, SearchBar, PageHeader, CollapsibleCategory). Scurire terracotta o non usare opacità sotto `/55` per testo informativo
+    - [ ] **Messaggi errore non associati** — errori in AddFeedForm, EditSourceForm, login, register senza `aria-describedby` collegato all'input
+    - [ ] **Dropdown senza navigazione tastiera** — ThreeDotMenu, AddFeedForm, EditSourceForm: no arrow keys, no focus management su apertura/chiusura
+    - [ ] **Focus trap sidebar mobile** — SidebarContainer overlay non blocca focus; implementare focus trap
+    - [ ] **Pulsanti bookmark hover-only** — FeedItem, SearchBar, SavedView: `opacity-0 group-hover/item:opacity-100`. Aggiungere `group-focus-within/item:opacity-100`
+    - [ ] **Stati dinamici muti** — loading spinner, errori, feedback successo, cambiamenti read/save ottimistici senza `role="alert"`, `aria-live="polite"`, `role="status"`
+    - [ ] **Landmark nav senza etichetta** — due `<nav>` (Sidebar, MobileTabBar) senza `aria-label` distintivo
 
 ### Monetization
 
@@ -114,7 +135,15 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 - [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
-- [ ] **OWASP secure development** — apply OWASP Top 10 across every feature: input validation, parameterized queries, CSRF protection, CSP header, `npm audit` in CI, secrets never in code/logs
+- [ ] **OWASP secure development** — apply OWASP Top 10 across every feature:
+  - [ ] **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy (via `next.config.ts` or Nginx)
+  - [ ] **Rate limiting** — login, password reset, API endpoints (Nginx + app-level)
+  - [ ] **Input validation library** — introduce Zod (or similar) for all Server Action inputs: username, email, category name length/format, source URL normalization
+  - [ ] **SSRF guard for `resolvePageTitle`** — add `validateFeedUrl()`-style check before fetching arbitrary URLs in `actions.ts`
+  - [ ] **Disable Prisma query logging in production** — remove `log: ['query']` or gate behind `NODE_ENV`
+  - [ ] **`npm audit` in CI** — fail build on critical/moderate severities
+  - [ ] **Password reset token** — move from URL query param to POST body to prevent Referrer leakage
+  - [ ] **Security test suite** — adversarial scenarios: invalid ownership, token tampering, boundary inputs, CSRF attempts
 - [ ] **Reader mode** — extract full article content from saved URLs via `@mozilla/readability` + `jsdom`
 - [ ] **Database backups** — periodic automated `pg_dump`; evaluate Hetzner Storage Box, Backblaze B2, or Cloudflare R2
 - [ ] **AI agent integration** — TBD

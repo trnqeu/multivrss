@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prisma } from '@/lib/prisma';
 import { meili } from '@/lib/meili';
 
+const mockTransaction = vi.hoisted(() => vi.fn((updates: any) => Promise.all(updates)));
+
 vi.mock('@/lib/prisma', () => ({
     prisma: {
+        $transaction: mockTransaction,
         feedSource: {
             findUnique: vi.fn(),
             update: vi.fn(),
@@ -141,7 +144,7 @@ describe('syncFeed', () => {
 
         expect(result).toEqual([]);
         expect(mockedUpdateItem).toHaveBeenCalledWith({
-            where: { sourceId_externalId: { sourceId: 'src_1', externalId: 'ext_1' } },
+            where: { id: 'item_1' },
             data: { title: 'New Title', content: 'New Content' },
         });
 
