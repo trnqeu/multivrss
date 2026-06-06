@@ -44,7 +44,7 @@ export default function ThreeDotMenu({ items }: Props) {
                             key={item.label}
                             type="button"
                             onClick={() => { item.onClick(); setOpen(false); }}
-                            className={`text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 border-terracotta last:border-b-0 hover:bg-terracotta hover:text-[#000] transition-colors ${
+                            className={`text-left px-3 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 border-terracotta last:border-b-0 bg-[#000] hover:bg-terracotta hover:text-[#000] transition-colors ${
                                 item.danger ? 'text-terracotta' : 'text-white'
                             }`}
                         >
