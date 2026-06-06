@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { syncFeed } from '@/lib/rss';
+import { DomainGate } from '@/lib/domain-gate';
 import { revalidateTag } from 'next/cache';
+
+const gate = new DomainGate(2);
 
 
 export async function GET(request: Request) {
@@ -30,7 +33,7 @@ export async function GET(request: Request) {
         const chunkResults = await Promise.all(
             chunk.map(async (source) => {
                 try {
-                    await syncFeed(source.id);
+                    await gate.run(source.url, () => syncFeed(source.id));
                     affectedUserIds.add(source.category.userId);
                     return 'synced' as const;
                 } catch (error) {

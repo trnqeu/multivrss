@@ -177,6 +177,7 @@ describe('syncAllFeeds', () => {
                     { lastSync: { lt: expect.any(Date) } },
                 ],
             },
+            orderBy: { lastSync: { sort: 'asc', nulls: 'first' } },
         });
     });
 
@@ -186,7 +187,7 @@ describe('syncAllFeeds', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
 
-        const staleFeeds = Array.from({ length: 3 }, (_, i) => ({ id: `src_${i}` }));
+        const staleFeeds = Array.from({ length: 3 }, (_, i) => ({ id: `src_${i}`, url: 'https://example.com/feed' }));
         mockedPrisma.feedSource.findMany.mockResolvedValue(staleFeeds);
 
         const { syncAllFeeds } = await import('@/app/actions');
