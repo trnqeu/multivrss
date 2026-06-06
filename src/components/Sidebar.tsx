@@ -6,6 +6,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 
+import { Rss } from '@/components/icons/Rss';
 import { Bookmark } from '@/components/icons/Bookmark';
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
@@ -66,9 +67,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                         href={`/u/${username}`}
                         className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
                     >
-                        <span className="text-foreground group-hover:text-background transition-colors">
-                            _
-                        </span>
+                        <Rss className="text-foreground group-hover:text-background transition-colors" />
                         All Feeds
                     </MobileNavLink>
                     <MobileNavLink

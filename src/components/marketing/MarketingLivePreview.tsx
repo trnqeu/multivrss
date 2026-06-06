@@ -21,7 +21,13 @@ export default function MarketingLivePreview() {
           </div>
           <div>
             <div className="font-mono text-[9.5px] font-bold tracking-[0.18em] text-white/55">NAV_ROOT</div>
-            <div className="text-[11px] font-bold tracking-[0.15em] pl-[6px] mt-2">_ ALL FEEDS</div>
+            <div className="text-[11px] font-bold tracking-[0.15em] pl-[6px] mt-2 flex items-center gap-2">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="3" cy="13" r="1" fill="white" stroke="none" />
+                <path d="M3 7a6 6 0 0 1 6 6" />
+                <path d="M3 3a10 10 0 0 1 10 10" />
+              </svg>
+              ALL FEEDS</div>
           </div>
           <div>
             <div className="flex justify-between pb-[6px] border-b-2 border-terracotta font-mono text-[11px] font-extrabold tracking-[0.18em] text-terracotta">
