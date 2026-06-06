@@ -530,6 +530,32 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
     }
 }
 
+async function resolvePageTitle(url: string): Promise<string | null> {
+    try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const res = await fetch(url, {
+            signal: ctrl.signal,
+            redirect: 'follow',
+            headers: { 'user-agent': 'multivrss-linkbot/1.0', accept: 'text/html' },
+        });
+        clearTimeout(t);
+        if (!res.ok) return null;
+        const ct = res.headers.get('content-type') ?? '';
+        if (!ct.includes('text/html')) return null;
+        const html = (await res.text()).slice(0, 80_000);
+        const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1];
+        const tt = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
+        const raw = (og ?? tt ?? '').trim();
+        if (!raw) return null;
+        const decoded = raw.replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+        return decoded.slice(0, 300);
+    } catch {
+        return null;
+    }
+}
+
 export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
@@ -546,12 +572,15 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
         return { success: false, message: "Invalid URL." };
     }
 
+    const supplied = title?.trim();
+    const resolvedTitle = supplied || (await resolvePageTitle(url));
+
     try {
         await prisma.savedLink.create({
             data: {
                 userId: session.user.id,
                 url,
-                title: title?.trim() || null,
+                title: resolvedTitle || null,
                 description: description?.trim() || null,
             }
         });

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { dayBucket } from '@/lib/utils';
 import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
+import { Bookmark } from '@/components/icons/Bookmark';
 import EmptyStream from "./EmptyStream";
 
 function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text: string; markClass?: string }) {
@@ -190,7 +191,7 @@ export default function SearchBar() {
                                             <span className="text-[9px] text-white/35">→</span>
                                         </div>
                                     )}
-                                    <span className={`transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
+                                    <span className={`group/item transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
                                         <button
                                             onClick={() => toggleRead(item)}
                                             className="bg-transparent border-0 px-0 py-0 text-terracotta cursor-pointer select-none align-middle leading-[0] hover:opacity-80 transition-opacity text-[15px] mr-0.5"
@@ -239,12 +240,13 @@ export default function SearchBar() {
                                         </a>
                                         <button
                                             onClick={() => toggleSave(item)}
-                                            className="bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest transition-colors align-baseline mx-1"
                                             title={item.savedAt ? 'Remove from saved' : 'Save'}
+                                            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity ${item.savedAt ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-100'}`}
                                         >
-                                            <span className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}>
-                                                [{item.savedAt ? 'SAVED' : 'SAVE'}]
-                                            </span>
+                                            <Bookmark
+                                                filled={!!item.savedAt}
+                                                className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+                                            />
                                         </button>
                                         {!suppressSeparator && (
                                             <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>

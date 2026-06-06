@@ -5,7 +5,9 @@ import { getCategories } from "@/app/actions";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import SavedList from './SavedList';
+import SaveLinkBar from '@/components/SaveLinkBar';
+import SavedView from './SavedView';
+import { Bookmark } from '@/components/icons/Bookmark';
 
 interface SavedPageProps {
   params: Promise<{ username: string }>;
@@ -37,7 +39,7 @@ export default async function SavedPage({ params }: SavedPageProps) {
         })
     ]);
 
-    const feedItems = savedFeedItems.map(item => ({
+    const articles = savedFeedItems.map(item => ({
         id: item.id,
         title: item.title,
         link: item.link,
@@ -46,20 +48,15 @@ export default async function SavedPage({ params }: SavedPageProps) {
         sourceTitle: item.source.title,
     }));
 
-    const externalLinks = savedLinks.map(link => ({
+    const links = savedLinks.map(link => ({
         id: link.id,
         title: link.title,
-        link: link.url,
-        content: link.description,
-        savedAt: link.createdAt,
-        sourceTitle: null,
-        isExternal: true as const,
+        url: link.url,
+        description: link.description,
+        createdAt: link.createdAt,
     }));
 
-    const combined = [
-        ...feedItems.map(i => ({ ...i, type: 'feed' as const })),
-        ...externalLinks,
-    ].sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
+    const total = articles.length + links.length;
 
     return (
         <>
@@ -72,11 +69,13 @@ export default async function SavedPage({ params }: SavedPageProps) {
                     >
                         ← BACK_TO_ALL
                     </Link>
-                    <h1 className="tracking-[0.2em] text-terracotta font-bold">
-                        SAVED // {combined.length} ITEMS
-                    </h1>
+                    <div className="flex items-center gap-2.5">
+                        <Bookmark filled className="text-terracotta" size={13} />
+                        <span className="label-system text-terracotta text-xs">SAVED // {total} ITEMS</span>
+                    </div>
+                    <SaveLinkBar />
                 </header>
-                <SavedList items={combined} />
+                <SavedView articles={articles} links={links} />
             </main>
         </>
     );
