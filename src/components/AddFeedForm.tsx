@@ -202,33 +202,34 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
                                 </button>
 
                                 {dropdownOpen && (
-                                    <div className="absolute left-0 right-0 top-full z-10 bg-background border-2 border-t-0 border-terracotta">
-                                        {categories.map((cat, i) => (
+                                    <div className="absolute left-0 right-0 top-full z-10 bg-background border-2 border-t-0 border-terracotta max-h-60 overflow-y-auto">
+                                        <div>
+                                            {categories.map((cat, i) => (
+                                                <button
+                                                    key={cat.id}
+                                                    type="button"
+                                                    onClick={() => { setPickedCategoryId(cat.id); setDropdownOpen(false); }}
+                                                    className={`w-full flex items-center px-4 py-3 font-mono text-[12px] uppercase font-bold tracking-widest text-left normal-case transition-colors hover:bg-white/5 ${
+                                                        i < categories.length - 1 ? "border-b border-white/10" : ""
+                                                    } ${
+                                                        pickedCategoryId === cat.id
+                                                            ? "bg-[rgba(226,114,91,0.18)] text-foreground"
+                                                            : "bg-transparent text-foreground"
+                                                    }`}
+                                                >
+                                                    {cat.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="sticky bottom-0 bg-background border-t border-white/10">
                                             <button
-                                                key={cat.id}
                                                 type="button"
-                                                onClick={() => { setPickedCategoryId(cat.id); setDropdownOpen(false); }}
-                                                className={`w-full flex items-center px-4 py-3 font-mono text-[12px] uppercase font-bold tracking-widest text-left normal-case transition-colors hover:bg-white/5 ${
-                                                    i < categories.length - 1 ? "border-b border-white/10" : ""
-                                                } ${
-                                                    pickedCategoryId === cat.id
-                                                        ? "bg-[rgba(226,114,91,0.18)] text-foreground"
-                                                        : "bg-transparent text-foreground"
-                                                }`}
+                                                onClick={() => { setCreatingNew(true); setDropdownOpen(false); }}
+                                                className="w-full px-4 py-3 bg-terracotta text-background font-mono text-[12px] font-bold uppercase tracking-widest text-left normal-case hover:opacity-90 transition-opacity"
                                             >
-                                                {cat.name}
+                                                + CREATE NEW CATEGORY…
                                             </button>
-                                        ))}
-                                        {categories.length > 0 && (
-                                            <div className="border-t border-white/10" />
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => { setCreatingNew(true); setDropdownOpen(false); }}
-                                            className="w-full px-4 py-3 bg-terracotta text-background font-mono text-[12px] font-bold uppercase tracking-widest text-left normal-case hover:opacity-90 transition-opacity"
-                                        >
-                                            + CREATE NEW CATEGORY…
-                                        </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
