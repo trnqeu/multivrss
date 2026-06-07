@@ -243,7 +243,20 @@ export async function renameCategory(categoryId: string, newName: string): Promi
             });
 
             if (target) {
-                // Merge: move all sources to the existing category, then delete this one
+                // Merge: move sources to the existing category, then delete this one
+                // First, remove sources in the source category whose URL already
+                // exists in the target (unique [categoryId, url] constraint).
+                const targetUrls = (
+                    await tx.feedSource.findMany({
+                        where: { categoryId: target.id },
+                        select: { url: true },
+                    })
+                ).map((s: { url: string }) => s.url);
+                if (targetUrls.length > 0) {
+                    await tx.feedSource.deleteMany({
+                        where: { categoryId, url: { in: targetUrls } },
+                    });
+                }
                 await tx.feedSource.updateMany({
                     where: { categoryId },
                     data: { categoryId: target.id },
