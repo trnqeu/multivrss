@@ -60,7 +60,9 @@ function mockTx() {
             delete: vi.fn(),
         },
         feedSource: {
+            findMany: vi.fn(),
             updateMany: vi.fn(),
+            deleteMany: vi.fn(),
         },
     };
 }
@@ -323,6 +325,7 @@ describe('renameCategory', () => {
         const tx = mockTx();
         tx.category.findFirst.mockResolvedValue({ id: 'cat_1', userId: 'user_1' });
         tx.category.findUnique.mockResolvedValue({ id: 'target_cat', name: 'TECH', userId: 'user_1' });
+        tx.feedSource.findMany.mockResolvedValue([]);
         tx.feedSource.updateMany.mockResolvedValue({ count: 0 });
         tx.category.delete.mockResolvedValue({});
 
@@ -337,6 +340,10 @@ describe('renameCategory', () => {
         });
         expect(tx.category.findUnique).toHaveBeenCalledWith({
             where: { userId_name: { userId: 'user_1', name: 'TECH' } },
+        });
+        expect(tx.feedSource.findMany).toHaveBeenCalledWith({
+            where: { categoryId: 'target_cat' },
+            select: { url: true },
         });
         expect(tx.feedSource.updateMany).toHaveBeenCalledWith({
             where: { categoryId: 'cat_1' },

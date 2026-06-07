@@ -26,16 +26,66 @@ export async function validateFeedUrl(rawUrl: string): Promise<void> {
 
 const FEED_PATHS = ['/feed', '/rss', '/rss.xml', '/atom.xml', '/feed.xml', '/index.xml'];
 
+// Additional feed paths for deeper discovery (less common).
+const DEEP_FEED_PATHS = ['/feeds/', '/feeds', '/rss/feed', '/rss/', '/atom/'];
+
 export type DiscoveryResult = { url: string; feed: ParsedFeed };
 
+async function discoverFromHtmlAutolink(rawUrl: string): Promise<DiscoveryResult | null> {
+  const ac = new AbortController();
+  const id = setTimeout(() => ac.abort(), 10000);
+  try {
+    const res = await fetch(rawUrl, {
+      signal: ac.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
+    });
+    const html = await res.text();
+
+    const candidates: string[] = [];
+    const linkRe = /<link[^>]*>/gi;
+    let m: RegExpExecArray | null;
+    while ((m = linkRe.exec(html)) !== null) {
+      const tag = m[0];
+      const rel = tag.match(/rel\s*=\s*["']([^"']*)["']/i)?.[1];
+      const type = tag.match(/type\s*=\s*["']([^"']*)["']/i)?.[1];
+      const href = tag.match(/href\s*=\s*["']([^"']*)["']/i)?.[1];
+      if (!href || rel?.toLowerCase() !== 'alternate') continue;
+      if (type === 'application/rss+xml' || type === 'application/atom+xml') {
+        candidates.push(href);
+      }
+    }
+
+    if (candidates.length === 0) return null;
+
+    const base = new URL(rawUrl);
+    for (const candidate of candidates) {
+      const absoluteUrl = new URL(candidate, base).href;
+      try {
+        await validateFeedUrl(absoluteUrl);
+        const feed = await parser.parseURL(absoluteUrl);
+        return { url: absoluteUrl, feed };
+      } catch {
+        continue;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
+  // 1. Try the URL directly as a feed.
   try {
     const feed = await parser.parseURL(rawUrl);
     return { url: rawUrl, feed };
   } catch {
-    // Not a feed — continue to discovery paths
+    // not a feed — continue
   }
 
+  // 2. YouTube channel resolution.
   const youtubeInfo = await resolveYouTubeChannel(rawUrl);
   if (youtubeInfo) {
     try {
@@ -50,9 +100,25 @@ export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> 
     }
   }
 
-  const base = new URL(rawUrl).origin;
+  // 3. Parse the HTML looking for <link rel="alternate" type="application/*+xml">.
+  const fromHtml = await discoverFromHtmlAutolink(rawUrl);
+  if (fromHtml) return fromHtml;
 
+  // 4. Try well-known feed paths (shallow).
+  const base = new URL(rawUrl).origin;
   for (const path of FEED_PATHS) {
+    const feedUrl = `${base}${path}`;
+    await validateFeedUrl(feedUrl);
+    try {
+      const feed = await parser.parseURL(feedUrl);
+      return { url: feedUrl, feed };
+    } catch {
+      continue;
+    }
+  }
+
+  // 5. Try deeper feed paths (less common).
+  for (const path of DEEP_FEED_PATHS) {
     const feedUrl = `${base}${path}`;
     await validateFeedUrl(feedUrl);
     try {
