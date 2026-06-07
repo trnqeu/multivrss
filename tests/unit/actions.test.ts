@@ -345,6 +345,26 @@ describe('renameCategory', () => {
         expect(tx.category.delete).toHaveBeenCalledWith({ where: { id: 'cat_1' } });
     });
 
+    it('returns error when transaction fails (e.g. duplicate feed URL)', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+
+        const tx = mockTx();
+        tx.category.findFirst.mockResolvedValue({ id: 'cat_1', userId: 'user_1' });
+        tx.category.findUnique.mockResolvedValue({ id: 'target_cat', name: 'TECH', userId: 'user_1' });
+        tx.feedSource.updateMany.mockRejectedValue(new Error('Unique constraint violation'));
+
+        mockedPrisma.$transaction.mockImplementation(async (cb: any) => cb(tx));
+
+        const { renameCategory } = await import('@/app/actions');
+        const result = await renameCategory('cat_1', 'tech');
+
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('Rename failed');
+    });
+
     it('simple rename when target does not exist', async () => {
         mockedSession.mockResolvedValue({
             user: { id: 'user_1', username: 'testuser' },
