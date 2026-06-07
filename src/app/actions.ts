@@ -93,13 +93,11 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             }
         });
 
-        // 4. Ingestion — pass pre-fetched feed to avoid a second HTTP request
-        try {
-            await syncFeed(source.id, feedMetadata);
-        } catch (syncError) {
-            await prisma.feedSource.delete({ where: { id: source.id } });
-            throw syncError;
-        }
+        // 4. Ingestion — non-blocking; runs in background after the action returns.
+        // The next cron/manual sync will pick up any items if this fails.
+        syncFeed(source.id, feedMetadata).catch((err: unknown) => {
+            console.error(`Background sync failed for source ${source.id}:`, err);
+        });
 
         updateTag(`feed:${userId}`);
         updateTag(`sources:${userId}`);
