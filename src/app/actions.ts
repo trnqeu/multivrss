@@ -266,7 +266,7 @@ export async function renameCategory(categoryId: string, newName: string): Promi
         revalidatePath(`/u/${session.user.username}`, 'layout');
         return { success: true };
     } catch {
-        return { success: false, message: "Failed. Some sources may already exist in the target category." };
+        return { success: false, message: "Rename failed. Check that no feed URL exists in both categories." };
     }
 }
 

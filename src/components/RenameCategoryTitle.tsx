@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useState } from 'react';
 import MobileNavLink from './MobileNavLink';
 import { renameCategory } from '@/app/actions';
 
@@ -13,27 +13,43 @@ interface Props {
 }
 
 export default function RenameCategoryTitle({ categoryId, name, username, editing, onDone }: Props) {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const [error, setError] = useState('');
 
-    useEffect(() => {
-        if (editing) inputRef.current?.focus();
-    }, [editing]);
+    async function handleSubmit(value: string) {
+        const trimmed = value.trim().toUpperCase();
+        if (trimmed === name || !trimmed) {
+            onDone();
+            return;
+        }
+        const result = await renameCategory(categoryId, value);
+        onDone();
+        if (!result.success) {
+            setError(result.message ?? 'Rename failed.');
+        }
+    }
 
     if (editing) {
         return (
-            <input
-                ref={inputRef}
-                key={name}
-                defaultValue={name}
-                onBlur={(e) => handleBlur(categoryId, name, e.target.value, onDone)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                        handleBlur(categoryId, name, (e.target as HTMLInputElement).value, onDone);
-                    }
-                    if (e.key === 'Escape') onDone();
-                }}
-                className="w-full text-[13px] font-bold uppercase tracking-[0.18em] bg-terracotta/10 text-terracotta border-2 border-terracotta px-2 py-1 outline-none"
-            />
+            <div className="flex flex-col gap-1 min-w-0">
+                <input
+                    key={name}
+                    defaultValue={name}
+                    autoFocus
+                    onBlur={(e) => handleSubmit(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            handleSubmit((e.target as HTMLInputElement).value);
+                        }
+                        if (e.key === 'Escape') onDone();
+                    }}
+                    className="w-full text-[13px] font-bold uppercase tracking-[0.18em] bg-terracotta/10 text-terracotta border-2 border-terracotta px-2 py-1 outline-none"
+                />
+                {error && (
+                    <span className="font-mono text-[9px] text-terracotta uppercase tracking-wider px-1">
+                        {error}
+                    </span>
+                )}
+            </div>
         );
     }
 
@@ -45,13 +61,9 @@ export default function RenameCategoryTitle({ categoryId, name, username, editin
             >
                 {name}
             </MobileNavLink>
+            {error && (
+                <span className="font-mono text-[9px] text-terracotta uppercase tracking-wider ml-1 shrink-0">!</span>
+            )}
         </span>
     );
-}
-
-async function handleBlur(categoryId: string, original: string, value: string, onDone: () => void) {
-    onDone();
-    const trimmed = value.trim().toUpperCase();
-    if (trimmed === original || !trimmed) return;
-    await renameCategory(categoryId, value);
 }
