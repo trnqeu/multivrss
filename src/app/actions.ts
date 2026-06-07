@@ -425,31 +425,52 @@ export async function syncAllFeeds(): Promise<ActionState> {
         return { success: true, message: "All feeds are up to date." };
     }
 
-    const CONCURRENCY = 8;
+    // Sync a small batch synchronously, then hand off to background for the rest.
+    // This keeps the action fast so other actions are not blocked.
+    const BATCH_SIZE = 3;
     const gate = new DomainGate(2);
     let synced = 0;
 
-    for (let i = 0; i < staleFeeds.length; i += CONCURRENCY) {
-        const chunk = staleFeeds.slice(i, i + CONCURRENCY);
-        const results = await Promise.all(
-            chunk.map(async (source) => {
-                try {
-                    await gate.run(source.url, () => syncFeed(source.id));
-                    return 1;
-                } catch {
-                    return 0;
-                }
-            })
-        );
-        synced += results.reduce((a: number, b: number) => a + b, 0);
+    const batch = staleFeeds.slice(0, BATCH_SIZE);
+    const results = await Promise.all(
+        batch.map(async (source) => {
+            try {
+                await gate.run(source.url, () => syncFeed(source.id));
+                return 1;
+            } catch {
+                return 0;
+            }
+        })
+    );
+    synced += results.reduce((a: number, b: number) => a + b, 0);
+
+    const remaining = staleFeeds.length - BATCH_SIZE;
+
+    if (remaining > 0) {
+        // Fire the rest in the background — the cron will also pick them up.
+        (async () => {
+            const bgGate = new DomainGate(2);
+            for (let i = BATCH_SIZE; i < staleFeeds.length; i += 8) {
+                await Promise.all(
+                    staleFeeds.slice(i, i + 8).map(async (source) => {
+                        try {
+                            await bgGate.run(source.url, () => syncFeed(source.id));
+                        } catch { /* cron will retry */ }
+                    })
+                );
+            }
+        })();
     }
 
-    const username = session.user.username;
     updateTag(`feed:${session.user.id}`);
     updateTag(`sidebar:${session.user.id}`);
+    const username = session.user.username;
     revalidatePath(`/u/${username}`, 'layout');
-    return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
 
+    if (remaining > 0) {
+        return { success: true, message: `Synced ${synced} feed(s). ${remaining} remaining — syncing in background.` };
+    }
+    return { success: true, message: `Synced ${synced} feed${synced !== 1 ? 's' : ''}.` };
 }
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
