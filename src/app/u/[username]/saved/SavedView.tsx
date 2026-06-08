@@ -1,9 +1,8 @@
 'use client';
 
-import { unsaveFeedItem, deleteSavedLink } from '@/app/actions';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { dayBucket } from '@/lib/utils';
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import EmptyStream from '@/components/EmptyStream';
 
 export interface ArticleVM {
@@ -26,18 +25,17 @@ export interface LinkVM {
 interface Props {
     articles: ArticleVM[];
     links: LinkVM[];
+    onRemoveArticle: (id: string) => void;
+    onRemoveLink: (id: string) => void;
 }
 
 function getHost(url: string): string {
     try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
 
-export default function SavedView({ articles, links }: Props) {
-    const [localArticles, setLocalArticles] = useState(articles);
-    const [localLinks, setLocalLinks] = useState(links);
-
+export default function SavedView({ articles, links, onRemoveArticle, onRemoveLink }: Props) {
     const allItems = [
-        ...localArticles.map(a => ({
+        ...articles.map(a => ({
             id: a.id,
             title: a.title,
             link: a.link,
@@ -46,7 +44,7 @@ export default function SavedView({ articles, links }: Props) {
             sourceLabel: a.sourceTitle?.toUpperCase() ?? null,
             isExternal: false as const,
         })),
-        ...localLinks.map(l => ({
+        ...links.map(l => ({
             id: l.id,
             title: l.title ?? getHost(l.url),
             link: l.url,
@@ -58,16 +56,6 @@ export default function SavedView({ articles, links }: Props) {
     ].sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
 
     const total = allItems.length;
-
-    async function handleRemove(item: typeof allItems[number]) {
-        if (item.isExternal) {
-            setLocalLinks(prev => prev.filter(l => l.id !== item.id));
-            await deleteSavedLink(item.id);
-        } else {
-            setLocalArticles(prev => prev.filter(a => a.id !== item.id));
-            await unsaveFeedItem(item.id);
-        }
-    }
 
     return (
         <section className="p-8 md:p-12">
@@ -119,9 +107,9 @@ export default function SavedView({ articles, links }: Props) {
                                         </>
                                     )}
                                     <button
-                                        onClick={() => handleRemove(item)}
+                                        onClick={() => item.isExternal ? onRemoveLink(item.id) : onRemoveArticle(item.id)}
                                         title="Remove from saved"
-                                        className="group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 opacity-0 group-hover/item:opacity-100 transition-opacity"
+                                        className="bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 opacity-40 hover:opacity-100 transition-opacity"
                                     >
                                         <Bookmark filled className="text-terracotta" />
                                     </button>
