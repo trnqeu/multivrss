@@ -591,7 +591,17 @@ async function resolvePageTitle(url: string): Promise<string | null> {
     }
 }
 
-export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+export interface SavedLinkData {
+    id: string;
+    url: string;
+    title: string | null;
+    description: string | null;
+    createdAt: Date;
+}
+
+export type SaveExternalLinkState = ActionState & { link?: SavedLinkData };
+
+export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<SaveExternalLinkState> {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
 
@@ -611,7 +621,7 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
     const resolvedTitle = supplied || (await resolvePageTitle(url));
 
     try {
-        await prisma.savedLink.create({
+        const link = await prisma.savedLink.create({
             data: {
                 userId: session.user.id,
                 url,
@@ -622,7 +632,17 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
         const username = session.user.username;
         updateTag(`feed:${session.user.id}`);
         revalidatePath(`/u/${username}/saved`);
-        return { success: true, message: "Link saved." };
+        return {
+            success: true,
+            message: "Link saved.",
+            link: {
+                id: link.id,
+                url: link.url,
+                title: link.title,
+                description: link.description,
+                createdAt: link.createdAt,
+            }
+        };
     } catch (error) {
         console.error("Error saving external link:", error);
         return { success: false, message: "Failed to save link." };
