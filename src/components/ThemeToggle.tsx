@@ -1,23 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
-type Theme = 'light' | 'dark';
+function getSnapshot(): boolean {
+  return document.documentElement.classList.contains('dark');
+}
 
-function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+function subscribe(callback: () => void) {
+  const observer = new MutationObserver(() => callback());
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+  return () => observer.disconnect();
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof document === 'undefined') return 'light';
-    return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-  });
+  const isDark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    applyTheme(next);
+    const next = isDark ? 'light' : 'dark';
+    document.documentElement.classList.toggle('dark', !isDark);
     try { localStorage.setItem('theme', next); } catch {}
   }
 
@@ -25,9 +32,9 @@ export default function ThemeToggle() {
     <button
       onClick={toggle}
       className="bg-transparent border-0 p-0 text-foreground/60 hover:text-foreground transition-colors cursor-pointer text-[13px] leading-none inline-flex items-center"
-      aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      {theme === 'light' ? '☾' : '☀'}
+      {isDark ? '☀' : '☾'}
     </button>
   );
 }

@@ -91,6 +91,66 @@ Never trust client-supplied IDs. Always filter by `userId`.
 - **Infrastructure:** No service (Postgres, Meilisearch) exposed to public internet. All inter-service communication on internal Docker network.
 - **Headers:** Nginx must set `X-Content-Type-Options`, `X-Frame-Options`, and `Referrer-Policy` headers in production.
 
+## OWASP Secure Development — Mandatory
+
+Apply OWASP Top 10 principles to every feature, every route, every Server Action:
+
+1. **Input validation** — validate + sanitize + normalize all user input at the boundary. Use `validateFeedUrl()`, regex checks, length limits, type coercion. Never trust client data.
+2. **Authentication & session** — `getServerSession(authOptions)` on every private endpoint. JWT in httpOnly cookie. No token in URL params or Referrer.
+3. **Authorization (broken access control)** — always scope queries by `userId`. Never use client-supplied IDs without ownership check. Cascade deletes enforce data isolation.
+4. **Injection (SQL, NoSQL, OS)** — Prisma parameterized queries only. Never interpolate into shell commands or search filter strings. Sanitize Meilisearch filter expressions.
+5. **SSRF** — `validateFeedUrl()` checks DNS resolves to public IPs only (excludes RFC 1918, loopback, link-local). Same check before fetching arbitrary URLs in `resolvePageTitle`.
+6. **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy. Set in Nginx (production) or `next.config.ts`.
+7. **Error handling & logging** — never expose stack traces, DB errors, or sensitive data to the client. Generic error messages externally; structured logging internally.
+8. **Cryptography** — passwords hashed via NextAuth (bcrypt). No custom crypto. JWT secret via env var only.
+9. **Rate limiting** — login, password reset, API endpoints rate-limited at Nginx level. Consider app-level for sensitive actions.
+10. **Dependency hygiene** — `npm audit` before each deploy. Flag packages with known CVEs or excessive permissions. Avoid unnecessary dependencies.
+
+## Accessibility Checklist — Mandatory
+
+Every new component, page, or feature must satisfy these checks before merge. Treat failures as blocking.
+
+### Semantic HTML
+- [ ] Landmark elements (`<nav>`, `<main>`, `<aside>`, `<header>`, `<footer>`, `<section>`, `<article>`) used appropriately
+- [ ] Heading hierarchy is strict: h1 → h2 → h3 → h4 → h5 (never skip levels)
+- [ ] Exactly one `<h1>` per page
+- [ ] Skip-to-content link present at top of every layout
+- [ ] `<html lang="en">` set in root layout
+
+### Forms & Inputs
+- [ ] Every `<input>`, `<select>`, `<textarea>` has a `<label>` with `htmlFor` matching `id`
+- [ ] Error messages associated to input via `aria-describedby`
+- [ ] Error/success container has `role="alert"`
+- [ ] Placeholder never used as sole label
+
+### Keyboard & Focus
+- [ ] All interactive elements reachable and operable via keyboard (Tab, Enter, Escape, arrow keys)
+- [ ] `:focus-visible` outline defined globally — never use `outline-none` without a custom focus style
+- [ ] Custom dropdowns/menus implement WAI-ARIA Authoring Practices (focus management, arrow keys, Escape)
+- [ ] Modals and overlays implement focus trap when open
+- [ ] Elements hidden on hover (`opacity-0 group-hover:`) also visible on focus-within (`group-focus-within:`)
+
+### ARIA
+- [ ] No redundant ARIA (use native semantics where possible)
+- [ ] `aria-label` values are descriptive and contextual (not generic like "Menu")
+- [ ] Multiple `<nav>` landmarks have distinct `aria-label` values
+- [ ] Decorative overlay elements have `aria-hidden="true"`
+
+### Color & Contrast
+- [ ] Text smaller than 18pt / 14px bold: contrast ratio ≥ 4.5:1
+- [ ] Text 18pt+ or 14pt+ bold: contrast ratio ≥ 3:1
+- [ ] No information conveyed by color alone
+- [ ] Dark mode has its own contrast-verified color tokens
+
+### Dynamic Content
+- [ ] Loading spinners have `role="status"` with `aria-live="polite"`
+- [ ] Optimistic updates (read/save toggle) announce change via `aria-live` region
+- [ ] Empty states communicated with `role="status"`
+- [ ] Page title changes meaningfully between routes (`generateMetadata()` per page)
+
+### Images & Media
+- [ ] All `<img>` have `alt` attribute (descriptive for info, `alt=""` for decorative)
+
 ## Data Model
 
 - `Category`: unique per user `[userId, name]`

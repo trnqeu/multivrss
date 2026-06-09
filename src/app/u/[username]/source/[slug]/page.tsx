@@ -31,7 +31,7 @@ export default async function SourcePage({ params }: SourcePageProps) {
     return (
         <>
             <PageHeader categories={categories} username={session.user.username} email={session.user.email} />
-            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
+            <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
                 {/* Minimalist Source Header */}
                 <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
                     <Link 
