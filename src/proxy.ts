@@ -20,16 +20,18 @@ export async function proxy(req: NextRequest) {
         }
     }
 
+    if (pathname !== "/" && !pathname.startsWith("/u")) {
+        return NextResponse.next();
+    }
+
     const token = await getToken({ req });
 
     if (pathname === "/" && token?.username) {
         return NextResponse.redirect(new URL(`/u/${token.username}`, req.url));
     }
 
-    if (pathname.startsWith("/u")) {
-        if (!token) {
-            return NextResponse.redirect(new URL("/login", req.url));
-        }
+    if (pathname.startsWith("/u") && !token) {
+        return NextResponse.redirect(new URL("/login", req.url));
     }
 
     return NextResponse.next();

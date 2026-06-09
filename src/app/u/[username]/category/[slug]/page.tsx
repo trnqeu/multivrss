@@ -47,7 +47,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     return (
         <>
             <PageHeader categories={categories} username={session.user.username} />
-            <main className="flex-1 overflow-y-auto relative scroll-smooth bg-background">
+            <main className="flex-1 min-h-0 overflow-y-auto relative scroll-smooth bg-background">
                 <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
                     <Link
                         href={`/u/${session.user.username}`}
