@@ -28,16 +28,16 @@ export class DomainGate {
   }
 
   private release(domain: string): void {
+    const current = this.inFlight.get(domain) ?? 1;
+    if (current <= 1) {
+      this.inFlight.delete(domain);
+    } else {
+      this.inFlight.set(domain, current - 1);
+    }
+
     const queue = this.queues.get(domain);
     if (queue && queue.length > 0) {
       queue.shift()!();
-    } else {
-      const current = this.inFlight.get(domain) ?? 1;
-      if (current <= 1) {
-        this.inFlight.delete(domain);
-      } else {
-        this.inFlight.set(domain, current - 1);
-      }
     }
   }
 }
