@@ -12,6 +12,8 @@ import bcrypt from "bcrypt";
 import { slugify, PASSWORD_REGEX } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { headers } from "next/headers";
 
 
 // Type to handle the Form feedback
@@ -139,6 +141,13 @@ export async function registerUser(prevState: string | null, formData: FormData)
     const email = formData.get("email") as string;
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
+
+    const hdrs = await headers();
+    const ip = getClientIp(hdrs);
+    if (!checkRateLimit(`register:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+        return "Too many registration attempts. Please try again later.";
+    }
+
     try {
         if (!PASSWORD_REGEX.test(password)) {
             return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
@@ -358,6 +367,12 @@ export async function moveFeedSource(sourceId: string, newCategoryId: string): P
 export async function requestPasswordReset(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
     const email = formData.get("email") as string;
     if (!email) return { success: false, message: "Email is required." };
+
+    const hdrs = await headers();
+    const ip = getClientIp(hdrs);
+    if (!checkRateLimit(`password-reset:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+        return { success: true, message: "If that email is registered, you'll receive a reset link shortly." };
+    }
 
     try {
         const user = await prisma.user.findUnique({ where: { email } });
