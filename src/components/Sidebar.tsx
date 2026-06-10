@@ -8,6 +8,7 @@ import MobileNavLink from "./MobileNavLink";
 
 import { Rss } from '@/components/icons/Rss';
 import { Bookmark } from '@/components/icons/Bookmark';
+import { Discover } from '@/components/icons/Discover';
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
 
@@ -79,6 +80,13 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                         <span className="label-system text-[10px] text-foreground/50 group-hover:text-background">
                             {savedCount.toString().padStart(2, '0')}
                         </span>
+                    </MobileNavLink>
+                    <MobileNavLink
+                        href={`/u/${username}/suggested`}
+                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
+                    >
+                        <Discover className="text-foreground group-hover:text-background transition-colors" size={12} />
+                        <span className="flex-1">Suggested</span>
                     </MobileNavLink>
                 </div>
 
