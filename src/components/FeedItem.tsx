@@ -72,7 +72,7 @@ export default function FeedItem( { item, isLast }: Props) {
         <button
             onClick={handleSave}
             title={isSaved ? 'Remove from saved' : 'Save'}
-            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity ${isSaved ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-100'}`}
+            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity opacity-100`}
         >
             <Bookmark
                 filled={isSaved}
