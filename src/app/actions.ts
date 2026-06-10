@@ -567,6 +567,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
 
 async function resolvePageTitle(url: string): Promise<string | null> {
     try {
+        await validateFeedUrl(url);
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), 4000);
         const res = await fetch(url, {
