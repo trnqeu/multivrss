@@ -7,7 +7,19 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// Prevent Referrer leakage of the reset token in the URL
+function useNoReferrer() {
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'referrer';
+    meta.content = 'no-referrer';
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
+}
+
 export default function ResetPasswordPage() {
+    useNoReferrer();
     const searchParams = useSearchParams();
     const token = searchParams.get("token") ?? "";
     const router = useRouter();
