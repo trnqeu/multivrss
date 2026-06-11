@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
+import SidebarTagManager from "./SidebarTagManager";
 
 import { Rss } from '@/components/icons/Rss';
 import { Bookmark } from '@/components/icons/Bookmark';
@@ -23,7 +24,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
     cacheLife('minutes');
     cacheTag(`sidebar:${userId}`);
 
-    const [categories, savedFeedCount, savedLinkCount] = await Promise.all([
+    const [categories, savedFeedCount, savedLinkCount, tags] = await Promise.all([
         prisma.category.findMany({
             where: { userId },
             include: {
@@ -35,6 +36,11 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
         }),
         prisma.feedItem.count({ where: { savedAt: { not: null }, source: { category: { userId } } } }),
         prisma.savedLink.count({ where: { userId } }),
+        prisma.tag.findMany({
+            where: { userId },
+            include: { _count: { select: { savedLinks: true } } },
+            orderBy: { name: 'asc' },
+        }),
     ]);
     const savedCount = savedFeedCount + savedLinkCount;
 
@@ -92,6 +98,9 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
 
                 {/* Categories as Modules */}
                 <SidebarCategories categories={categories} username={username} />
+
+                {/* Tags */}
+                <SidebarTagManager tags={tags.map(t => ({ id: t.id, name: t.name }))} username={username} />
             </nav>
 
             {/* System Footer */}

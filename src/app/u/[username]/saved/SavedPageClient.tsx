@@ -2,24 +2,37 @@
 
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import SaveLinkBar from '@/components/SaveLinkBar';
 import SavedView from './SavedView';
-import type { ArticleVM, LinkVM } from './SavedView';
+import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
-import { deleteSavedLink, unsaveFeedItem } from '@/app/actions';
+import { deleteSavedLink, unsaveFeedItem, addTagToLink, removeTagFromLink, addTagToFeedItem, removeTagFromFeedItem } from '@/app/actions';
 
 interface SavedPageClientProps {
     username: string;
     initialArticles: ArticleVM[];
     initialLinks: LinkVM[];
+    initialTags: TagVM[];
 }
 
-export default function SavedPageClient({ username, initialArticles, initialLinks }: SavedPageClientProps) {
+export default function SavedPageClient({ username, initialArticles, initialLinks, initialTags }: SavedPageClientProps) {
     const [articles, setArticles] = useState(initialArticles);
     const [links, setLinks] = useState(initialLinks);
+    const [tags] = useState(initialTags);
+    const searchParams = useSearchParams();
+    const activeTag = searchParams.get('tag');
 
-    const handleLinkSaved = useCallback((newLink: LinkVM) => {
-        setLinks(prev => [newLink, ...prev]);
+    const filteredLinks = activeTag
+        ? links.filter(l => l.tags.some(t => t.name === activeTag))
+        : links;
+
+    const filteredArticles = activeTag
+        ? articles.filter(a => a.tags.some(t => t.name === activeTag))
+        : articles;
+
+    const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
+        setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
     }, []);
 
     const handleRemoveArticle = useCallback(async (id: string) => {
@@ -32,7 +45,47 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await deleteSavedLink(id);
     }, []);
 
-    const total = articles.length + links.length;
+    const handleAddTagToArticle = useCallback(async (articleId: string, tagId: string) => {
+        const tag = tags.find(t => t.id === tagId);
+        if (!tag) return;
+        setArticles(prev => prev.map(a =>
+            a.id === articleId
+                ? { ...a, tags: [...a.tags, tag] }
+                : a
+        ));
+        await addTagToFeedItem(articleId, tagId);
+    }, [tags]);
+
+    const handleRemoveTagFromArticle = useCallback(async (articleId: string, tagId: string) => {
+        setArticles(prev => prev.map(a =>
+            a.id === articleId
+                ? { ...a, tags: a.tags.filter(t => t.id !== tagId) }
+                : a
+        ));
+        await removeTagFromFeedItem(articleId, tagId);
+    }, []);
+
+    const handleAddTagToLink = useCallback(async (linkId: string, tagId: string) => {
+        const tag = tags.find(t => t.id === tagId);
+        if (!tag) return;
+        setLinks(prev => prev.map(l =>
+            l.id === linkId
+                ? { ...l, tags: [...l.tags, tag] }
+                : l
+        ));
+        await addTagToLink(linkId, tagId);
+    }, [tags]);
+
+    const handleRemoveTagFromLink = useCallback(async (linkId: string, tagId: string) => {
+        setLinks(prev => prev.map(l =>
+            l.id === linkId
+                ? { ...l, tags: l.tags.filter(t => t.id !== tagId) }
+                : l
+        ));
+        await removeTagFromLink(linkId, tagId);
+    }, []);
+
+    const total = filteredArticles.length + filteredLinks.length;
 
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
@@ -46,14 +99,41 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 <div className="flex items-center gap-2.5">
                     <Bookmark filled className="text-terracotta" size={13} />
                     <span className="label-system text-terracotta text-xs">SAVED // {total} ITEMS</span>
+                    {activeTag && (
+                        <Link
+                            href={`/u/${username}/saved`}
+                            className="ml-2 text-[10px] uppercase tracking-widest border border-terracotta px-2 py-0.5 text-terracotta hover:bg-terracotta hover:text-background transition-colors"
+                        >
+                            ✕ {activeTag}
+                        </Link>
+                    )}
                 </div>
+                {/* Tag filter bar */}
+                {tags.length > 0 && !activeTag && (
+                    <div className="flex flex-wrap gap-1.5">
+                        {tags.map(tag => (
+                            <Link
+                                key={tag.id}
+                                href={`/u/${username}/saved?tag=${encodeURIComponent(tag.name)}`}
+                                className="text-[10px] uppercase tracking-widest px-2 py-1 border border-foreground/40 hover:bg-foreground hover:text-background transition-colors"
+                            >
+                                {tag.name}
+                            </Link>
+                        ))}
+                    </div>
+                )}
                 <SaveLinkBar onSaved={handleLinkSaved} />
             </header>
             <SavedView
-                articles={articles}
-                links={links}
+                articles={filteredArticles}
+                links={filteredLinks}
+                allTags={tags}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
+                onAddTagToArticle={handleAddTagToArticle}
+                onRemoveTagFromArticle={handleRemoveTagFromArticle}
+                onAddTagToLink={handleAddTagToLink}
+                onRemoveTagFromLink={handleRemoveTagFromLink}
             />
         </main>
     );

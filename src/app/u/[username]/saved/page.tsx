@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { getCategories } from "@/app/actions";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import SavedPageClient from './SavedPageClient';
 
 interface SavedPageProps {
@@ -21,19 +22,27 @@ export default async function SavedPage({ params }: SavedPageProps) {
 
     const categories = await getCategories();
 
-    const [savedFeedItems, savedLinks] = await Promise.all([
+    const [savedFeedItems, savedLinks, allTags] = await Promise.all([
         prisma.feedItem.findMany({
             where: {
                 savedAt: { not: null },
                 source: { category: { userId: session.user.id } }
             },
-            include: { source: { select: { title: true } } },
+            include: {
+                source: { select: { title: true } },
+                tags: { include: { tag: { select: { id: true, name: true } } } },
+            },
             orderBy: { savedAt: 'desc' }
         }),
         prisma.savedLink.findMany({
             where: { userId: session.user.id },
+            include: { tags: { include: { tag: { select: { id: true, name: true } } } } },
             orderBy: { createdAt: 'desc' }
-        })
+        }),
+        prisma.tag.findMany({
+            where: { userId: session.user.id },
+            orderBy: { name: 'asc' },
+        }),
     ]);
 
     const articles = savedFeedItems.map(item => ({
@@ -43,6 +52,7 @@ export default async function SavedPage({ params }: SavedPageProps) {
         content: item.content,
         savedAt: item.savedAt!,
         sourceTitle: item.source.title,
+        tags: item.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
     }));
 
     const links = savedLinks.map(link => ({
@@ -51,16 +61,20 @@ export default async function SavedPage({ params }: SavedPageProps) {
         url: link.url,
         description: link.description,
         createdAt: link.createdAt,
+        tags: link.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
     }));
 
     return (
         <>
             <PageHeader categories={categories} username={session.user.username} email={session.user.email} />
-            <SavedPageClient
-                username={session.user.username}
-                initialArticles={articles}
-                initialLinks={links}
-            />
+            <Suspense fallback={null}>
+                <SavedPageClient
+                    username={session.user.username}
+                    initialArticles={articles}
+                    initialLinks={links}
+                    initialTags={allTags.map(t => ({ id: t.id, name: t.name }))}
+                />
+            </Suspense>
         </>
     );
 }

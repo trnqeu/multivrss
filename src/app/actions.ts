@@ -827,3 +827,147 @@ export async function importFeedsCsv(prevState: ActionState | null, formData: Fo
     }
     return { success: true, message };
 }
+
+// ── Tags ─────────────────────────────────────────────────────────────────
+
+export interface TagData {
+  id: string;
+  name: string;
+}
+
+export async function getTags(): Promise<TagData[]> {
+  const session = await getServerSession(authOptions);
+  if (!session) return [];
+
+  const tags = await prisma.tag.findMany({
+    where: { userId: session.user.id },
+    orderBy: { name: 'asc' },
+    include: { _count: { select: { savedLinks: true } } },
+  });
+
+  return tags.map((t) => ({ id: t.id, name: t.name }));
+}
+
+export async function createTag(name: string): Promise<ActionState & { tag?: TagData }> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 50) {
+    return { success: false, message: 'Tag name must be 1-50 characters.' };
+  }
+
+  try {
+    const tag = await prisma.tag.create({
+      data: { userId: session.user.id, name: trimmed },
+    });
+    updateTag(`sidebar:${session.user.id}`);
+    return { success: true, message: 'Tag created.', tag: { id: tag.id, name: tag.name } };
+  } catch {
+    return { success: false, message: 'Tag already exists.' };
+  }
+}
+
+export async function renameTag(tagId: string, name: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 50) {
+    return { success: false, message: 'Tag name must be 1-50 characters.' };
+  }
+
+  try {
+    await prisma.tag.update({
+      where: { id: tagId, userId: session.user.id },
+      data: { name: trimmed },
+    });
+    updateTag(`sidebar:${session.user.id}`);
+    return { success: true, message: 'Tag renamed.' };
+  } catch {
+    return { success: false, message: 'Tag not found or name already taken.' };
+  }
+}
+
+export async function deleteTag(tagId: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    await prisma.tag.delete({
+      where: { id: tagId, userId: session.user.id },
+    });
+    updateTag(`sidebar:${session.user.id}`);
+    return { success: true, message: 'Tag deleted.' };
+  } catch {
+    return { success: false, message: 'Tag not found.' };
+  }
+}
+
+export async function addTagToLink(savedLinkId: string, tagId: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    await prisma.savedLinkTag.create({
+      data: { savedLinkId, tagId },
+    });
+    return { success: true, message: 'Tag added.' };
+  } catch {
+    return { success: false, message: 'Tag already assigned.' };
+  }
+}
+
+export async function removeTagFromLink(savedLinkId: string, tagId: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    await prisma.savedLinkTag.delete({
+      where: { savedLinkId_tagId: { savedLinkId, tagId } },
+    });
+    return { success: true, message: 'Tag removed.' };
+  } catch {
+    return { success: false, message: 'Failed to remove tag.' };
+  }
+}
+
+export async function getTagsForLink(savedLinkId: string): Promise<TagData[]> {
+  const session = await getServerSession(authOptions);
+  if (!session) return [];
+
+  const tags = await prisma.tag.findMany({
+    where: { savedLinks: { some: { savedLinkId } }, userId: session.user.id },
+    orderBy: { name: 'asc' },
+  });
+
+  return tags.map((t) => ({ id: t.id, name: t.name }));
+}
+
+export async function addTagToFeedItem(feedItemId: string, tagId: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    await prisma.feedItemTag.create({
+      data: { feedItemId, tagId },
+    });
+    return { success: true, message: 'Tag added.' };
+  } catch {
+    return { success: false, message: 'Tag already assigned.' };
+  }
+}
+
+export async function removeTagFromFeedItem(feedItemId: string, tagId: string): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    await prisma.feedItemTag.delete({
+      where: { feedItemId_tagId: { feedItemId, tagId } },
+    });
+    return { success: true, message: 'Tag removed.' };
+  } catch {
+    return { success: false, message: 'Failed to remove tag.' };
+  }
+}

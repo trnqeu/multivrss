@@ -69,9 +69,14 @@ function FeedCard({
       </p>
 
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[11px] text-terracotta break-all">
+        <a
+          href={new URL(feed.url).origin}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-[11px] text-terracotta break-all hover:underline"
+        >
           {getHost(feed.url)}
-        </span>
+        </a>
         {pickedCategoryId && status !== "success" && (
           <div className="flex items-center gap-2 ml-auto">
             <div className="relative">
