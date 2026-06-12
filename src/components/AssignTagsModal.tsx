@@ -1,0 +1,190 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { setFeedItemTags, createTag } from '@/app/actions';
+
+interface TagVM {
+    id: string;
+    name: string;
+}
+
+interface AssignTagsModalProps {
+    open: boolean;
+    onClose: () => void;
+    itemId: string;
+    initialTags: TagVM[];
+    allTags: TagVM[];
+    onTagsApplied: (itemId: string, tags: TagVM[]) => void;
+    onSave?: (itemId: string, tagIds: string[]) => Promise<{ success: boolean }>;
+}
+
+export default function AssignTagsModal({
+    open, onClose, itemId, initialTags, allTags, onTagsApplied, onSave,
+}: AssignTagsModalProps) {
+    const [search, setSearch] = useState('');
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialTags.map(t => t.id)));
+    const [localTags] = useState<TagVM[]>(allTags);
+    const [isPending, setIsPending] = useState(false);
+    const [uid] = useState(() => Math.floor(1000 + Math.random() * 9000));
+
+    useEffect(() => {
+        if (!open) return;
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [open, onClose]);
+
+    const filtered = localTags.filter(t =>
+        t.name.toLowerCase().includes(search.toLowerCase())
+    );
+    const exactMatch = localTags.some(t => t.name.toLowerCase() === search.trim().toLowerCase());
+    const canCreate = search.trim().length > 0 && !exactMatch;
+
+    const toggleTag = useCallback((tagId: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(tagId)) next.delete(tagId);
+            else next.add(tagId);
+            return next;
+        });
+    }, []);
+
+    const handleApply = async () => {
+        setIsPending(true);
+        try {
+            const finalTagIds = new Set(selectedIds);
+            let createdTag: TagVM | null = null;
+
+            if (canCreate) {
+                const result = await createTag(search.trim());
+                if (result.success && result.tag) {
+                    createdTag = result.tag;
+                    finalTagIds.add(createdTag.id);
+                }
+            }
+
+            const saveFn = onSave || setFeedItemTags;
+            const saveResult = await saveFn(itemId, Array.from(finalTagIds));
+            if (saveResult.success) {
+                const allCurrentTags = createdTag
+                    ? [...localTags, createdTag]
+                    : localTags;
+                const appliedTags = allCurrentTags.filter(t => finalTagIds.has(t.id));
+                onTagsApplied(itemId, appliedTags);
+                onClose();
+            }
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    if (!open) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.70)' }}
+            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+        >
+            <div className="w-full max-w-lg border-2 border-foreground bg-background">
+                {/* Header */}
+                <div className="flex items-center justify-between px-[22px] py-[22px] border-b-2 border-foreground">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-bold">
+                        ASSIGN_TAGS
+                    </span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="w-9 h-9 flex items-center justify-center bg-transparent border border-white/40 text-foreground text-xl leading-none hover:border-foreground transition-colors"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="px-[26px] pt-[26px] flex flex-col gap-[22px]">
+                    {/* Section 01: Filter/Search */}
+                    <div className="flex flex-col gap-2">
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-terracotta">
+                            FILTER OR CREATE NEW TAG
+                        </span>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-terracotta font-mono text-xs select-none pointer-events-none">
+                                &gt;
+                            </span>
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                placeholder="TYPE_TAG_NAME..."
+                                className="w-full pl-8 pr-4 py-3 bg-[#141409] border-2 border-foreground font-mono text-[13px] text-foreground placeholder:text-white/20 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Section 02: Existing Directory */}
+                    <div className="flex flex-col gap-2">
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-terracotta">
+                            EXISTING_DIRECTORY
+                        </span>
+                        <div className="flex flex-wrap gap-2 min-h-[60px]">
+                            {filtered.map(tag => {
+                                const isSelected = selectedIds.has(tag.id);
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => toggleTag(tag.id)}
+                                        className={`px-3 py-1.5 font-mono text-[10px] uppercase font-bold border-2 transition-all active:translate-x-[1px] active:translate-y-[1px] ${
+                                            isSelected
+                                                ? 'bg-terracotta text-background border-terracotta'
+                                                : 'bg-transparent text-foreground/60 border-foreground/30 hover:border-foreground'
+                                        }`}
+                                    >
+                                        # {tag.name}
+                                    </button>
+                                );
+                            })}
+                            {filtered.length === 0 && (
+                                <span className="font-mono text-[10px] text-foreground/30 italic">
+                                    NO_TAGS_FOUND
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between px-[26px] py-5 mt-[22px] border-t-2 border-foreground">
+                    <span className="font-mono text-[9px] text-foreground/30 tracking-widest">
+                        UID: TAG_PROC_{uid}
+                    </span>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="w-28 px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest border-2 border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background transition-colors"
+                        >
+                            CANCEL
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleApply}
+                            disabled={isPending}
+                            className={`w-28 px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest border-2 transition-all ${
+                                isPending
+                                    ? 'bg-[rgba(226,114,91,0.18)] text-white/30 border-[rgba(226,114,91,0.30)] cursor-not-allowed'
+                                    : 'bg-terracotta text-background border-terracotta hover:bg-background hover:text-terracotta'
+                            }`}
+                        >
+                            {isPending ? 'APPLYING…' : 'APPLY'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

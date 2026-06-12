@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import FeedItem from '@/components/FeedItem';
 import { Fragment } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
+import { prisma } from "@/lib/prisma";
 
 interface FeedListProps {
     sourceId?: string;
@@ -47,6 +48,28 @@ async function CachedFeedContent({
         );
     }
 
+    const itemIds = items.map(i => i.id);
+    const [userTags, itemTagAssocs] = await Promise.all([
+        prisma.tag.findMany({
+            where: { userId },
+            orderBy: { name: 'asc' },
+            select: { id: true, name: true },
+        }),
+        prisma.feedItemTag.findMany({
+            where: { feedItemId: { in: itemIds } },
+            include: { tag: { select: { id: true, name: true } } },
+        }),
+    ]);
+
+    const tagsByItemId = new Map<string, { id: string; name: string }[]>();
+    for (const assoc of itemTagAssocs) {
+        const existing = tagsByItemId.get(assoc.feedItemId) ?? [];
+        existing.push(assoc.tag);
+        tagsByItemId.set(assoc.feedItemId, existing);
+    }
+
+    const allTags = userTags.map(t => ({ id: t.id, name: t.name }));
+
     return (
         <section className="p-8 md:p-12">
             <div className="leading-relaxed text-sm text-foreground font-medium">
@@ -68,7 +91,11 @@ async function CachedFeedContent({
                                     <span className="text-[9px] text-white/35">→</span>
                                 </div>
                             )}
-                            <FeedItem item={item} isLast={suppressSeparator} />
+                            <FeedItem
+                                item={{ ...item, tags: tagsByItemId.get(item.id) ?? [] }}
+                                isLast={suppressSeparator}
+                                allTags={allTags}
+                            />
                         </Fragment>
                     );
                 })}
