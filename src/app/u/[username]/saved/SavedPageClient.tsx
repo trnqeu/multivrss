@@ -7,7 +7,7 @@ import SaveLinkBar from '@/components/SaveLinkBar';
 import SavedView from './SavedView';
 import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
-import { deleteSavedLink, unsaveFeedItem, addTagToLink, removeTagFromLink, addTagToFeedItem, removeTagFromFeedItem } from '@/app/actions';
+import { deleteSavedLink, unsaveFeedItem, removeTagFromLink, removeTagFromFeedItem } from '@/app/actions';
 
 interface SavedPageClientProps {
     username: string;
@@ -45,16 +45,11 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await deleteSavedLink(id);
     }, []);
 
-    const handleAddTagToArticle = useCallback(async (articleId: string, tagId: string) => {
-        const tag = tags.find(t => t.id === tagId);
-        if (!tag) return;
+    const handleSetArticleTags = useCallback((articleId: string, tags: TagVM[]) => {
         setArticles(prev => prev.map(a =>
-            a.id === articleId
-                ? { ...a, tags: [...a.tags, tag] }
-                : a
+            a.id === articleId ? { ...a, tags } : a
         ));
-        await addTagToFeedItem(articleId, tagId);
-    }, [tags]);
+    }, []);
 
     const handleRemoveTagFromArticle = useCallback(async (articleId: string, tagId: string) => {
         setArticles(prev => prev.map(a =>
@@ -65,16 +60,11 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await removeTagFromFeedItem(articleId, tagId);
     }, []);
 
-    const handleAddTagToLink = useCallback(async (linkId: string, tagId: string) => {
-        const tag = tags.find(t => t.id === tagId);
-        if (!tag) return;
+    const handleSetLinkTags = useCallback((linkId: string, tags: TagVM[]) => {
         setLinks(prev => prev.map(l =>
-            l.id === linkId
-                ? { ...l, tags: [...l.tags, tag] }
-                : l
+            l.id === linkId ? { ...l, tags } : l
         ));
-        await addTagToLink(linkId, tagId);
-    }, [tags]);
+    }, []);
 
     const handleRemoveTagFromLink = useCallback(async (linkId: string, tagId: string) => {
         setLinks(prev => prev.map(l =>
@@ -130,10 +120,10 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 allTags={tags}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
-                onAddTagToArticle={handleAddTagToArticle}
                 onRemoveTagFromArticle={handleRemoveTagFromArticle}
-                onAddTagToLink={handleAddTagToLink}
                 onRemoveTagFromLink={handleRemoveTagFromLink}
+                onSetArticleTags={handleSetArticleTags}
+                onSetLinkTags={handleSetLinkTags}
             />
         </main>
     );

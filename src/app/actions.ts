@@ -971,3 +971,74 @@ export async function removeTagFromFeedItem(feedItemId: string, tagId: string): 
     return { success: false, message: 'Failed to remove tag.' };
   }
 }
+
+export async function setSavedLinkTags(linkId: string, tagIds: string[]): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    const link = await prisma.savedLink.findFirst({
+      where: { id: linkId, userId: session.user.id },
+    });
+    if (!link) return { success: false, message: 'Link not found.' };
+
+    const validTags = tagIds.length > 0
+      ? await prisma.tag.findMany({
+          where: { id: { in: tagIds }, userId: session.user.id },
+          select: { id: true },
+        })
+      : [];
+    const validTagIds = validTags.map(t => t.id);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.savedLinkTag.deleteMany({ where: { savedLinkId: linkId } });
+      if (validTagIds.length > 0) {
+        await tx.savedLinkTag.createMany({
+          data: validTagIds.map(tagId => ({ savedLinkId: linkId, tagId })),
+        });
+      }
+    });
+
+    updateTag(`feed:${session.user.id}`);
+    return { success: true };
+  } catch {
+    return { success: false, message: 'Failed to update tags.' };
+  }
+}
+
+export async function setFeedItemTags(feedItemId: string, tagIds: string[]): Promise<ActionState> {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: 'Unauthorized' };
+
+  try {
+    const item = await prisma.feedItem.findFirst({
+      where: {
+        id: feedItemId,
+        source: { category: { userId: session.user.id } },
+      },
+    });
+    if (!item) return { success: false, message: 'Item not found.' };
+
+    const validTags = tagIds.length > 0
+      ? await prisma.tag.findMany({
+          where: { id: { in: tagIds }, userId: session.user.id },
+          select: { id: true },
+        })
+      : [];
+    const validTagIds = validTags.map(t => t.id);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.feedItemTag.deleteMany({ where: { feedItemId } });
+      if (validTagIds.length > 0) {
+        await tx.feedItemTag.createMany({
+          data: validTagIds.map(tagId => ({ feedItemId, tagId })),
+        });
+      }
+    });
+
+    updateTag(`feed:${session.user.id}`);
+    return { success: true };
+  } catch {
+    return { success: false, message: 'Failed to update tags.' };
+  }
+}

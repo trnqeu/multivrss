@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { dayBucket } from '@/lib/utils';
-import { Fragment } from 'react';
+import AssignTagsModal from '@/components/AssignTagsModal';
+import { setFeedItemTags, setSavedLinkTags } from '@/app/actions';
 import EmptyStream from '@/components/EmptyStream';
 
 export interface TagVM {
@@ -36,10 +37,10 @@ interface Props {
     allTags: TagVM[];
     onRemoveArticle: (id: string) => void;
     onRemoveLink: (id: string) => void;
-    onAddTagToArticle: (articleId: string, tagId: string) => void;
     onRemoveTagFromArticle: (articleId: string, tagId: string) => void;
-    onAddTagToLink: (linkId: string, tagId: string) => void;
     onRemoveTagFromLink: (linkId: string, tagId: string) => void;
+    onSetArticleTags: (articleId: string, tags: TagVM[]) => void;
+    onSetLinkTags: (linkId: string, tags: TagVM[]) => void;
 }
 
 function getHost(url: string): string {
@@ -63,50 +64,17 @@ function TagChip({ tag, onRemove }: { tag: TagVM; onRemove?: () => void }) {
     );
 }
 
-function TagPicker({ itemId, allTags, itemTags, onAdd }: {
-    itemId: string;
-    allTags: TagVM[];
-    itemTags: TagVM[];
-    onAdd: (itemId: string, tagId: string) => void;
-}) {
-    const [open, setOpen] = useState(false);
-    const available = allTags.filter(t => !itemTags.some(lt => lt.id === t.id));
-
-    return (
-        <span className="inline-flex">
-            <button
-                type="button"
-                onClick={() => setOpen(!open)}
-                className="bg-transparent border border-foreground/30 px-1.5 py-0.5 text-[9px] uppercase tracking-widest cursor-pointer text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
-            >
-                + TAG
-            </button>
-            {open && available.length > 0 && (
-                <span className="inline-flex flex-wrap gap-1 ml-1">
-                    {available.map(tag => (
-                        <button
-                            key={tag.id}
-                            type="button"
-                            onClick={() => { onAdd(itemId, tag.id); setOpen(false); }}
-                            className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 border border-foreground/30 bg-background cursor-pointer text-foreground/60 hover:text-foreground hover:border-foreground transition-colors"
-                        >
-                            + {tag.name}
-                        </button>
-                    ))}
-                </span>
-            )}
-            {open && available.length === 0 && (
-                <span className="text-[9px] text-foreground/30 ml-1">no more tags</span>
-            )}
-        </span>
-    );
+interface ModalItem {
+    id: string;
+    tags: TagVM[];
+    isExternal: boolean;
 }
 
 export default function SavedView({
     articles, links, allTags,
     onRemoveArticle, onRemoveLink,
-    onAddTagToArticle, onRemoveTagFromArticle,
-    onAddTagToLink, onRemoveTagFromLink,
+    onRemoveTagFromArticle, onRemoveTagFromLink,
+    onSetArticleTags, onSetLinkTags,
 }: Props) {
     const allItems = [
         ...articles.map(a => ({
@@ -130,6 +98,15 @@ export default function SavedView({
             tags: l.tags,
         })),
     ].sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
+
+    const [modalItem, setModalItem] = useState<ModalItem | null>(null);
+
+    const handleModalSave = useCallback(async (id: string, tagIds: string[]) => {
+        if (!modalItem) return { success: false };
+        return modalItem.isExternal
+            ? setSavedLinkTags(id, tagIds)
+            : setFeedItemTags(id, tagIds);
+    }, [modalItem]);
 
     const total = allItems.length;
 
@@ -198,17 +175,16 @@ export default function SavedView({
                                             ))}
                                         </span>
                                     )}
-                                    {/* Tag picker */}
-                                    {allTags.length > 0 && (
-                                        <span className="ml-1">
-                                            <TagPicker
-                                                itemId={item.id}
-                                                allTags={allTags}
-                                                itemTags={item.tags}
-                                                onAdd={item.isExternal ? onAddTagToLink : onAddTagToArticle}
-                                            />
-                                        </span>
-                                    )}
+                                    {/* Tag button */}
+                                    <span className="ml-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal })}
+                                            className="bg-transparent border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] uppercase tracking-widest cursor-pointer text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
+                                        >
+                                            + TAG
+                                        </button>
+                                    </span>
                                     <button
                                         onClick={() => item.isExternal ? onRemoveLink(item.id) : onRemoveArticle(item.id)}
                                         title="Remove from saved"
@@ -224,6 +200,23 @@ export default function SavedView({
                         );
                     })}
                 </div>
+            )}
+            {modalItem && (
+                <AssignTagsModal
+                    open={true}
+                    onClose={() => setModalItem(null)}
+                    itemId={modalItem.id}
+                    initialTags={modalItem.tags}
+                    allTags={allTags}
+                    onSave={handleModalSave}
+                    onTagsApplied={(id, newTags) => {
+                        if (modalItem.isExternal) {
+                            onSetLinkTags(id, newTags);
+                        } else {
+                            onSetArticleTags(id, newTags);
+                        }
+                    }}
+                />
             )}
         </section>
     );

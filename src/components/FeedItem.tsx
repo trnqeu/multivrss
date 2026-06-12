@@ -1,8 +1,9 @@
 'use client';
 
 import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
+import AssignTagsModal from '@/components/AssignTagsModal';
 
 interface Props {
     item: {
@@ -14,13 +15,17 @@ interface Props {
         read: boolean;
         savedAt: Date | null;
         source: { title: string | null };
+        tags: { id: string; name: string }[];
     };
     isLast: boolean;
+    allTags: { id: string; name: string }[];
 }
 
-export default function FeedItem( { item, isLast }: Props) {
+export default function FeedItem( { item, isLast, allTags }: Props) {
     const [isRead, setIsRead] = useState(item.read);
     const [isSaved, setIsSaved] = useState(!!item.savedAt);
+    const [tags, setTags] = useState(item.tags);
+    const [modalOpen, setModalOpen] = useState(false);
     async function handleClick() {
         if (isRead) return;
         setIsRead(true);
@@ -37,6 +42,9 @@ export default function FeedItem( { item, isLast }: Props) {
             await saveFeedItem(item.id);
         }
     }
+    const handleTagsApplied = useCallback((_itemId: string, newTags: { id: string; name: string }[]) => {
+        setTags(newTags);
+    }, []);
     return (
     <span className={`group/item ${isRead ? 'opacity-30' : ''}`}>
         <a
@@ -69,6 +77,25 @@ export default function FeedItem( { item, isLast }: Props) {
                 </>
             )}
         </a>
+        {tags.length > 0 && (
+            <span className="ml-2 inline-flex gap-1">
+                {tags.map(tag => (
+                    <span
+                        key={tag.id}
+                        className="font-mono text-[10px] uppercase border border-current text-terracotta px-1.5 py-0.5 leading-none"
+                    >
+                        #{tag.name}
+                    </span>
+                ))}
+            </span>
+        )}
+        <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="ml-1 bg-transparent border-2 border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-all leading-none"
+        >
+            + TAG
+        </button>
         <button
             onClick={handleSave}
             title={isSaved ? 'Remove from saved' : 'Save'}
@@ -79,6 +106,16 @@ export default function FeedItem( { item, isLast }: Props) {
                 className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
             />
         </button>
+        {modalOpen && (
+            <AssignTagsModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                itemId={item.id}
+                initialTags={tags}
+                allTags={allTags}
+                onTagsApplied={handleTagsApplied}
+            />
+        )}
         {!isLast && (
             <span className="text-terracotta font-bold mx-3 select-none">{'/ /'}</span>
         )}
