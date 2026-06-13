@@ -32,7 +32,7 @@ export default function MobileTabBar({ onAdd, onMe, username }: Props) {
     }
 
     return (
-        <nav className="md:hidden h-16 shrink-0 bg-background border-t-2 border-foreground flex z-50">
+        <nav aria-label="Mobile navigation" className="md:hidden h-16 shrink-0 bg-background border-t-2 border-foreground flex z-50">
             {TABS.map((tab) => {
                 const active = isActive(tab);
                 return (

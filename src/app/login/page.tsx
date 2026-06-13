@@ -41,7 +41,7 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="flex-1 flex items-center justify-center bg-background font-mono">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center bg-background font-mono">
             <div className="w-full max-w-sm px-6 py-10">
                 <div className="border-b-2 border-foreground pb-6 mb-8">
                     <h1 className="tracking-[0.2em] text-terracotta font-bold text-center text-xl">
@@ -50,26 +50,34 @@ export default function LoginPage() {
                 </div>
 
                 {error && (
-                    <div className="mb-6 text-sm tracking-widest text-terracotta text-center">
+                    <div role="alert" className="mb-6 text-sm tracking-widest text-terracotta text-center">
                         {ERROR_MESSAGES[error] ?? "An error occurred. Please try again."}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                    <input
-                        type="email"
-                        placeholder="EMAIL"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
-                    />
-                    <input
-                        type="password"
-                        placeholder="PASSWORD"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
-                    />
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="login-email" className="sr-only">Email</label>
+                        <input
+                            id="login-email"
+                            type="email"
+                            placeholder="EMAIL"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                        <label htmlFor="login-password" className="sr-only">Password</label>
+                        <input
+                            id="login-password"
+                            type="password"
+                            placeholder="PASSWORD"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full"
+                        />
+                    </div>
 
                     <button
                         type="submit"

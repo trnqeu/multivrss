@@ -25,7 +25,7 @@ export default function SyncButton() {
                 {isSyncing ? 'SYNCING...' : 'SYNC FEEDS'}
             </button>
             {message && (
-                <span className="label-system text-[9px] opacity-60">{message}</span>
+                <span role="status" aria-live="polite" className="label-system text-[9px] opacity-60">{message}</span>
             )}
         </div>
     )
