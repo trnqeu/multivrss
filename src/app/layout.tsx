@@ -31,6 +31,12 @@ export default function RootLayout({
         }} />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
+        <a
+          href="#main-content"
+          className="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:z-[200] focus-visible:px-4 focus-visible:py-2 focus-visible:bg-foreground focus-visible:text-background focus-visible:text-sm focus-visible:font-bold focus-visible:uppercase focus-visible:tracking-widest"
+        >
+          Skip to content
+        </a>
         {/* FLW Detail: Structural Roofline */}
         <div className="h-1 w-full bg-black sticky top-0 z-50" />
         <Providers>

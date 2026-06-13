@@ -131,11 +131,12 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
 
                     {/* Field 1 — Feed URL */}
                     <div className="flex flex-col gap-2">
-                        <div className="label-system font-mono text-[10px] uppercase tracking-widest">
+                        <label htmlFor="aff-url" className="label-system font-mono text-[10px] uppercase tracking-widest">
                             <span className="text-terracotta">01</span>
                             <span className="text-foreground">&nbsp;&nbsp;FEED URL</span>
-                        </div>
+                        </label>
                         <input
+                            id="aff-url"
                             name="url"
                             type="url"
                             value={url}
@@ -143,7 +144,7 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
                             placeholder="https://news.ycombinator.com/rss"
                             required
                             disabled={isPending}
-                            className={`w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 outline-none transition-colors ${
+                            className={`w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 transition-colors ${
                                 urlTouched && urlValid ? "border-terracotta" : "border-foreground"
                             }`}
                         />
@@ -169,14 +170,16 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
                         {creatingNew ? (
                             /* Inline new-category editor */
                             <div className="flex border-2 border-terracotta">
+                                <label htmlFor="aff-newcat" className="sr-only">New category name</label>
                                 <input
+                                    id="aff-newcat"
                                     ref={newCatInputRef}
                                     type="text"
                                     value={newCategoryName}
                                     onChange={e => setNewCategoryName(e.target.value.toUpperCase())}
                                     placeholder="NEW CATEGORY NAME…"
                                     disabled={isPending}
-                                    className="flex-1 px-4 py-3 bg-transparent border-none font-mono text-[13px] text-foreground placeholder:text-white/30 outline-none"
+                                    className="flex-1 px-4 py-3 bg-transparent border-none font-mono text-[13px] text-foreground placeholder:text-white/30"
                                 />
                                 <button
                                     type="button"
@@ -244,7 +247,7 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
 
                     {/* Action error */}
                     {state?.message && !state.success && (
-                        <p className="font-mono text-[11px] text-terracotta uppercase tracking-widest -mt-2">
+                        <p role="alert" className="font-mono text-[11px] text-terracotta uppercase tracking-widest -mt-2">
                             {state.message}
                         </p>
                     )}

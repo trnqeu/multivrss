@@ -37,7 +37,7 @@ export default function ResetPasswordPage() {
     }, [state, router]);
 
     return (
-        <main className="flex-1 flex items-center justify-center bg-background">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center bg-background">
             <div className="p-8 border-b-2 border-foreground">
                 <div className="p-8 border-b-2 border-foreground">
                     <h1 className="tracking-[0.2em] text-terracotta font-bold">
@@ -46,7 +46,10 @@ export default function ResetPasswordPage() {
                 </div>
 
                 {state?.message && (
-                    <div className={`px-8 pt-6 text-sm tracking-widest ${state.success ? "" : "text-terracotta"}`}>
+                    <div
+                        role={state.success ? "status" : "alert"}
+                        className={`px-8 pt-6 text-sm tracking-widest ${state.success ? "" : "text-terracotta"}`}
+                    >
                         {state.message}
                     </div>
                 )}
@@ -54,20 +57,28 @@ export default function ResetPasswordPage() {
                 {!state?.success && (
                     <form action={formAction} className="p-8 flex flex-col gap-4">
                         <input type="hidden" name="token" value={token} />
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="NEW PASSWORD"
-                            required
-                            className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
-                        />
-                        <input
-                            type="password"
-                            name="confirm"
-                            placeholder="CONFIRM PASSWORD"
-                            required
-                            className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full outline-none"
-                        />
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="rp-password" className="sr-only">New password</label>
+                            <input
+                                id="rp-password"
+                                type="password"
+                                name="password"
+                                placeholder="NEW PASSWORD"
+                                required
+                                className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="rp-confirm" className="sr-only">Confirm password</label>
+                            <input
+                                id="rp-confirm"
+                                type="password"
+                                name="confirm"
+                                placeholder="CONFIRM PASSWORD"
+                                required
+                                className="border-2 border-foreground bg-background px-4 py-3 text-sm tracking-widest w-full"
+                            />
+                        </div>
                         <button
                             type="submit"
                             disabled={pending}

@@ -113,11 +113,12 @@ export default function EditSourceForm({ source, categories, open, onClose }: Pr
 
                     {/* Field 1 — Title */}
                     <div className="flex flex-col gap-2">
-                        <div className="label-system font-mono text-[10px] uppercase tracking-widest">
+                        <label htmlFor="esf-title" className="label-system font-mono text-[10px] uppercase tracking-widest">
                             <span className="text-terracotta">01</span>
                             <span className="text-foreground">&nbsp;&nbsp;TITLE</span>
-                        </div>
+                        </label>
                         <input
+                            id="esf-title"
                             name="title"
                             type="text"
                             value={title}
@@ -125,7 +126,7 @@ export default function EditSourceForm({ source, categories, open, onClose }: Pr
                             placeholder="Feed title…"
                             required
                             disabled={isPending}
-                            className="w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 border-foreground outline-none transition-colors"
+                            className="w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 border-foreground transition-colors"
                         />
                     </div>
 
@@ -138,14 +139,16 @@ export default function EditSourceForm({ source, categories, open, onClose }: Pr
 
                         {creatingNew ? (
                             <div className="flex border-2 border-terracotta">
+                                <label htmlFor="esf-newcat" className="sr-only">New category name</label>
                                 <input
+                                    id="esf-newcat"
                                     ref={newCatInputRef}
                                     type="text"
                                     value={newCategoryName}
                                     onChange={e => setNewCategoryName(e.target.value.toUpperCase())}
                                     placeholder="NEW CATEGORY NAME…"
                                     disabled={isPending}
-                                    className="flex-1 px-4 py-3 bg-transparent border-none font-mono text-[13px] text-foreground placeholder:text-white/30 outline-none"
+                                    className="flex-1 px-4 py-3 bg-transparent border-none font-mono text-[13px] text-foreground placeholder:text-white/30"
                                 />
                                 <button
                                     type="button"
@@ -212,7 +215,7 @@ export default function EditSourceForm({ source, categories, open, onClose }: Pr
 
                     {/* Action error */}
                     {state?.message && !state.success && (
-                        <p className="font-mono text-[11px] text-terracotta uppercase tracking-widest -mt-2">
+                        <p role="alert" className="font-mono text-[11px] text-terracotta uppercase tracking-widest -mt-2">
                             {state.message}
                         </p>
                     )}

@@ -60,7 +60,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                 <SyncBadge />
             </div>
 
-            <nav className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+            <nav aria-label="Main navigation" className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
                 {/* Main Navigation */}
                 <div className="flex flex-col gap-4">
                     <span className="label-system text-foreground">NAV_ROOT</span>
