@@ -230,7 +230,7 @@ export default function PageHeader({ categories, username, email }: Props) {
                 <div className="hidden md:flex items-stretch border border-foreground/30">
                     <button
                         onClick={() => setShowAdd(true)}
-                        className="flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground border-r border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
+                        className="flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground bg-transparent border-r border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
                     >
                         <SourceIcon size={12} /> Source
                     </button>
@@ -239,7 +239,7 @@ export default function PageHeader({ categories, username, email }: Props) {
                         onClick={() => openSaveUrl(desktopUrlToggleRef)}
                         aria-expanded={showSaveUrl}
                         className={`flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-                            showSaveUrl ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground hover:text-background'
+                            showSaveUrl ? 'bg-foreground text-background' : 'bg-transparent text-foreground hover:bg-foreground hover:text-background'
                         }`}
                     >
                         <PasteUrlIcon size={12} /> URL
