@@ -5,10 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { syncAllFeeds } from '@/app/actions';
 import AddFeedForm from './AddFeedForm';
+import SaveLinkBar from './SaveLinkBar';
 import { useMobileSidebar } from './MobileSidebarContext';
 import { useSync } from './SyncProvider';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
+import { SourceIcon } from './icons/Source';
+import { PasteUrlIcon } from './icons/PasteUrl';
 import type { Category } from '@prisma/client';
 
 type Props = {
@@ -25,14 +28,55 @@ export default function PageHeader({ categories, username, email }: Props) {
     const desktopInputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState(searchParams.get('q') ?? '');
     const [showAdd, setShowAdd] = useState(false);
+    const [showSaveUrl, setShowSaveUrl] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { startSync, isSyncing } = useSync();
     const { setOpen: setMobileSidebarOpen } = useMobileSidebar();
 
+    // refs for focus management
+    const desktopUrlToggleRef = useRef<HTMLButtonElement>(null);
+    const mobileUrlToggleRef = useRef<HTMLButtonElement>(null);
+    const lastUrlTogglerRef = useRef<HTMLButtonElement | null>(null);
+    const saveUrlPopoverRef = useRef<HTMLDivElement>(null);
+
     function handleSync() {
         startSync(async () => { await syncAllFeeds(); });
     }
+
+    function openSaveUrl(fromRef: React.RefObject<HTMLButtonElement | null>) {
+        lastUrlTogglerRef.current = fromRef.current;
+        setShowSaveUrl(v => !v);
+    }
+
+    function closeSaveUrl() {
+        setShowSaveUrl(false);
+        lastUrlTogglerRef.current?.focus();
+    }
+
+    // Move focus into the URL input when popover opens
+    useEffect(() => {
+        if (showSaveUrl) {
+            const input = saveUrlPopoverRef.current?.querySelector('input');
+            input?.focus();
+        }
+    }, [showSaveUrl]);
+
+    // Close popover on outside click
+    useEffect(() => {
+        if (!showSaveUrl) return;
+        function onPointerDown(e: PointerEvent) {
+            const target = e.target as Node;
+            const outsidePopover = !saveUrlPopoverRef.current?.contains(target);
+            const outsideDesktopToggle = !desktopUrlToggleRef.current?.contains(target);
+            const outsideMobileToggle = !mobileUrlToggleRef.current?.contains(target);
+            if (outsidePopover && outsideDesktopToggle && outsideMobileToggle) {
+                closeSaveUrl();
+            }
+        }
+        document.addEventListener('pointerdown', onPointerDown);
+        return () => document.removeEventListener('pointerdown', onPointerDown);
+    }, [showSaveUrl]);
 
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
@@ -41,15 +85,19 @@ export default function PageHeader({ categories, username, email }: Props) {
                 setSearchOpen(true);
                 desktopInputRef.current?.focus();
             }
-            if (e.key === 'Escape' && (document.activeElement === desktopInputRef.current || searchOpen)) {
-                closeSearch();
-                desktopInputRef.current?.blur();
+            if (e.key === 'Escape') {
+                if (showSaveUrl) {
+                    closeSaveUrl();
+                } else if (document.activeElement === desktopInputRef.current || searchOpen) {
+                    closeSearch();
+                    desktopInputRef.current?.blur();
+                }
             }
         }
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchOpen]);
+    }, [searchOpen, showSaveUrl]);
 
     function pushQuery(q: string) {
         const next = new URLSearchParams(searchParams.toString());
@@ -108,9 +156,21 @@ export default function PageHeader({ categories, username, email }: Props) {
                         </button>
                         <button
                             onClick={() => setShowAdd(true)}
+                            aria-label="Add source"
                             className="bg-transparent border border-foreground/30 px-2 py-1 text-foreground text-[11px] normal-case tracking-widest hover:border-foreground hover:bg-transparent transition-colors"
                         >
                             +
+                        </button>
+                        <button
+                            ref={mobileUrlToggleRef}
+                            onClick={() => openSaveUrl(mobileUrlToggleRef)}
+                            aria-label="Save URL"
+                            aria-expanded={showSaveUrl}
+                            className={`bg-transparent border border-foreground/30 px-2 py-1 transition-colors ${
+                                showSaveUrl ? 'border-foreground bg-foreground text-background' : 'text-foreground hover:border-foreground hover:bg-transparent'
+                            }`}
+                        >
+                            <PasteUrlIcon size={14} />
                         </button>
                         <button
                             onClick={handleSync}
@@ -166,12 +226,25 @@ export default function PageHeader({ categories, username, email }: Props) {
                     {inputValue && clearBtn}
                 </div>
 
-                <button
-                    onClick={() => setShowAdd(true)}
-                    className="hidden md:block bg-transparent text-foreground text-[10px] shrink-0 border border-foreground/30 px-3 py-1 hover:border-foreground hover:bg-transparent transition-colors normal-case tracking-widest"
-                >
-                    + SOURCE
-                </button>
+                {/* Ingest action group: [ SOURCE | URL ] */}
+                <div className="hidden md:flex items-stretch border border-foreground/30">
+                    <button
+                        onClick={() => setShowAdd(true)}
+                        className="flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground border-r border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
+                    >
+                        <SourceIcon size={12} /> Source
+                    </button>
+                    <button
+                        ref={desktopUrlToggleRef}
+                        onClick={() => openSaveUrl(desktopUrlToggleRef)}
+                        aria-expanded={showSaveUrl}
+                        className={`flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                            showSaveUrl ? 'bg-foreground text-background' : 'text-foreground hover:bg-foreground hover:text-background'
+                        }`}
+                    >
+                        <PasteUrlIcon size={12} /> URL
+                    </button>
+                </div>
 
                 <button
                     onClick={handleSync}
@@ -187,6 +260,16 @@ export default function PageHeader({ categories, username, email }: Props) {
                 </div>
 
             </header>
+
+            {/* Save URL popover strip */}
+            {showSaveUrl && (
+                <div
+                    ref={saveUrlPopoverRef}
+                    className="border-b-2 border-foreground bg-terracotta/[0.05] px-4 py-3.5 md:px-7"
+                >
+                    <SaveLinkBar onSaved={() => setShowSaveUrl(false)} />
+                </div>
+            )}
 
             {/* Add feed modal */}
             <AddFeedForm

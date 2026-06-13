@@ -23,7 +23,7 @@ export default function AssignTagsModal({
 }: AssignTagsModalProps) {
     const [search, setSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialTags.map(t => t.id)));
-    const [localTags] = useState<TagVM[]>(allTags);
+    const [localTags, setLocalTags] = useState<TagVM[]>(allTags);
     const [isPending, setIsPending] = useState(false);
     const [uid] = useState(() => Math.floor(1000 + Math.random() * 9000));
 
@@ -50,6 +50,23 @@ export default function AssignTagsModal({
             return next;
         });
     }, []);
+
+    const handleCreate = useCallback(async () => {
+        const name = search.trim();
+        if (!name || exactMatch || isPending) return;
+        setIsPending(true);
+        try {
+            const result = await createTag(name);
+            if (result.success && result.tag) {
+                const tag = result.tag;
+                setLocalTags(prev => [...prev, tag]);
+                setSelectedIds(prev => new Set(prev).add(tag.id));
+                setSearch('');
+            }
+        } finally {
+            setIsPending(false);
+        }
+    }, [search, exactMatch, isPending]);
 
     const handleApply = async () => {
         setIsPending(true);
@@ -98,7 +115,7 @@ export default function AssignTagsModal({
                         type="button"
                         onClick={onClose}
                         aria-label="Close"
-                        className="w-9 h-9 flex items-center justify-center bg-transparent border border-white/40 text-foreground text-xl leading-none hover:border-foreground transition-colors"
+                        className="w-9 h-9 flex items-center justify-center bg-transparent border border-foreground/40 text-foreground text-xl leading-none hover:border-foreground transition-colors"
                     >
                         ×
                     </button>
@@ -119,18 +136,50 @@ export default function AssignTagsModal({
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
+                                aria-label="Filter or create a tag"
                                 placeholder="TYPE_TAG_NAME..."
-                                className="w-full pl-8 pr-4 py-3 bg-[#141409] border-2 border-foreground font-mono text-[13px] text-foreground placeholder:text-white/20 outline-none"
+                                onKeyDown={e => {
+                                    if (e.key !== 'Enter') return;
+                                    e.preventDefault();
+                                    if (canCreate) {
+                                        void handleCreate();
+                                    } else if (filtered.length === 1) {
+                                        toggleTag(filtered[0].id);
+                                        setSearch('');
+                                    }
+                                }}
+                                className="w-full pl-8 pr-12 py-3 bg-background border-2 border-foreground font-mono text-[13px] text-foreground placeholder:text-foreground/30 outline-none focus-visible:border-terracotta"
                             />
+                            {search.trim() && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[11px] text-foreground/35 border border-foreground/25 px-1.5 leading-[18px] select-none pointer-events-none">↵</span>
+                            )}
                         </div>
+
+                        {/* CREATE row */}
+                        {canCreate && (
+                            <button
+                                type="button"
+                                onClick={() => void handleCreate()}
+                                disabled={isPending}
+                                className="mt-2.5 flex w-full items-center gap-3 px-3 py-2.5 bg-terracotta/[0.08] border-2 border-terracotta font-mono cursor-pointer hover:bg-terracotta/[0.14] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <span className="text-terracotta font-bold text-[15px] leading-none">+</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-terracotta">Create new tag</span>
+                                <span className="px-2.5 py-1 bg-terracotta text-background text-[10px] font-bold uppercase"># {search.trim()}</span>
+                                <span className="ml-auto text-[9px] tracking-widest text-foreground/40">PRESS ↵</span>
+                            </button>
+                        )}
                     </div>
 
                     {/* Section 02: Existing Directory */}
                     <div className="flex flex-col gap-2">
                         <span className="font-mono text-[10px] uppercase tracking-widest text-terracotta">
                             EXISTING_DIRECTORY
+                            {selectedIds.size > 0 && (
+                                <span className="ml-2 text-foreground/40 text-[9px]">{String(selectedIds.size).padStart(2, '0')} SELECTED</span>
+                            )}
                         </span>
-                        <div className="flex flex-wrap gap-2 min-h-[60px]">
+                        <div className="flex flex-wrap gap-2 min-h-[60px]" role="status" aria-live="polite" aria-atomic="false">
                             {filtered.map(tag => {
                                 const isSelected = selectedIds.has(tag.id);
                                 return (
@@ -180,7 +229,7 @@ export default function AssignTagsModal({
                                     : 'bg-terracotta text-background border-terracotta hover:bg-background hover:text-terracotta'
                             }`}
                         >
-                            {isPending ? 'APPLYING…' : 'APPLY'}
+                            {isPending ? 'APPLYING…' : <>APPLY{selectedIds.size > 0 && <span className="ml-2 px-1.5 bg-background text-terracotta leading-[16px]">{selectedIds.size}</span>}</>}
                         </button>
                     </div>
                 </div>
