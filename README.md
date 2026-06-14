@@ -91,7 +91,37 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [x] **Meilisearch fire-and-forget** — `addDocuments()` lanciato senza await con `.catch()` per errori
 - [x] **Priorità feed mai sincronizzati** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in cron e syncAllFeeds
 - [x] **Rate limiting per dominio** — `DomainGate` con semaforo: max 2 richieste concorrenti per hostname
-- [ ] **Coda di job (PgBoss / Bull)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring
+- [ ] **Coda di job (BullMQ + Redis)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring; ogni feed diventa un job indipendente
+- [ ] **Rispetto TTL del feed** — leggere `<ttl>` o `Cache-Control` dal feed e non risincronizzare prima della scadenza dichiarata
+- [ ] **Limite feed per utente** — max 50 feed per account (protezione cron da abusi)
+- [ ] **Per-user feed limits** — hard cap per proteggere il cron da utenti con centinaia di feed
+
+### Production Readiness Plan
+
+A phased plan to make the app ready for real users at scale. Phases are ordered by priority and dependency.
+
+#### Phase 1 — Quick wins (no architecture change)
+
+- [ ] **Gate Prisma query logging** — wrap `log: ['query']` in `src/lib/prisma.ts` behind `NODE_ENV !== 'production'`
+- [ ] **Email verification at signup** — send verification email via Resend before activating account; prevents fake registrations
+- [ ] **Per-user feed limit** — enforce max feeds per account at the Server Action level to protect the sync cron
+- [ ] **Fix FeedList semantic HTML** — FeedList renders inside a `<p>` tag; replace with a block element
+
+#### Phase 2 — Infrastructure
+
+- [ ] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
+- [ ] **Monitoring** — Sentry for error tracking; Prometheus + Grafana (or BetterStack) for uptime and metrics
+
+#### Phase 3 — Feed sync refactor (critical for scale)
+
+- [ ] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; cron enqueues jobs, workers execute them
+- [ ] **Separate worker process** — run BullMQ workers outside the Next.js process so sync load does not affect web response times
+- [ ] **TTL-aware scheduling** — read `<ttl>` or `Cache-Control` from feed response; skip re-sync until declared expiry
+- [ ] **BullBoard dashboard** — mount BullMQ dashboard (admin-only route) for queue monitoring and manual job retry
+
+#### Phase 4 — Evaluate Go worker (after measuring)
+
+If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated Go service for feed fetching and XML parsing would be a natural next step. Go goroutines map directly to the `DomainGate` semaphore pattern already in place. Node.js handles I/O-bound concurrency well; Go adds value primarily when CPU-bound parsing at volume is the confirmed bottleneck. Measure first, then decide.
 
 ### Reading List (Instapaper/Pocket-style)
 
