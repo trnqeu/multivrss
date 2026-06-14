@@ -1,9 +1,9 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { dayBucket } from '@/lib/utils';
-import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
+import { getCategories, markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import { Bookmark } from '@/components/icons/Bookmark';
 import EmptyStream from "./EmptyStream";
@@ -42,6 +42,40 @@ export default function SearchBar() {
     const [offset, setOffset] = useState(0);
     const [loading, setLoading] = useState(true);
     const [readFilter, setReadFilter] = useState<string | undefined>(undefined);
+    const router = useRouter();
+    const [categories, setCategories] = useState<{ name: string }[]>([]);
+    const [catOpen, setCatOpen] = useState(false);
+    const [catDropdownPos, setCatDropdownPos] = useState({ top: 0, right: 0 });
+    const catButtonRef = useRef<HTMLButtonElement>(null);
+    const catDropdownRef = useRef<HTMLDivElement>(null);
+
+
+    useEffect(() => {
+        void getCategories().then(result => setCategories(result.map(c => ({ name: c.name }))));
+    }, []);
+
+    useEffect(() => {
+        if (!catOpen) return;
+        function onMouseDown(e: MouseEvent) {
+            if (
+                catButtonRef.current?.contains(e.target as Node) ||
+                catDropdownRef.current?.contains(e.target as Node)
+            ) return;
+            setCatOpen(false);
+        }
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.key === 'Escape') {
+                setCatOpen(false);
+                catButtonRef.current?.focus();
+            }
+        }
+        document.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', onMouseDown);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [catOpen]);
 
     useEffect(() => {
         let cancelled = false;
@@ -87,6 +121,18 @@ export default function SearchBar() {
         setLoading(false);
     }
 
+    function setCategory(next: string | null) {
+        const params = new URLSearchParams(searchParams.toString());
+        if (!next || next === 'ALL') params.delete('cat');
+        else {
+            params.set('cat', next);
+            params.delete('source');
+        }
+        router.push(`?${params.toString()}`);
+        setCatOpen(false);
+    }
+
+
     const hits = allHits;
 
     async function toggleRead(item: SearchHit) {
@@ -109,14 +155,6 @@ export default function SearchBar() {
         }
     }
 
-    const activeFilter = sourceIdParam
-        ? `source="${sourceIdParam}"`
-        : cat !== 'ALL'
-            ? `cat="${cat}"`
-            : readFilter
-                ? readFilter === 'unread' ? 'UNREAD' : 'READ'
-                : '*';
-
     return (
         <div>
             {/* Telemetry */}
@@ -129,29 +167,97 @@ export default function SearchBar() {
                     <span className="text-foreground">{`${timeMs} MS`}</span>
                     <span className="mx-3">{'·'}</span>
                     {'FILTER: '}
-                    {sourceIdParam || cat !== 'ALL' ? (
-                        <span className="text-foreground">{activeFilter}</span>
-                    ) : (
-                        <span className="inline whitespace-nowrap">
-                            {(['ALL', 'UNREAD', 'READ'] as const).map((f, i) => {
-                                const isActive = f === 'ALL' ? !readFilter : readFilter === f.toLowerCase();
-                                return (
-                                    <span key={f}>
-                                        {i > 0 && <span className="mx-1 text-foreground/30">{'·'}</span>}
-                                        <button
-                                            onClick={() => setReadFilter(f === 'ALL' ? undefined : f.toLowerCase())}
-                                            className={`bg-transparent border-0 px-0 py-0 transition-colors cursor-pointer inline text-[10px] font-bold uppercase tracking-widest ${
-                                                isActive
-                                                    ? 'text-foreground underline underline-offset-4 decoration-terracotta'
-                                                    : 'text-foreground/30 hover:text-foreground/60'
-                                            }`}
-                                        >
-                                            {f}
-                                        </button>
-                                    </span>
-                                );
-                            })}
-                        </span>
+                    <span className="inline whitespace-nowrap">
+                        {(['ALL', 'UNREAD', 'READ'] as const).map((f, i) => {
+                            const isActive = f === 'ALL' ? !readFilter : readFilter === f.toLowerCase();
+                            return (
+                                <span key={f}>
+                                    {i > 0 && <span className="mx-1 text-foreground/30">{'·'}</span>}
+                                    <button
+                                        onClick={() => setReadFilter(f === 'ALL' ? undefined : f.toLowerCase())}
+                                        className={`bg-transparent border-0 px-0 py-0 transition-colors cursor-pointer inline text-[10px] font-bold uppercase tracking-widest ${
+                                            isActive
+                                                ? 'text-foreground underline underline-offset-4 decoration-terracotta'
+                                                : 'text-foreground/30 hover:text-foreground/60'
+                                        }`}
+                                    >{f}</button>
+                                </span>
+                            );
+                        })}
+                    </span>
+
+                    <span className="mx-3">{'·'}</span>
+
+                    {'CAT: '}
+                    <span className="inline-flex items-center">
+                        <button
+                            ref={catButtonRef}
+                            onClick={() => {
+                                if (!catOpen && catButtonRef.current) {
+                                    const rect = catButtonRef.current.getBoundingClientRect();
+                                    setCatDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                                }
+                                setCatOpen(o => !o);
+                            }}
+                            aria-haspopup="listbox"
+                            aria-expanded={catOpen}
+                            className={`inline-flex items-center gap-1 bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest ${
+                                cat !== 'ALL'
+                                    ? 'text-foreground underline underline-offset-4 decoration-terracotta'
+                                    : 'text-foreground/30 hover:text-foreground/60'
+                            }`}
+                        >
+                            {cat}
+                            <span className="text-[8px] text-foreground/45">{'▾'}</span>
+                        </button>
+                        {cat !== 'ALL' && (
+                            <button
+                                onClick={() => setCategory(null)}
+                                aria-label="Clear category filter"
+                                className="ml-2 bg-transparent border-0 p-0 text-terracotta text-[11px] leading-none cursor-pointer"
+                            >{'✕'}</button>
+                        )}
+                        {catOpen && (
+                            <div
+                                ref={catDropdownRef}
+                                role="listbox"
+                                style={{ top: catDropdownPos.top, right: catDropdownPos.right }}
+                                className="fixed z-50 w-[200px] bg-background border-2 border-foreground"
+                            >
+                                <button
+                                    onClick={() => setCategory(null)}
+                                    className={`flex w-full items-center justify-between px-3 py-2 border-b border-foreground/10 text-left ${cat === 'ALL' ? 'bg-terracotta text-background' : 'hover:bg-foreground/[0.04]'}`}
+                                >
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">ALL</span>
+                                </button>
+                                {categories.map(c => (
+                                    <button
+                                        key={c.name}
+                                        onClick={() => setCategory(c.name)}
+                                        className={`flex w-full items-center justify-between px-3 py-2 border-b border-foreground/10 last:border-b-0 text-left ${cat === c.name ? 'bg-terracotta text-background' : 'hover:bg-foreground/[0.04]'}`}
+                                    >
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">{c.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </span>
+
+                    {sourceIdParam && (
+                        <>
+                            <span className="mx-3">{'·'}</span>
+                            {'SOURCE: '}
+                            <span className="text-foreground underline underline-offset-4 decoration-terracotta">ACTIVE</span>
+                            <button
+                                onClick={() => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.delete('source');
+                                    router.push(`?${params.toString()}`);
+                                }}
+                                aria-label="Clear source filter"
+                                className="ml-2 bg-transparent border-0 p-0 text-terracotta text-[11px] leading-none cursor-pointer"
+                            >{'✕'}</button>
+                        </>
                     )}
                     {query && (
                         <>

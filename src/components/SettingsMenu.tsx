@@ -79,7 +79,7 @@ export default function SettingsMenu({
         <div ref={menuRef} className="relative inline-flex items-center">
             <button
                 onClick={() => setOpen(!open)}
-                className="bg-transparent border-0 p-0 text-foreground/60 hover:text-foreground transition-colors cursor-pointer text-[13px] leading-none inline-flex items-center"
+                className="bg-transparent border-0 p-0 text-foreground/60 hover:text-foreground transition-colors cursor-pointer text-[17px] leading-none inline-flex items-center"
                 aria-label="Settings"
             >
                 ⚙

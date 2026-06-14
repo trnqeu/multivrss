@@ -221,6 +221,22 @@ export async function updateFeedSource(prevState: ActionState | null, formData: 
             data: { title, categoryId: finalCategoryId }
         });
 
+        const newCat = await prisma.category.findUniqueOrThrow({
+            where: { id: finalCategoryId },
+            select: { id: true, name: true }
+        });
+        const sourceItems = await prisma.feedItem.findMany({
+            where: { sourceId },
+            select: { id: true }
+        });
+        if (sourceItems.length > 0) {
+            meili.index('items').updateDocuments(
+                sourceItems.map(item => ({ id: item.id, categoryId: newCat.id, categoryName: newCat.name }))
+            ).catch((err: unknown) => {
+                console.error(`Meilisearch category re-sync failed for source ${sourceId}:`, err);
+            });
+        }
+
         updateTag(`feed:${session.user.id}`);
         updateTag(`sources:${session.user.id}`);
         updateTag(`sidebar:${session.user.id}`);
