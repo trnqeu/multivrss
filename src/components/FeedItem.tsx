@@ -46,7 +46,7 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
         setTags(newTags);
     }, []);
     return (
-    <span className={`group/item ${isRead ? 'opacity-30' : ''}`}>
+    <span role="listitem" className={`group/item ${isRead ? 'opacity-30' : ''}`}>
         <a
             href={item.link}
             target="_blank"
