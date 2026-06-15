@@ -12,6 +12,7 @@ import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
 import { SourceIcon } from './icons/Source';
 import { PasteUrlIcon } from './icons/PasteUrl';
+import { PlusIcon } from './icons/Plus';
 import type { Category } from '@prisma/client';
 
 type Props = {
@@ -226,8 +227,18 @@ export default function PageHeader({ categories, username, email }: Props) {
                     {inputValue && clearBtn}
                 </div>
 
-                {/* Ingest action group: [ SOURCE | URL ] */}
-                <div className="hidden md:flex items-stretch border border-foreground/30">
+                {/* Ingest action group: [ + | SOURCE | URL ] — il + abbraccia entrambe le azioni */}
+                <div
+                    className="hidden md:flex items-stretch border border-foreground/30"
+                    role="group"
+                    aria-label="Add a source or URL"
+                >
+                    <span
+                        aria-hidden="true"
+                        className="flex items-center justify-center w-[34px] text-terracotta bg-terracotta/10 border-r border-foreground/20"
+                    >
+                        <PlusIcon size={14} />
+                    </span>
                     <button
                         onClick={() => setShowAdd(true)}
                         className="flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-foreground bg-transparent border-r border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
