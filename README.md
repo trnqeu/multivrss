@@ -156,7 +156,7 @@ A structured CI/CD strategy to fully separate local, staging, and production env
 - [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)
 - [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
 - [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
-- [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved links are exempt
+- [x] **Feed item retention / auto-purge** — cron deletes `FeedItem` rows with `pubDate < 90 days` and `savedAt = null`; syncs Meilisearch index
 
 ### TBD / Future
 
@@ -188,9 +188,11 @@ A structured CI/CD strategy to fully separate local, staging, and production env
 ### Monetization
 
 - [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access.
+- [ ] **Display free tier limits on marketing landing page** — even before a paid tier exists, the pricing/plans section must show the hard limits already enforced in the app: **max 200 feeds** per account and **90-day article retention** (items older than 90 days are purged; saved links are exempt). This sets honest expectations and primes users for a future upgrade path. Copy must be kept in sync whenever these limits change in the code.
 
 ### Marketing & Infrastructure
 
+- [ ] **Marketing site i18n** — multi-language support for the public marketing pages at `/` (hero, pricing, tips). Scope is marketing only — the authenticated dashboard stays English-only. Use Next.js 16 built-in i18n routing (`i18n` config in `next.config.ts`) with locale-prefixed URLs (e.g. `/it`, `/es`). Launch languages TBD; suggested starting pair: English (default) + Italian. Requires extracting all marketing copy into locale message files; `next-intl` is the recommended library for App Router.
 - [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
 - [ ] **OWASP secure development** — apply OWASP Top 10 across every feature:
