@@ -42,7 +42,7 @@ export default function RenameCategoryTitle({ categoryId, name, username, editin
                         }
                         if (e.key === 'Escape') onDone();
                     }}
-                    className="w-full text-[13px] font-bold uppercase tracking-[0.18em] bg-terracotta/10 text-terracotta border-2 border-terracotta px-2 py-1 outline-none"
+                    className="w-full text-[13px] font-bold uppercase tracking-[0.18em] bg-terracotta/10 text-terracotta border-2 border-terracotta px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1"
                 />
                 {error && (
                     <span className="font-mono text-[9px] text-terracotta uppercase tracking-wider px-1">

@@ -20,7 +20,7 @@ type Props = {
     email?: string | null;
 };
 
-const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none appearance-none shadow-none";
+const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 border-none appearance-none shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta";
 
 export default function PageHeader({ categories, username, email }: Props) {
     const router = useRouter();

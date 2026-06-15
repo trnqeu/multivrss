@@ -32,7 +32,7 @@ export default function RenameFeedTitle({ sourceId, title, username, editing, on
                     }
                     if (e.key === 'Escape') onDone();
                 }}
-                className="flex-1 text-[12px] font-medium bg-terracotta/10 text-foreground border-2 border-terracotta px-2 py-1 outline-none"
+                className="flex-1 text-[12px] font-medium bg-terracotta/10 text-foreground border-2 border-terracotta px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1"
             />
         );
     }

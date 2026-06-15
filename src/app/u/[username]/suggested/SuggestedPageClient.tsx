@@ -154,7 +154,7 @@ export default function SuggestedPageClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="filter the directory..."
-            className="flex-1 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 outline-none border-none p-0"
+            className="flex-1 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 border-none p-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta"
           />
         </div>
       </header>
