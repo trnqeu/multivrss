@@ -72,7 +72,7 @@ async function CachedFeedContent({
 
     return (
         <section className="p-8 md:p-12">
-            <div className="leading-relaxed text-sm text-foreground font-medium">
+            <div role="list" className="leading-relaxed text-sm text-foreground font-medium">
                 {items.map((item, index) => {
                     const currentDay = dayBucket(item.pubDate);
                     const prevDay   = index > 0 ? dayBucket(items[index - 1].pubDate) : null;

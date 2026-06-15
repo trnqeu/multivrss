@@ -102,10 +102,10 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 
 #### Phase 1 — Quick wins (no architecture change)
 
-- [ ] **Gate Prisma query logging** — wrap `log: ['query']` in `src/lib/prisma.ts` behind `NODE_ENV !== 'production'`
+- [x] **Gate Prisma query logging** — wrap `log: ['query']` in `src/lib/prisma.ts` behind `NODE_ENV !== 'production'`
 - [ ] **Email verification at signup** — send verification email via Resend before activating account; prevents fake registrations
-- [ ] **Per-user feed limit** — enforce max feeds per account at the Server Action level to protect the sync cron
-- [ ] **Fix FeedList semantic HTML** — FeedList renders inside a `<p>` tag; replace with a block element
+- [x] **Per-user feed limit** — max 200 feeds per account enforced in `createFeedSource` action
+- [x] **Fix FeedList semantic HTML** — added `role="list"` / `role="listitem"` to feed containers and items
 
 #### Phase 2 — Infrastructure
 
@@ -123,11 +123,39 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 
 If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated Go service for feed fetching and XML parsing would be a natural next step. Go goroutines map directly to the `DomainGate` semaphore pattern already in place. Node.js handles I/O-bound concurrency well; Go adds value primarily when CPU-bound parsing at volume is the confirmed bottleneck. Measure first, then decide.
 
+### DevOps & CI/CD
+
+A structured CI/CD strategy to fully separate local, staging, and production environments.
+
+**Current state:** deploy is a raw SSH script triggered on `dev` push. No automated tests run in CI, no environment separation, no rollback.
+
+#### Environment separation
+
+- [ ] **Three explicit environments** — Local (`localhost:3002`), Staging (`dev` branch → staging server + staging DB), Production (`main` branch → prod server + prod DB)
+- [ ] **Per-environment env files** — `.env.staging` and `.env.production` managed via GitHub Secrets, never SSH-copied or committed
+
+#### CI/CD pipeline (GitHub Actions)
+
+- [ ] **`dev` push → staging deploy** — job sequence: `npm ci` → `npm run test` → `npm run lint` → `tsc --noEmit` → `npm audit` → `prisma migrate deploy` → SSH deploy → health check
+- [ ] **`main` push → production deploy** — same sequence with manual approval gate before SSH deploy to prod
+- [ ] **Prisma migration before code swap** — DB schema updated before new Next.js process starts; prevents schema/code mismatch during deploy
+
+#### Deployment safety
+
+- [ ] **`/api/health` route** — returns `{ status: "ok", db: "ok", meili: "ok" }` checking live DB and Meilisearch connectivity
+- [ ] **Health check post-deploy** — hit `/api/health` after each deploy; fail the workflow (and alert) on non-200
+- [ ] **Rollback on failure** — automated rollback to previous Git SHA if health check fails
+
+#### Secret management
+
+- [ ] **GitHub Secrets for all env vars** — replace SSH-copied `.env` with workflow-injected secrets at deploy time
+- [ ] **Secret rotation procedure** — documented runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
+
 ### Reading List (Instapaper/Pocket-style)
 
-- [ ] **Save from feed** — one-click bookmark on any feed item
-- [ ] **Save external link** — add any URL manually (title + description auto-fetched from og:title/og:description)
-- [ ] **Private saved list** — view and manage saved links at `/saved`
+- [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)
+- [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
+- [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
 - [ ] **Feed item retention / auto-purge** — delete `FeedItem` rows older than 90 days via a scheduled job; saved links are exempt
 
 ### TBD / Future
@@ -170,7 +198,7 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
   - [ ] **Rate limiting** — login, password reset, API endpoints (Nginx + app-level)
   - [ ] **Input validation library** — introduce Zod (or similar) for all Server Action inputs: username, email, category name length/format, source URL normalization
   - [ ] **SSRF guard for `resolvePageTitle`** — add `validateFeedUrl()`-style check before fetching arbitrary URLs in `actions.ts`
-  - [ ] **Disable Prisma query logging in production** — remove `log: ['query']` or gate behind `NODE_ENV`
+  - [x] **Disable Prisma query logging in production** — gated behind `NODE_ENV !== 'production'` in `src/lib/prisma.ts`
   - [ ] **`npm audit` in CI** — fail build on critical/moderate severities
   - [ ] **Password reset token** — move from URL query param to POST body to prevent Referrer leakage
   - [ ] **Security test suite** — adversarial scenarios: invalid ownership, token tampering, boundary inputs, CSRF attempts

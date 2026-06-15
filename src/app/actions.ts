@@ -48,6 +48,12 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     try {
         await validateFeedUrl(url);
         let finalCategoryId = categoryId;
+        const feedCount = await prisma.feedSource.count({
+            where: { category: { userId } },
+        });
+        if (feedCount >= 200) {
+            return { success: false, message: 'Feed limit reached (max 200 feeds per account).' };
+        }
 
         // 1. Handle New Category
         if (newCategoryName && newCategoryName.trim() !== "") {

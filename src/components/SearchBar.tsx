@@ -278,7 +278,7 @@ export default function SearchBar() {
                 ) : !loading && allHits.length === 0 ? (
                     <EmptyStream variant="no-results" contextLabel={query} />
                 ) : (
-                    <div className="leading-[1.8] text-sm text-foreground font-medium">
+                    <div role="list" className="leading-[1.8] text-sm text-foreground font-medium">
                         {hits.map((item, index) => {
                             const currentDay = dayBucket(item.pubDate);
                             const prevDay    = index > 0 ? dayBucket(hits[index - 1].pubDate) : null;
@@ -297,7 +297,7 @@ export default function SearchBar() {
                                             <span className="text-[9px] text-white/35">→</span>
                                         </div>
                                     )}
-                                    <span className={`group/item transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
+                                    <span role="listitem" className={`group/item transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
                                         <button
                                             onClick={() => toggleRead(item)}
                                             className="bg-transparent border-0 px-0 py-0 text-terracotta cursor-pointer select-none align-middle leading-[0] hover:opacity-80 transition-opacity text-[15px] mr-0.5"
