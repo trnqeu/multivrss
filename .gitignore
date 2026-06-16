@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/test-results/
 
 # next.js
 /.next/
@@ -64,5 +65,7 @@ public/A_ _ INLINE _ PALLINO _ WARM-GREY FADE  _paper_lightmode_read_unread.html
 public/C _ NEWSPAPER _ Paper_ ink_ no dark mode.html
 public/C _ NEWSPAPER _ Paper_ ink_ no dark mode.png
 public/_ RACCOMANDATO _ PlusMinus _ Click-to-edit.html
+public/multivrss/design_handoff_add_affordance/
+public/multivrss/design_handoff_category_telemetry/
 
 /src/generated/prisma
