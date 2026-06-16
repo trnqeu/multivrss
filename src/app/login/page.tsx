@@ -34,6 +34,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
+    const verified = searchParams.get("verified");
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -52,6 +53,12 @@ export default function LoginPage() {
                 {error && (
                     <div role="alert" className="mb-6 text-sm tracking-widest text-terracotta text-center">
                         {ERROR_MESSAGES[error] ?? "An error occurred. Please try again."}
+                    </div>
+                )}
+
+                {verified && (
+                    <div role="status" className="mb-6 text-sm tracking-widest text-foreground text-center">
+                        Email verified. You can now sign in.
                     </div>
                 )}
 

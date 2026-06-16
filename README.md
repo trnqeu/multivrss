@@ -103,7 +103,7 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 #### Phase 1 — Quick wins (no architecture change)
 
 - [x] **Gate Prisma query logging** — wrap `log: ['query']` in `src/lib/prisma.ts` behind `NODE_ENV !== 'production'`
-- [ ] **Email verification at signup** — send verification email via Resend before activating account; prevents fake registrations
+- [x] **Email verification at signup** — `EmailVerificationToken` model, Resend email, `/verify-email` route, login blocked until `emailVerified` set (existing users backfilled)
 - [x] **Per-user feed limit** — max 200 feeds per account enforced in `createFeedSource` action
 - [x] **Fix FeedList semantic HTML** — added `role="list"` / `role="listitem"` to feed containers and items
 
