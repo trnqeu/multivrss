@@ -11,7 +11,7 @@ import { authOptions } from "@/lib/auth";
 import bcrypt from "bcrypt";
 import { slugify, PASSWORD_REGEX } from "@/lib/utils";
 import crypto from "crypto";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
@@ -159,14 +159,27 @@ export async function registerUser(prevState: string | null, formData: FormData)
             return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
         }
         const hashed = await bcrypt.hash(password, 10);
-        await prisma.user.create({
+        const user = await prisma.user.create({
             data: { email, username, password: hashed },
-        })
+        });
+
+        const token = crypto.randomBytes(32).toString('hex');
+        await prisma.emailVerificationToken.create({
+            data: {
+                userId: user.id,
+                token,
+                expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            },
+        });
+
+        sendVerificationEmail(email, token).catch((err: unknown) => {
+            console.error('Failed to send verification email:', err);
+        });
     } catch {
         return "Registration failed. Email or username already taken.";
     }
 
-    redirect("/login");
+    redirect("/verify-email/sent");
     ;
 }
 
