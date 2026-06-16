@@ -29,10 +29,12 @@ vi.mock('@/lib/prisma', () => ({
         },
         feedItem: {
             update: vi.fn(),
+            findMany: vi.fn(),
         },
         category: {
             findFirst: vi.fn(),
             findUnique: vi.fn(),
+            findUniqueOrThrow: vi.fn(),
             upsert: vi.fn(),
             update: vi.fn(),
             delete: vi.fn(),
@@ -234,6 +236,8 @@ describe('updateFeedSource', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedSource.update.mockResolvedValue({} as any);
+        mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'cat_1', name: 'TECH' } as any);
+        mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
         const { updateFeedSource } = await import('@/app/actions');
         const result = await updateFeedSource(null, makeFormData());
@@ -252,6 +256,8 @@ describe('updateFeedSource', () => {
         });
         mockedPrisma.category.upsert.mockResolvedValue({ id: 'new_cat_id' } as any);
         mockedPrisma.feedSource.update.mockResolvedValue({} as any);
+        mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'new_cat_id', name: 'NEWS' } as any);
+        mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
         const { updateFeedSource } = await import('@/app/actions');
         const result = await updateFeedSource(null, makeFormData({ newCategoryName: 'NEWS', categoryId: '' }));
