@@ -33,6 +33,15 @@ export default async function VerifyEmailPage({ searchParams }: Props) {
                 >
                     ← Back to login
                 </Link>
+
+                <div className="mt-6">
+                    <Link
+                        href="/verify-email/resend"
+                        className="text-xs tracking-widest text-foreground/50 hover:text-terracotta transition-colors"
+                    >
+                        Resend verification email →
+                    </Link>
+                </div>
             </div>
         </main>
     );

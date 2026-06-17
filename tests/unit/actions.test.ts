@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { meili } from '@/lib/meili';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { sendVerificationEmail } from '@/lib/email';
 
 vi.mock('next-auth', () => ({
     getServerSession: vi.fn(),
@@ -22,6 +24,9 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/prisma', () => ({
     prisma: {
+        user: {
+            findUnique: vi.fn(),
+        },
         feedSource: {
             findMany: vi.fn(),
             findFirst: vi.fn(),
@@ -39,8 +44,26 @@ vi.mock('@/lib/prisma', () => ({
             update: vi.fn(),
             delete: vi.fn(),
         },
+        emailVerificationToken: {
+            deleteMany: vi.fn(),
+            create: vi.fn(),
+        },
         $transaction: vi.fn(),
     },
+}));
+
+vi.mock('next/headers', () => ({
+    headers: vi.fn().mockResolvedValue({ get: vi.fn().mockReturnValue('127.0.0.1') }),
+}));
+
+vi.mock('@/lib/rate-limit', () => ({
+    checkRateLimit: vi.fn().mockReturnValue(true),
+    getClientIp: vi.fn().mockReturnValue('127.0.0.1'),
+}));
+
+vi.mock('@/lib/email', () => ({
+    sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
+    sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/lib/meili', () => ({
@@ -52,6 +75,8 @@ vi.mock('@/lib/meili', () => ({
 const mockedSession = vi.mocked(getServerSession);
 const mockedPrisma = vi.mocked(prisma);
 const mockedMeiliIndex = vi.mocked(meili.index);
+const mockedCheckRateLimit = vi.mocked(checkRateLimit);
+const mockedSendVerificationEmail = vi.mocked(sendVerificationEmail);
 
 function mockTx() {
     return {
@@ -400,5 +425,69 @@ describe('renameCategory', () => {
             data: { name: 'NEW NAME' },
         });
         expect(tx.category.delete).not.toHaveBeenCalled();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// resendVerificationEmail
+// ---------------------------------------------------------------------------
+describe('resendVerificationEmail', () => {
+    const GENERIC_MESSAGE = "If that email matches an unverified account, a new link is on its way.";
+
+    const makeFormData = (email = 'test@example.com') => ({
+        get: (key: string) => (key === 'email' ? email : null),
+    } as any as FormData);
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockedCheckRateLimit.mockReturnValue(true);
+    });
+
+    it('returns error when email is missing', async () => {
+        const { resendVerificationEmail } = await import('@/app/actions');
+        const result = await resendVerificationEmail(null, makeFormData(''));
+        expect(result).toEqual({ success: false, message: 'Email is required.' });
+    });
+
+    it('returns generic success when rate limited without hitting DB', async () => {
+        mockedCheckRateLimit.mockReturnValue(false);
+        const { resendVerificationEmail } = await import('@/app/actions');
+        const result = await resendVerificationEmail(null, makeFormData());
+        expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
+        expect(mockedPrisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('returns generic success for unknown email without sending', async () => {
+        mockedPrisma.user.findUnique.mockResolvedValue(null);
+        const { resendVerificationEmail } = await import('@/app/actions');
+        const result = await resendVerificationEmail(null, makeFormData());
+        expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
+        expect(mockedSendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('returns generic success for already-verified user without sending', async () => {
+        mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user_1', emailVerified: new Date() } as any);
+        const { resendVerificationEmail } = await import('@/app/actions');
+        const result = await resendVerificationEmail(null, makeFormData());
+        expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
+        expect(mockedSendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it('deletes old token, creates new one, and sends email for unverified user', async () => {
+        mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user_1', emailVerified: null } as any);
+        mockedPrisma.emailVerificationToken.deleteMany.mockResolvedValue({ count: 1 } as any);
+        mockedPrisma.emailVerificationToken.create.mockResolvedValue({} as any);
+
+        const { resendVerificationEmail } = await import('@/app/actions');
+        const result = await resendVerificationEmail(null, makeFormData());
+
+        expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
+        expect(mockedPrisma.emailVerificationToken.deleteMany).toHaveBeenCalledWith({
+            where: { userId: 'user_1' },
+        });
+        expect(mockedPrisma.emailVerificationToken.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ userId: 'user_1' }),
+        });
+        expect(mockedSendVerificationEmail).toHaveBeenCalledWith('test@example.com', expect.any(String));
     });
 });
