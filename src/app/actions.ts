@@ -183,6 +183,41 @@ export async function registerUser(prevState: string | null, formData: FormData)
     ;
 }
 
+export async function resendVerificationEmail(
+    prevState: ActionState | null,
+    formData: FormData,
+): Promise<ActionState> {
+    const email = (formData.get('email') as string)?.trim().toLowerCase();
+    if (!email) return { success: false, message: 'Email is required.' };
+
+    const hdrs = await headers();
+    const ip = getClientIp(hdrs);
+    if (!checkRateLimit(`resend-verification:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+        return { success: true, message: "If that email matches an unverified account, a new link is on its way." };
+    }
+
+    try {
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (user && !user.emailVerified) {
+            await prisma.emailVerificationToken.deleteMany({ where: { userId: user.id } });
+
+            const token = crypto.randomBytes(32).toString('hex');
+            await prisma.emailVerificationToken.create({
+                data: { userId: user.id, token, expires: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+            });
+
+            sendVerificationEmail(email, token).catch((err: unknown) => {
+                console.error('Failed to resend verification email:', err);
+            });
+        }
+    } catch (error) {
+        console.error('Resend verification error:', error);
+    }
+
+    return { success: true, message: "If that email matches an unverified account, a new link is on its way." };
+}
+
 export async function renameFeedSource(sourceId: string, newTitle: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
     const userId = session?.user.id;
