@@ -82,7 +82,7 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 ### In progress / planned
 
 - [x] **Search UX revision** — removed redundant `/search` page, search lives inline on the dashboard via `?q=`
-- [ ] **REST API** — `src/app/api/feeds/route.ts` for external clients
+- [x] **REST API** — `GET /api/feeds/sources` (list feed sources) and `POST /api/feeds/sources` (subscribe) with CORS support for Chrome Extension; authenticated via NextAuth session cookie
 
 ### Sync Performance & Scalability
 
@@ -110,7 +110,8 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 #### Phase 2 — Infrastructure
 
 - [ ] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
-- [ ] **Monitoring** — Sentry for error tracking; Prometheus + Grafana (or BetterStack) for uptime and metrics
+- [ ] **Sentry integration** — `@sentry/nextjs` SDK for error tracking in Server Actions, Route Handlers, cron sync, and RSS parser; session replay for UI bugs; performance tracing on Prisma/Meilisearch calls; alerting on error spikes
+- [ ] **Uptime & metrics monitoring** — Prometheus + Grafana or BetterStack for infrastructure metrics and uptime checks
 
 #### Phase 3 — Feed sync refactor (critical for scale)
 
@@ -166,8 +167,9 @@ A structured CI/CD strategy to fully separate local, staging, and production env
 
 ### Core features
 
-- [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click (depends on REST API)
-- [ ] **Export feeds as CSV** — download all feed sources for the logged-in user
+- [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click; save articles to reading list; REST API already in place
+- [ ] **Export as CSV** — two separate exports: (1) all feed sources (URL, category, title) for re-importing into another RSS reader; (2) all saved links (URL, title, tags, saved date) compatible with Instapaper/Pocket CSV format
+- [ ] **Import from CSV** — two separate imports: (1) feed list (OPML or CSV with URL + optional category); (2) saved links from Instapaper, Pocket, or any CSV with a URL column — maps to `SavedLink` rows
 - [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `notes.md`).
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
 - [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
