@@ -43,9 +43,9 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const ip = req?.headers
-          ? getClientIp(req.headers as Headers)
-          : credentials.email;
+        const rawHeaders = req?.headers as Record<string, string | string[] | undefined> | undefined;
+        const ip = String(rawHeaders?.['x-forwarded-for'] ?? rawHeaders?.['x-real-ip'] ?? credentials.email)
+          .split(',')[0].trim();
         if (!checkRateLimit(`login:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 })) {
           return null;
         }
