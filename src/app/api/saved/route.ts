@@ -35,6 +35,16 @@ export async function POST(request: Request) {
         return Response.json({ error: "Invalid URL" }, { status: 400, headers: corsHeaders(request) });
     }
 
+    if (url.length > 2048) {
+        return Response.json({ error: "url too long" }, { status: 400, headers: corsHeaders(request) });
+    }
+    if (title && title.length > 500) {
+        return Response.json({ error: "title too long (max 500)" }, { status: 400, headers: corsHeaders(request) });
+    }
+    if (description && description.length > 5000) {
+        return Response.json({ error: "description too long (max 5000)" }, { status: 400, headers: corsHeaders(request) });
+    }
+
     try {
         const link = await prisma.savedLink.create({
             data: {

@@ -5,6 +5,7 @@ import { validateFeedUrl, discoverFeedUrl, syncFeed } from "@/lib/rss";
 import { slugify } from "@/lib/utils";
 import { updateTag } from "next/cache";
 import { corsHeaders } from "@/lib/cors";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 
 
@@ -46,6 +47,11 @@ export async function POST(request: Request) {
     }
 
     const userId = session.user.id;
+
+    if (!checkRateLimit(`subscribe:${userId}`, { maxRequests: 20, windowMs: 60_000 })) {
+        return Response.json({ error: "Too many requests" }, { status: 429, headers: corsHeaders(request) });
+    }
+
     let body: { url?: string; categoryId?: string; categoryName?: string };
 
     try {

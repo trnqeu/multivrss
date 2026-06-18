@@ -42,6 +42,9 @@ export async function POST(
     if (!tagName) {
         return Response.json({ error: "tagName is required" }, { status: 400, headers: corsHeaders(request) });
     }
+    if (tagName.length > 100) {
+        return Response.json({ error: "tagName too long (max 100)" }, { status: 400, headers: corsHeaders(request) });
+    }
 
     try {
         const tag = await prisma.tag.upsert({
