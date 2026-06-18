@@ -106,6 +106,7 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 - [x] **Email verification at signup** — `EmailVerificationToken` model, Resend email, `/verify-email` route, login blocked until `emailVerified` set (existing users backfilled)
 - [x] **Per-user feed limit** — max 200 feeds per account enforced in `createFeedSource` action
 - [x] **Fix FeedList semantic HTML** — added `role="list"` / `role="listitem"` to feed containers and items
+- [ ] **CSP nonce** — replace `'unsafe-inline'` in `script-src` with a per-request nonce generated in `src/proxy.ts`; pass nonce to root layout via request header; blocks inline XSS even if an injection point is found
 
 #### Phase 2 — Infrastructure
 
