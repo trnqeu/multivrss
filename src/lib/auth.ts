@@ -44,8 +44,8 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const rawHeaders = req?.headers as Record<string, string | string[] | undefined> | undefined;
-        const ip = String(rawHeaders?.['x-forwarded-for'] ?? rawHeaders?.['x-real-ip'] ?? credentials.email)
-          .split(',')[0].trim();
+        const ip = String(rawHeaders?.['x-forwarded-for'] ?? rawHeaders?.['x-real-ip'] ?? 'unknown')
+          .split(',')[0].trim() || 'unknown';
         if (!checkRateLimit(`login:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 })) {
           return null;
         }
