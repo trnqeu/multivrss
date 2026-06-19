@@ -24,6 +24,16 @@ services:
     volumes:
       - meilidata:/meili_data
 
+  redis:
+    image: redis:8-alpine
+    container_name: multivrss-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
 volumes:
   pgdata:
   meilidata:
+  redisdata:

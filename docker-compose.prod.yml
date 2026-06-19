@@ -10,6 +10,7 @@ services:
     depends_on:
       - db
       - meilisearch
+      - redis
 
   db:
     image: postgres:16-alpine
@@ -33,6 +34,14 @@ services:
     networks:
       - internal
 
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - redisdata:/data
+
   adminer:
     image: adminer
     restart: "no"
@@ -49,3 +58,4 @@ networks:
 volumes:
   pgdata:
   meilidata:
+  redisdata:
