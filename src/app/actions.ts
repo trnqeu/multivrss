@@ -150,7 +150,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
 
     const hdrs = await headers();
     const ip = getClientIp(hdrs);
-    if (!checkRateLimit(`register:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+    if (!await checkRateLimit(`register:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
         return "Too many registration attempts. Please try again later.";
     }
 
@@ -192,7 +192,7 @@ export async function resendVerificationEmail(
 
     const hdrs = await headers();
     const ip = getClientIp(hdrs);
-    if (!checkRateLimit(`resend-verification:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+    if (!await checkRateLimit(`resend-verification:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
         return { success: true, message: "If that email matches an unverified account, a new link is on its way." };
     }
 
@@ -440,7 +440,7 @@ export async function requestPasswordReset(prevState: ActionState | null, formDa
 
     const hdrs = await headers();
     const ip = getClientIp(hdrs);
-    if (!checkRateLimit(`password-reset:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
+    if (!await checkRateLimit(`password-reset:${ip}`, { maxRequests: 3, windowMs: 60 * 60 * 1000 })) {
         return { success: true, message: "If that email is registered, you'll receive a reset link shortly." };
     }
 

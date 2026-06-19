@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
         const rawHeaders = req?.headers as Record<string, string | string[] | undefined> | undefined;
         const ip = String(rawHeaders?.['x-forwarded-for'] ?? rawHeaders?.['x-real-ip'] ?? 'unknown')
           .split(',')[0].trim() || 'unknown';
-        if (!checkRateLimit(`login:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 })) {
+        if (!await checkRateLimit(`login:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 })) {
           return null;
         }
 

@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
 
-    if (!checkRateLimit(`subscribe:${userId}`, { maxRequests: 20, windowMs: 60_000 })) {
+    if (!await checkRateLimit(`subscribe:${userId}`, { maxRequests: 20, windowMs: 60_000 })) {
         return Response.json({ error: "Too many requests" }, { status: 429, headers: corsHeaders(request) });
     }
 
