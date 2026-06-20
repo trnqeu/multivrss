@@ -235,6 +235,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         data: {
             lastSync: new Date(),
             ...(feed.title ? { title: feed.title } : {}),
+            ...(feed.ttl ? { ttlMinutes: parseInt(feed.ttl, 10) || null } : {}),
         },
     });
 
