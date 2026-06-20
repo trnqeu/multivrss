@@ -3,27 +3,27 @@ import { prisma } from '@/lib/prisma'
 import { feedSyncQueue } from '@/lib/queue'
 import { meili } from '@/lib/meili'
 
+type StaleSource = { id: string; url: string; userId: string }
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const staleFeeds = await prisma.feedSource.findMany({
-    where: {
-      OR: [
-        { lastSync: null },
-        { lastSync: { lt: new Date(Date.now() - 30 * 60 * 1000) } },
-      ],
-    },
-    orderBy: { lastSync: { sort: 'asc', nulls: 'first' } },
-    include: { category: { select: { userId: true } } },
-  })
+  const staleFeeds = await prisma.$queryRaw<StaleSource[]>`
+    SELECT fs.id, fs.url, c."userId"
+    FROM "FeedSource" fs
+    JOIN "Category" c ON fs."categoryId" = c.id
+    WHERE fs."lastSync" IS NULL
+       OR fs."lastSync" < NOW() - (COALESCE(fs."ttlMinutes", 30) * INTERVAL '1 minute')
+    ORDER BY fs."lastSync" ASC NULLS FIRST
+  `
 
   await feedSyncQueue.addBulk(
     staleFeeds.map((source) => ({
       name: 'sync',
-      data: { sourceId: source.id, userId: source.category.userId, url: source.url },
+      data: { sourceId: source.id, userId: source.userId, url: source.url },
       opts: { jobId: source.id },
     }))
   )
