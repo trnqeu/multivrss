@@ -10,6 +10,12 @@ ARG GIT_COMMIT=unknown
 COPY . .
 RUN npx prisma generate
 RUN npm run build
+RUN npx esbuild src/workers/feed-sync.ts \
+    --bundle \
+    --platform=node \
+    --target=node24 \
+    --packages=external \
+    --outfile=dist/worker.js
 
 FROM node:24-alpine AS runner
 WORKDIR /app
@@ -18,6 +24,7 @@ ENV PORT=3000
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/dist/worker.js ./dist/worker.js
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 

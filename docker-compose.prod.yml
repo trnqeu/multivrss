@@ -42,6 +42,17 @@ services:
     volumes:
       - redisdata:/data
 
+  worker:
+    image: multivrss-app:latest
+    restart: unless-stopped
+    command: node dist/worker.js
+    env_file: ${ENV_FILE:-.env.production}
+    networks:
+      - internal
+    depends_on:
+      - redis
+      - db
+
   adminer:
     image: adminer
     restart: "no"
