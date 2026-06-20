@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    $queryRaw: vi.fn(),
+    feedSource: { findMany: vi.fn() },
     feedItem: { findMany: vi.fn(), deleteMany: vi.fn() },
   },
 }))
@@ -37,7 +37,7 @@ describe('GET /api/cron/sync', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubEnv('CRON_SECRET', SECRET)
-    mockedPrisma.$queryRaw.mockResolvedValue([])
+    mockedPrisma.feedSource.findMany.mockResolvedValue([])
     mockedPrisma.feedItem.findMany.mockResolvedValue([])
     mockedPrisma.feedItem.deleteMany.mockResolvedValue({ count: 0 })
   })
@@ -53,10 +53,10 @@ describe('GET /api/cron/sync', () => {
   })
 
   it('enqueues stale feeds with sourceId, userId, url and jobId', async () => {
-    mockedPrisma.$queryRaw.mockResolvedValue([
-      { id: 'src_1', url: 'https://example.com/feed', userId: 'user_1' },
-      { id: 'src_2', url: 'https://other.com/feed', userId: 'user_2' },
-    ])
+    mockedPrisma.feedSource.findMany.mockResolvedValue([
+      { id: 'src_1', url: 'https://example.com/feed', lastSync: null, ttlMinutes: null, category: { userId: 'user_1' } },
+      { id: 'src_2', url: 'https://other.com/feed', lastSync: null, ttlMinutes: null, category: { userId: 'user_2' } },
+    ] as any)
 
     await GET(makeRequest(SECRET))
 
@@ -67,9 +67,9 @@ describe('GET /api/cron/sync', () => {
   })
 
   it('returns enqueued count in response', async () => {
-    mockedPrisma.$queryRaw.mockResolvedValue([
-      { id: 'src_1', url: 'https://example.com/feed', userId: 'user_1' },
-    ])
+    mockedPrisma.feedSource.findMany.mockResolvedValue([
+      { id: 'src_1', url: 'https://example.com/feed', lastSync: null, ttlMinutes: null, category: { userId: 'user_1' } },
+    ] as any)
 
     const res = await GET(makeRequest(SECRET))
     expect(res.status).toBe(200)
