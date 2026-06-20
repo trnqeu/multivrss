@@ -6,7 +6,14 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { userId } = await request.json() as { userId: string }
+  let body: { userId?: unknown }
+  try {
+    body = await request.json()
+  } catch {
+    return Response.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const { userId } = body
   if (!userId || typeof userId !== 'string') {
     return Response.json({ error: 'Invalid payload' }, { status: 400 })
   }

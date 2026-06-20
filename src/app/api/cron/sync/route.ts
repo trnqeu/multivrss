@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     staleFeeds.map((source) => ({
       name: 'sync',
       data: { sourceId: source.id, userId: source.category.userId },
+      opts: { jobId: source.id },
     }))
   )
 
