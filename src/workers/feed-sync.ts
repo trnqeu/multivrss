@@ -2,12 +2,15 @@ import 'dotenv/config'
 import { Worker } from 'bullmq'
 import { connection, type FeedSyncJobData } from '@/lib/queue'
 import { syncFeed } from '@/lib/rss'
+import { DomainGate } from '@/lib/domain-gate'
+
+const gate = new DomainGate(2)
 
 const worker = new Worker<FeedSyncJobData>(
   'feed-sync',
   async (job) => {
-    const { sourceId, userId } = job.data
-    await syncFeed(sourceId)
+    const { sourceId, userId, url } = job.data
+    await gate.run(url, () => syncFeed(sourceId))
     const res = await fetch(`${process.env.NEXTAUTH_URL}/api/internal/revalidate`, {
       method: 'POST',
       headers: {
