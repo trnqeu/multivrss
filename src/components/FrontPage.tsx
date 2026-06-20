@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 
@@ -69,8 +70,8 @@ function Masthead() {
 
     return (
         <div className="border-b-2 border-foreground pb-3 mb-0">
-            <h1 className="font-serif text-3xl md:text-4xl font-bold not-italic normal-case tracking-[0.06em] leading-tight">
-                The Front Page
+            <h1 className="text-3xl md:text-4xl">
+                THE FRONT PAGE
             </h1>
             <div className="h-[3px] bg-foreground my-2" />
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold uppercase tracking-widest text-foreground/50 font-mono">
@@ -181,7 +182,7 @@ function CategoryColumn({ category, items }: { category: string; items: FrontPag
                                 href={item.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[12px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block"
+                                className="font-serif text-[12px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block"
                             >
                                 {item.title}
                             </a>
@@ -199,6 +200,15 @@ function CategoryColumn({ category, items }: { category: string; items: FrontPag
                     ))}
                 </ul>
             )}
+
+            <div className="mt-3 pt-2 border-t border-foreground/10">
+                <Link
+                    href={`?view=river&cat=${encodeURIComponent(category)}`}
+                    className="text-[9px] font-bold uppercase tracking-widest font-mono text-terracotta hover:text-foreground transition-colors"
+                >
+                    See all →
+                </Link>
+            </div>
         </section>
     );
 }
