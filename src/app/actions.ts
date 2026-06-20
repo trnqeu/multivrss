@@ -562,6 +562,7 @@ export async function syncAllFeeds(): Promise<ActionState> {
 
     updateTag(`feed:${session.user.id}`);
     updateTag(`sidebar:${session.user.id}`);
+    updateTag(`frontpage:${session.user.id}`);
     const username = session.user.username;
     revalidatePath(`/u/${username}`, 'layout');
 
@@ -584,6 +585,7 @@ export async function markAsRead(itemId: string): Promise<ActionState> {
         });
         await meili.index('items').updateDocuments([{ id: itemId, read: true }]);
         updateTag(`feed:${session.user.id}`);
+        updateTag(`frontpage:${session.user.id}`);
         return { success: true, message: "Marked as read." }
     } catch {
         return { success: false, message: "Failed to mark as read." }
@@ -603,6 +605,7 @@ export async function markAsUnread(itemId: string): Promise<ActionState> {
         });
         await meili.index('items').updateDocuments([{ id: itemId, read: false }]);
         updateTag(`feed:${session.user.id}`);
+        updateTag(`frontpage:${session.user.id}`);
         return { success: true, message: "Marked as unread." }
     } catch {
         return { success: false, message: "Failed to mark as unread." }
@@ -624,6 +627,7 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
         });
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: now.getTime() }]);
         updateTag(`feed:${session.user.id}`);
+        updateTag(`frontpage:${session.user.id}`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to save item." };
@@ -644,6 +648,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
         });
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: null }]);
         updateTag(`feed:${session.user.id}`);
+        updateTag(`frontpage:${session.user.id}`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to unsave item." };
