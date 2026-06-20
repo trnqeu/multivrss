@@ -7,6 +7,7 @@ import { getCategories, markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem }
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import { Bookmark } from '@/components/icons/Bookmark';
 import EmptyStream from "./EmptyStream";
+import MobileCategorySheet from './MobileCategorySheet';
 
 function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text: string; markClass?: string }) {
     if (!text.includes(HIGHLIGHT_PRE)) return <>{text}</>;
@@ -158,7 +159,9 @@ export default function SearchBar() {
     return (
         <div>
             {/* Telemetry */}
-            <div className="px-8 py-3 border-b-2 border-foreground text-[10px] font-bold uppercase tracking-widest text-foreground/50 flex items-center gap-4 overflow-x-auto min-h-[2.5rem]">
+            <div className="flex items-stretch border-b-2 border-foreground min-h-[2.5rem]">
+                <MobileCategorySheet />
+                <div className="flex-1 min-w-0 px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-foreground/50 flex items-center gap-4 overflow-x-auto">
                 <span className="whitespace-nowrap">
                     {'INDEX: '}
                     <span className="text-foreground">{`${hits.length} / ${baseFacets.total} ITEMS`}</span>
@@ -186,10 +189,10 @@ export default function SearchBar() {
                         })}
                     </span>
 
-                    <span className="mx-3">{'·'}</span>
+                    <span className="hidden md:inline mx-3">{'·'}</span>
 
+                    <span className="hidden md:inline-flex items-center">
                     {'CAT: '}
-                    <span className="inline-flex items-center">
                         <button
                             ref={catButtonRef}
                             onClick={() => {
@@ -267,6 +270,7 @@ export default function SearchBar() {
                         </>
                     )}
                 </span>
+                </div>
             </div>
 
             {/* Results river */}
