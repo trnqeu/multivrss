@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   await feedSyncQueue.addBulk(
     staleFeeds.map((source) => ({
       name: 'sync',
-      data: { sourceId: source.id, userId: source.category.userId },
+      data: { sourceId: source.id, userId: source.category.userId, url: source.url },
       opts: { jobId: source.id },
     }))
   )

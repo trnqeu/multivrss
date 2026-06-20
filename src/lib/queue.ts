@@ -3,6 +3,7 @@ import { Queue } from 'bullmq'
 export interface FeedSyncJobData {
   sourceId: string
   userId: string
+  url: string
 }
 
 export const connection = {
