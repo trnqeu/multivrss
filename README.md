@@ -35,11 +35,11 @@ Important Next.js conventions used here:
 
 ## Product Vision
 
-MultivRSS is three things in one:
+MultivRSS is two things in one:
 
 1. **RSS Reader** — subscribe to feeds organized in categories, read and search articles in a private dashboard.
 2. **Reading List** — save any link (from your feeds or from anywhere on the web, like Instapaper or Pocket), annotate it, and build a personal archive.
-3. **Public Profile** — optionally publish a curated "best-of internet" list at your own public URL (`multivrss.com/[username]`), visible to anyone without login.
+
 
 ---
 
@@ -53,7 +53,7 @@ MultivRSS is three things in one:
 | `multivrss.com/u/{username}/category/{slug}` | Authenticated users | Filtered view by category |
 | `multivrss.com/u/{username}/source/{slug}` | Authenticated users | Filtered view by feed source |
 | `multivrss.com/saved` | Authenticated users | Planned private reading list (all saved links) |
-| `multivrss.com/[username]` | Everyone | User's public "best-of" reading list |
+
 
 The authenticated product routes currently live inside `src/app/(app)`. The `(app)` route group is omitted from URLs by design. If a future real `/app` URL segment is desired, create a normal `app` segment instead of relying on `(app)`.
 
@@ -83,6 +83,8 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 - [x] **Search UX revision** — removed redundant `/search` page, search lives inline on the dashboard via `?q=`
 - [x] **REST API** — `GET /api/feeds/sources` (list feed sources) and `POST /api/feeds/sources` (subscribe) with CORS support for Chrome Extension; authenticated via NextAuth session cookie
+- [x] **API docs** — OpenAPI spec at `/api/openapi`; interactive Scalar UI at `/docs`
+- [x] **Mobile category filter (Option B)** — pinned `CAT` pill at the left of the telemetry row (mobile only, never scrolls away); taps to open a bottom-sheet listing all categories; writes `?cat=`; desktop inline dropdown unchanged
 
 ### Sync Performance & Scalability
 
@@ -91,10 +93,10 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 - [x] **Meilisearch fire-and-forget** — `addDocuments()` lanciato senza await con `.catch()` per errori
 - [x] **Priorità feed mai sincronizzati** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in cron e syncAllFeeds
 - [x] **Rate limiting per dominio** — `DomainGate` con semaforo: max 2 richieste concorrenti per hostname
-- [ ] **Coda di job (BullMQ + Redis)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring; ogni feed diventa un job indipendente
-- [ ] **Rispetto TTL del feed** — leggere `<ttl>` o `Cache-Control` dal feed e non risincronizzare prima della scadenza dichiarata
-- [ ] **Limite feed per utente** — max 50 feed per account (protezione cron da abusi)
-- [ ] **Per-user feed limits** — hard cap per proteggere il cron da utenti con centinaia di feed
+- [x] **Coda di job (BullMQ + Redis)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring; ogni feed diventa un job indipendente
+- [x] **Rispetto TTL del feed** — leggere `<ttl>` o `Cache-Control` dal feed e non risincronizzare prima della scadenza dichiarata
+- [x] **Limite feed per utente** — max 200 feed per account (protezione cron da abusi)
+- [x] **Per-user feed limits** — hard cap per proteggere il cron da utenti con centinaia di feed
 
 ### Production Readiness Plan
 
@@ -110,20 +112,24 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 
 #### Phase 2 — Infrastructure
 
-- [ ] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
+- [x] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
 - [ ] **Sentry integration** — `@sentry/nextjs` SDK for error tracking in Server Actions, Route Handlers, cron sync, and RSS parser; session replay for UI bugs; performance tracing on Prisma/Meilisearch calls; alerting on error spikes
 - [ ] **Uptime & metrics monitoring** — Prometheus + Grafana or BetterStack for infrastructure metrics and uptime checks
 
 #### Phase 3 — Feed sync refactor (critical for scale)
 
-- [ ] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; cron enqueues jobs, workers execute them
-- [ ] **Separate worker process** — run BullMQ workers outside the Next.js process so sync load does not affect web response times
-- [ ] **TTL-aware scheduling** — read `<ttl>` or `Cache-Control` from feed response; skip re-sync until declared expiry
+- [x] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; cron enqueues jobs, workers execute them
+- [x] **Separate worker process** — run BullMQ workers outside the Next.js process so sync load does not affect web response times (`npm run worker`)
+- [x] **TTL-aware scheduling** — read `<ttl>` or `Cache-Control` from feed response; skip re-sync until declared expiry
 - [ ] **BullBoard dashboard** — mount BullMQ dashboard (admin-only route) for queue monitoring and manual job retry
 
 #### Phase 4 — Evaluate Go worker (after measuring)
 
 If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated Go service for feed fetching and XML parsing would be a natural next step. Go goroutines map directly to the `DomainGate` semaphore pattern already in place. Node.js handles I/O-bound concurrency well; Go adds value primarily when CPU-bound parsing at volume is the confirmed bottleneck. Measure first, then decide.
+
+#### Phase 5 — Load testing
+
+- [ ] **Load test suite** — simulate concurrent users and high feed-sync volume to find bottlenecks before production traffic does. Candidate tools: [k6](https://k6.io) (scripted, CI-friendly) or Artillery. Key scenarios: authenticated feed list page under N concurrent users, cron sync with M feeds in queue, Meilisearch search under load. Gate: run before any capacity-related infrastructure change and before each major release.
 
 ### DevOps & CI/CD
 
@@ -211,6 +217,33 @@ A structured CI/CD strategy to fully separate local, staging, and production env
 - [ ] **Database backups** — periodic automated `pg_dump`; evaluate Hetzner Storage Box, Backblaze B2, or Cloudflare R2
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
+- [ ] **Markdown-driven home page** — allow updating marketing home page sections (hero copy, pillars, pricing, tips) by editing local `.md` files, without touching React components. Rendered server-side via `next-mdx-remote` or similar; hot-reloads in dev, statically included in production build.
+- [ ] **Blog section** — `/blog` public section (no auth required) driven by Markdown files stored in `content/blog/`. Each `.md` file becomes a post at `/blog/[slug]`. Index page lists posts sorted by date. No CMS or database required — content is versioned in Git.
+
+### Personalization
+
+- [ ] **"For You" recommendations page** — `/u/[username]/for-you` shows articles from the user's subscribed feeds ranked by similarity to their saved and read history. Signal: `FeedItem.savedAt` (strong, explicit) and `FeedItem.read` (weak, implicit). Three implementation options in order of complexity:
+
+  **Option A — Meilisearch keyword similarity (MVP, no new infrastructure)**
+  - Take the titles of the last N saved/read `FeedItem`s; build a composite Meilisearch multi-query; aggregate, deduplicate, and filter already-read results.
+  - Quality: medium (term-based, not semantic — misses synonyms and related concepts).
+  - Effort: low (~2 sessions). Reuses existing Meilisearch index and `searchFeedItemsForUser()` pattern.
+
+  **Option B — Meilisearch with AI embedder (recommended for semantic quality)**
+  - Configure a Meilisearch embedder (Voyage AI ~$0.06/1M tokens, or Ollama free locally) to unlock the `/indexes/feed_items/similar` endpoint.
+  - Send saved `FeedItem` IDs to `/similar`; Meilisearch returns K nearest neighbours by vector cosine similarity.
+  - Requires: embedder config in `meili.ts`, one-time re-indexing of all existing articles, API key or local model.
+  - Quality: high (true semantic similarity). The `/for-you` route itself changes minimally vs Option A.
+  - Effort: medium (~3–4 sessions).
+
+  **Option C — pgvector in PostgreSQL (maximum control)**
+  - Add `pgvector` extension to Docker, add `embedding vector(1024)` column to `FeedItem`, generate and store embeddings on every feed sync (via Voyage AI or similar).
+  - Query: average the embeddings of the last N saved/read items → `ORDER BY embedding <=> $avg_embedding LIMIT 20`.
+  - Enables advanced ranking: weighted saved-vs-read signal, temporal decay, per-category boosting — without depending on Meilisearch for vectors.
+  - This is the "Vector database — TBD" item above, made concrete.
+  - Quality: high + most flexible. Effort: high (~6–8 sessions).
+
+  **Recommended path:** implement Option A first (validate the UX and the signal), then upgrade to Option B once the page is live.
 
 ---
 
