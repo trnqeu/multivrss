@@ -14,8 +14,13 @@ export default function MobileCategoryStrip({ categories, username }: Props) {
 
     function select(name: string | null) {
         const next = new URLSearchParams(params.toString());
-        if (name) next.set('cat', name);
-        else next.delete('cat');
+        if (name) {
+            next.set('cat', name);
+            next.set('view', 'river');
+        } else {
+            next.delete('cat');
+            next.delete('view'); // back to default (Front Page)
+        }
         router.replace(`/u/${username}?${next}`);
     }
 

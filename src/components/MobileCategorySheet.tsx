@@ -30,10 +30,13 @@ export default function MobileCategorySheet() {
 
     function setCategory(next: string | null) {
         const params = new URLSearchParams(searchParams.toString());
-        if (!next || next === 'ALL') params.delete('cat');
-        else {
+        if (!next || next === 'ALL') {
+            params.delete('cat');
+            params.delete('view'); // back to default (Front Page)
+        } else {
             params.set('cat', next);
             params.delete('source');
+            params.set('view', 'river');
         }
         router.push(`?${params.toString()}`);
         setOpen(false);
