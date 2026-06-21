@@ -106,16 +106,30 @@ function Telemetry({ stats }: { stats: FrontPageData['stats'] }) {
     );
 }
 
+// ── Strength meter — 3 ticks showing affinity ──
+function StrengthMeter({ affinity }: { affinity: number }) {
+    const ticks = Math.round((affinity / 100) * 3);
+    return (
+        <span
+            className="inline-flex items-center gap-[2px] shrink-0"
+            title={`${affinity}% match`}
+            aria-label={`${affinity}% match`}
+        >
+            {[0, 1, 2].map(i => (
+                <span
+                    key={i}
+                    className={`w-[3px] h-2 ${i < ticks ? 'bg-terracotta' : 'bg-foreground/15'}`}
+                />
+            ))}
+        </span>
+    );
+}
+
 // ── FOR YOU card (strip) ──
-function ForYouCard({ item }: { item: FrontPageItem }) {
+function ForYouCard({ item, allTags }: { item: FrontPageItem; allTags: { id: string; name: string }[] }) {
     return (
         <article className="flex flex-col gap-1 p-3 bg-background min-w-0">
-            <div className="flex items-center justify-between gap-2">
-                <CatTag name={item.categoryName} />
-                <span className="text-terracotta text-[10px]" aria-hidden="true">
-                    {item.reasonType === 'source' ? '◆' : '✦'}
-                </span>
-            </div>
+            <CatTag name={item.categoryName} />
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
@@ -124,22 +138,20 @@ function ForYouCard({ item }: { item: FrontPageItem }) {
                 {item.title}
             </FrontPageLink>
             <div className="flex items-center gap-2 mt-auto pt-1">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono truncate">
+                <StrengthMeter affinity={item.affinity} />
+                <span className="text-[9px] font-bold uppercase tracking-[.14em] text-foreground/40 font-mono truncate">
                     {item.sourceTitle}
                 </span>
-                <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                <PubDate ts={item.pubDate} />
                 <div className="ml-auto shrink-0">
-                    <FrontPageItemActions itemId={item.id} />
+                    <FrontPageItemActions itemId={item.id} allTags={allTags} />
                 </div>
             </div>
-            <Reason item={item} />
         </article>
     );
 }
 
 // ── Category section ──
-function CategoryColumn({ category, items }: { category: string; items: FrontPageItem[] }) {
+function CategoryColumn({ category, items, allTags }: { category: string; items: FrontPageItem[]; allTags: { id: string; name: string }[] }) {
     const [lead, ...rest] = items;
     return (
         <section aria-labelledby={`cat-${category}`} className="py-6 border-t border-foreground/15">
@@ -176,7 +188,7 @@ function CategoryColumn({ category, items }: { category: string; items: FrontPag
                             <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
                             <PubDate ts={lead.pubDate} />
                             <div className="ml-auto shrink-0">
-                                <FrontPageItemActions itemId={lead.id} />
+                                <FrontPageItemActions itemId={lead.id} allTags={allTags} />
                             </div>
                         </div>
                     </article>
@@ -200,7 +212,7 @@ function CategoryColumn({ category, items }: { category: string; items: FrontPag
                                     <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
                                     <PubDate ts={item.pubDate} />
                                     <div className="ml-auto shrink-0">
-                                        <FrontPageItemActions itemId={item.id} />
+                                        <FrontPageItemActions itemId={item.id} allTags={allTags} />
                                     </div>
                                 </div>
                             </li>
@@ -236,7 +248,7 @@ function EmptyFrontPage() {
 }
 
 // ── Main FrontPage component ──
-export default function FrontPage({ data }: { data: FrontPageData }) {
+export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: { id: string; name: string }[] }) {
     const { forYou, sections, stats } = data;
     const isEmpty = forYou.length === 0 && sections.length === 0;
 
@@ -261,7 +273,7 @@ export default function FrontPage({ data }: { data: FrontPageData }) {
                                 style={{ gridTemplateColumns: `repeat(${Math.min(forYou.length, 4)}, minmax(0, 1fr))` }}
                             >
                                 {forYou.map(item => (
-                                    <ForYouCard key={item.id} item={item} />
+                                    <ForYouCard key={item.id} item={item} allTags={allTags} />
                                 ))}
                             </div>
                         </section>
@@ -271,7 +283,7 @@ export default function FrontPage({ data }: { data: FrontPageData }) {
                     {sections.length > 0 && (
                         <div className="flex flex-col">
                             {sections.map(s => (
-                                <CategoryColumn key={s.category} category={s.category} items={s.items} />
+                                <CategoryColumn key={s.category} category={s.category} items={s.items} allTags={allTags} />
                             ))}
                         </div>
                     )}

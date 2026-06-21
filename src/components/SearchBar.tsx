@@ -6,8 +6,11 @@ import { dayBucket } from '@/lib/utils';
 import { getCategories, markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
 import { Bookmark } from '@/components/icons/Bookmark';
+import AssignTagsModal from '@/components/AssignTagsModal';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
+
+type TagVM = { id: string; name: string };
 
 function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text: string; markClass?: string }) {
     if (!text.includes(HIGHLIGHT_PRE)) return <>{text}</>;
@@ -29,7 +32,7 @@ function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text
     );
 }
 
-export default function SearchBar() {
+export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
     const searchParams = useSearchParams();
 
     const query = searchParams.get('q') ?? '';
@@ -49,6 +52,8 @@ export default function SearchBar() {
     const [catDropdownPos, setCatDropdownPos] = useState({ top: 0, right: 0 });
     const catButtonRef = useRef<HTMLButtonElement>(null);
     const catDropdownRef = useRef<HTMLDivElement>(null);
+    const [tagModalItem, setTagModalItem] = useState<string | null>(null);
+    const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
 
 
     useEffect(() => {
@@ -348,16 +353,34 @@ export default function SearchBar() {
                                                 </>
                                             )}
                                         </a>
-                                        <button
-                                            onClick={() => toggleSave(item)}
-                                            title={item.savedAt ? 'Remove from saved' : 'Save'}
-                                            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity opacity-100`}
-                                        >
-                                            <Bookmark
-                                                filled={!!item.savedAt}
-                                                className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
-                                            />
-                                        </button>
+                                        <span className="inline-flex items-center gap-1 ml-2 align-middle">
+                                            {(itemTags.get(item.id) ?? []).length > 0 && (
+                                                <span className="inline-flex gap-1">
+                                                    {(itemTags.get(item.id) ?? []).map(tag => (
+                                                        <span key={tag.id} className="font-mono text-[9px] uppercase border border-current text-terracotta px-1 py-0.5 leading-none">
+                                                            #{tag.name}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={() => toggleSave(item)}
+                                                title={item.savedAt ? 'Remove from saved' : 'Save'}
+                                                className="bg-transparent border-0 px-0 py-0 cursor-pointer"
+                                            >
+                                                <Bookmark
+                                                    filled={!!item.savedAt}
+                                                    className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+                                                />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setTagModalItem(item.id)}
+                                                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/30 hover:text-foreground px-1 py-0.5 cursor-pointer leading-none transition-colors whitespace-nowrap"
+                                            >
+                                                + TAG
+                                            </button>
+                                        </span>
                                         {!suppressSeparator && (
                                             <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>
                                         )}
@@ -379,6 +402,18 @@ export default function SearchBar() {
                     </div>
                 )}
             </section>
+            {tagModalItem && (
+                <AssignTagsModal
+                    open
+                    onClose={() => setTagModalItem(null)}
+                    itemId={tagModalItem}
+                    initialTags={itemTags.get(tagModalItem) ?? []}
+                    allTags={allTags}
+                    onTagsApplied={(_id, newTags) => {
+                        setItemTags(prev => new Map(prev).set(tagModalItem, newTags));
+                    }}
+                />
+            )}
         </div>
     );
 }
