@@ -1,7 +1,13 @@
+'use client';
+
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
+import { dismissFrontPageItem } from '@/app/actions';
+
+type TagVM = { id: string; name: string };
 
 // ── Reason component ──
 function Reason({ item }: { item: FrontPageItem }) {
@@ -125,8 +131,23 @@ function StrengthMeter({ affinity }: { affinity: number }) {
     );
 }
 
+// ── Dismiss button ──
+function DismissButton({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label="Dismiss article"
+            title="Dismiss and replace"
+            className="bg-transparent border-0 p-0 cursor-pointer text-foreground/25 hover:text-foreground leading-none text-[14px] font-mono transition-colors"
+        >
+            ×
+        </button>
+    );
+}
+
 // ── FOR YOU card (strip) ──
-function ForYouCard({ item, allTags }: { item: FrontPageItem; allTags: { id: string; name: string }[] }) {
+function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     return (
         <article className="flex flex-col gap-1 p-3 bg-background min-w-0">
             <CatTag name={item.categoryName} />
@@ -142,20 +163,71 @@ function ForYouCard({ item, allTags }: { item: FrontPageItem; allTags: { id: str
                 <span className="text-[9px] font-bold uppercase tracking-[.14em] text-foreground/40 font-mono truncate">
                     {item.sourceTitle}
                 </span>
-                <div className="ml-auto shrink-0">
+                <div className="ml-auto shrink-0 flex items-center gap-2">
                     <FrontPageItemActions itemId={item.id} allTags={allTags} />
+                    <DismissButton onClick={onDismiss} />
                 </div>
             </div>
         </article>
     );
 }
 
-// ── Category section ──
-function CategoryColumn({ category, items, allTags }: { category: string; items: FrontPageItem[]; allTags: { id: string; name: string }[] }) {
+// ── FOR YOU strip — stateful ──
+function ForYouStrip({ items: initialItems, allTags }: { items: FrontPageItem[]; allTags: TagVM[] }) {
+    const [items, setItems] = useState(initialItems);
+    const [, startTransition] = useTransition();
+
+    function dismiss(item: FrontPageItem) {
+        const excludeIds = items.map(i => i.id);
+        setItems(prev => prev.filter(i => i.id !== item.id));
+        startTransition(async () => {
+            const res = await dismissFrontPageItem(item.id, item.categoryName, excludeIds);
+            if (res.replacement) {
+                setItems(prev => [...prev, res.replacement!]);
+            }
+        });
+    }
+
+    if (items.length === 0) return null;
+    return (
+        <section aria-label="For you" className="mt-4 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest font-mono">— For You</span>
+                <span className="flex-1 h-px bg-foreground/20" aria-hidden="true" />
+            </div>
+            <div
+                className="grid gap-px bg-foreground/15"
+                style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, minmax(0, 1fr))` }}
+            >
+                {items.map(item => (
+                    <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                ))}
+            </div>
+        </section>
+    );
+}
+
+// ── Category section — stateful ──
+function CategoryColumn({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
+    const [items, setItems] = useState(initialItems);
+    const [, startTransition] = useTransition();
+
+    function dismiss(item: FrontPageItem) {
+        const excludeIds = items.map(i => i.id);
+        setItems(prev => prev.filter(i => i.id !== item.id));
+        startTransition(async () => {
+            const res = await dismissFrontPageItem(item.id, category, excludeIds);
+            if (res.replacement) {
+                setItems(prev => [...prev, res.replacement!]);
+            }
+        });
+    }
+
+    if (items.length === 0) return null;
     const [lead, ...rest] = items;
+
     return (
         <section aria-labelledby={`cat-${category}`} className="py-6 border-t border-foreground/15">
-            {/* Section header: 13px / 800 / .22em tracking */}
             <div className="flex items-center gap-3 mb-4">
                 <span id={`cat-${category}`} className="text-[13px] font-extrabold uppercase tracking-[.22em] font-mono whitespace-nowrap">
                     — {category}
@@ -164,7 +236,6 @@ function CategoryColumn({ category, items, allTags }: { category: string; items:
                 <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>
             </div>
 
-            {/* 1.4fr / 1fr body grid */}
             <div className="grid gap-9" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
                 {lead && (
                     <article className="flex flex-col gap-2 items-start">
@@ -187,8 +258,9 @@ function CategoryColumn({ category, items, allTags }: { category: string; items:
                             </span>
                             <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
                             <PubDate ts={lead.pubDate} />
-                            <div className="ml-auto shrink-0">
+                            <div className="ml-auto shrink-0 flex items-center gap-2">
                                 <FrontPageItemActions itemId={lead.id} allTags={allTags} />
+                                <DismissButton onClick={() => dismiss(lead)} />
                             </div>
                         </div>
                     </article>
@@ -211,8 +283,9 @@ function CategoryColumn({ category, items, allTags }: { category: string; items:
                                     </span>
                                     <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
                                     <PubDate ts={item.pubDate} />
-                                    <div className="ml-auto shrink-0">
+                                    <div className="ml-auto shrink-0 flex items-center gap-2">
                                         <FrontPageItemActions itemId={item.id} allTags={allTags} />
+                                        <DismissButton onClick={() => dismiss(item)} />
                                     </div>
                                 </div>
                             </li>
@@ -248,7 +321,7 @@ function EmptyFrontPage() {
 }
 
 // ── Main FrontPage component ──
-export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: { id: string; name: string }[] }) {
+export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
     const { forYou, sections, stats } = data;
     const isEmpty = forYou.length === 0 && sections.length === 0;
 
@@ -260,26 +333,7 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
             ) : (
                 <>
                     <Telemetry stats={stats} />
-
-                    {/* FOR YOU strip */}
-                    {forYou.length > 0 && (
-                        <section aria-label="For you" className="mt-4 mb-6">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="text-[10px] font-bold uppercase tracking-widest font-mono">— For You</span>
-                                <span className="flex-1 h-px bg-foreground/20" aria-hidden="true" />
-                            </div>
-                            <div
-                                className="grid gap-px bg-foreground/15"
-                                style={{ gridTemplateColumns: `repeat(${Math.min(forYou.length, 4)}, minmax(0, 1fr))` }}
-                            >
-                                {forYou.map(item => (
-                                    <ForYouCard key={item.id} item={item} allTags={allTags} />
-                                ))}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Category sections */}
+                    <ForYouStrip items={forYou} allTags={allTags} />
                     {sections.length > 0 && (
                         <div className="flex flex-col">
                             {sections.map(s => (
