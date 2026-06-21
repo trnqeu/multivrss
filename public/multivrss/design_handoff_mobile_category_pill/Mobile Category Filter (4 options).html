@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MultivRSS — Filtro categoria su mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#000; --fg:#fff; --tc:#E2725B;
+    --fg50:rgba(255,255,255,.5); --fg40:rgba(255,255,255,.4);
+    --fg30:rgba(255,255,255,.3); --fg15:rgba(255,255,255,.15);
+    --fg08:rgba(255,255,255,.08); --fg04:rgba(255,255,255,.04);
+    --paper:#0b0b0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#161514;
+    color:var(--fg);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    -webkit-font-smoothing:antialiased;
+    display:flex; min-height:100%;
+    background-image:radial-gradient(circle at 30% 0%, #211f1d 0%, #161514 55%);
+  }
+  .stage{
+    flex:1; display:flex; gap:56px; align-items:flex-start;
+    justify-content:center; padding:46px 40px 80px;
+  }
+  .lbl{font-size:9px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+
+  /* ───────────── left: switcher + recommendation ───────────── */
+  .panel{width:340px;flex-shrink:0;padding-top:8px}
+  .panel__kick{color:var(--tc);font-size:9px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;margin-bottom:14px}
+  .panel h1{font-size:23px;font-weight:800;line-height:1.18;letter-spacing:-.01em;margin-bottom:14px}
+  .panel p.intro{font-size:12.5px;line-height:1.65;color:var(--fg50);font-weight:500;margin-bottom:28px}
+  .panel p.intro b{color:var(--fg);font-weight:700}
+
+  .opts{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
+  .opt{
+    text-align:left;background:transparent;border:1.5px solid var(--fg15);
+    color:var(--fg);padding:13px 15px;cursor:pointer;
+    display:flex;gap:13px;align-items:flex-start;transition:border-color .15s,background .15s;
+    font-family:inherit;
+  }
+  .opt:hover{border-color:var(--fg40)}
+  .opt.on{border-color:var(--tc);background:rgba(226,114,91,.07)}
+  .opt__k{font-size:11px;font-weight:800;color:var(--fg40);width:14px;flex-shrink:0;letter-spacing:.05em;margin-top:1px}
+  .opt.on .opt__k{color:var(--tc)}
+  .opt__t{font-size:12.5px;font-weight:700;letter-spacing:.02em;margin-bottom:4px}
+  .opt__d{font-size:10.5px;font-weight:500;line-height:1.5;color:var(--fg50)}
+  .opt__rec{display:inline-block;margin-left:7px;color:var(--tc);font-size:8px;font-weight:800;letter-spacing:.16em;vertical-align:middle;border:1px solid var(--tc);padding:2px 5px}
+
+  .note{border-top:1.5px solid var(--fg15);padding-top:18px}
+  .note__h{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--fg40);margin-bottom:10px}
+  .note__b{font-size:11.5px;line-height:1.62;color:var(--fg50);font-weight:500}
+  .note__b b{color:var(--fg);font-weight:700}
+  .note__b .tc{color:var(--tc);font-weight:700}
+
+  /* ───────────── phone frame ───────────── */
+  .phone-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;flex-shrink:0}
+  .phone{
+    width:390px;height:800px;background:var(--bg);
+    border:11px solid #2a2826;border-radius:46px;
+    box-shadow:0 40px 90px -30px rgba(0,0,0,.85), 0 0 0 1.5px #000;
+    position:relative;overflow:hidden;display:flex;flex-direction:column;
+  }
+  .phone__screen{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden;border-radius:35px}
+  /* status bar */
+  .sbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 30px;flex-shrink:0;font-size:12px;font-weight:700}
+  .sbar__time{letter-spacing:.02em}
+  .sbar__r{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--fg)}
+  .notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:96px;height:24px;background:#000;border-radius:0 0 16px 16px;z-index:30}
+
+  /* app top bar */
+  .top{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--fg15);flex-shrink:0}
+  .wordmark{display:flex;align-items:center;gap:7px;margin-right:auto}
+  .wordmark img{width:15px;height:15px;display:block}
+  .wordmark span{color:var(--tc);font-size:13px;font-weight:800;letter-spacing:.12em}
+  .top__ico{font-size:13px;color:var(--fg50);width:18px;text-align:center}
+  .top__ico.box{border:1.4px solid var(--fg30);width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:12px}
+
+  /* telemetry strip */
+  .tele-row{display:flex;align-items:stretch;border-bottom:2px solid var(--fg);flex-shrink:0;position:relative;min-height:39px}
+  .tele{
+    flex:1;min-width:0;display:flex;align-items:center;gap:0;
+    padding:0 16px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;
+    scrollbar-width:none;
+  }
+  .tele::-webkit-scrollbar{display:none}
+  .tele .seg{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fg50);white-space:nowrap}
+  .tele .v{color:var(--fg)}
+  .tele .dot{margin:0 11px;color:var(--fg30)}
+  .tog{background:none;border:0;font:inherit;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;padding:0;color:var(--fg30)}
+  .tog.on{color:var(--fg);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--tc)}
+  .tog.mini{margin:0 5px;color:var(--fg30)}
+  .cat-inline{background:none;border:0;font:inherit;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;color:var(--fg30);display:inline-flex;gap:4px;align-items:center}
+  .cat-inline.act{color:var(--fg);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--tc)}
+  .cat-inline .car{font-size:8px;color:var(--fg40)}
+
+  /* scroll hint (option 0) */
+  .scrollhint{
+    position:absolute;right:0;top:0;bottom:0;width:62px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,#000 72%);
+    display:flex;align-items:center;justify-content:flex-end;padding-right:9px;z-index:5;
+  }
+  .scrollhint span{color:var(--tc);font-size:14px;font-weight:800;animation:nudge 1.1s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(4px);opacity:1}}
+
+  /* pinned pill (option B) */
+  .pin{
+    flex-shrink:0;display:flex;align-items:center;gap:6px;
+    padding:0 14px;border-right:2px solid var(--fg);cursor:pointer;
+    background:var(--bg);
+  }
+  .pin.act{background:var(--tc)}
+  .pin__k{font-size:9px;font-weight:800;letter-spacing:.16em;color:var(--fg40)}
+  .pin.act .pin__k{color:rgba(0,0,0,.55)}
+  .pin__v{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--fg)}
+  .pin.act .pin__v{color:#000}
+  .pin__car{font-size:8px;color:var(--fg40)}
+  .pin.act .pin__car{color:rgba(0,0,0,.6)}
+
+  /* chip rail (option A) */
+  .rail{display:flex;overflow-x:auto;border-bottom:2px solid var(--fg);flex-shrink:0;scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .chip{
+    background:none;border:0;font:inherit;cursor:pointer;flex-shrink:0;
+    padding:11px 17px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--fg50);border-bottom:2px solid transparent;margin-bottom:-2px;display:flex;gap:7px;align-items:center;
+  }
+  .chip.on{color:var(--tc);border-bottom-color:var(--tc)}
+  .chip__n{font-size:9px;color:var(--fg30)}
+  .chip.on .chip__n{color:var(--tc)}
+
+  /* river */
+  .river{flex:1;min-height:0;overflow-y:auto;padding:18px 18px 90px;scrollbar-width:none}
+  .river::-webkit-scrollbar{display:none}
+  .daymark{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+  .daymark:not(:first-child){margin-top:26px}
+  .daymark__l{color:var(--tc);font-size:9px;font-weight:800;letter-spacing:.26em;white-space:nowrap}
+  .daymark__line{flex:1;height:1px;background:rgba(226,114,91,.32)}
+  .daymark__arr{color:var(--fg30);font-size:9px}
+  .item{font-size:13.5px;line-height:1.72;font-weight:500;margin-bottom:2px;display:block;transition:opacity .25s}
+  .item.read{opacity:.3}
+  .item.hide{display:none}
+  .item__dot{color:var(--tc);font-size:13px;margin-right:4px}
+  .item__src{color:var(--tc);font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .item__mid{color:var(--fg40);margin:0 7px}
+  .item__date{color:var(--fg50);font-size:11.5px}
+  .item__title{color:var(--fg)}
+  .item__body{color:var(--fg50);font-weight:400}
+  .item__bk{color:var(--fg40);font-size:11px;margin-left:6px}
+  .slash{color:var(--tc);font-weight:800;margin:0 7px}
+
+  /* floating hamburger */
+  .fab{position:absolute;left:16px;bottom:20px;z-index:20;width:34px;height:30px;border:2px solid var(--fg);background:var(--bg);color:var(--fg);font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+  /* bottom tab bar (option C) */
+  .tabbar{height:62px;flex-shrink:0;border-top:2px solid var(--fg);display:flex;background:var(--bg)}
+  .tab{flex:1;background:none;border:0;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative;color:var(--fg50)}
+  .tab .tab__l{font-size:9px;font-weight:800;letter-spacing:.2em}
+  .tab.on{color:var(--tc)}
+  .tab.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:2px;background:var(--tc)}
+  .tab__badge{position:absolute;top:9px;right:50%;transform:translateX(20px);background:var(--tc);color:#000;font-size:7.5px;font-weight:800;padding:1px 4px;letter-spacing:.05em}
+
+  /* bottom sheet */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--bg);
+    border-top:2px solid var(--fg);transform:translateY(102%);transition:transform .26s cubic-bezier(.2,.8,.2,1);
+    max-height:78%;display:flex;flex-direction:column;
+  }
+  .sheet.show{transform:translateY(0)}
+  .sheet__grab{width:42px;height:4px;background:var(--fg30);margin:11px auto 4px;border-radius:2px}
+  .sheet__head{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;border-bottom:1px solid var(--fg15)}
+  .sheet__title{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--fg50)}
+  .sheet__x{background:none;border:0;color:var(--fg50);font-size:16px;cursor:pointer;line-height:1}
+  .sheet__list{overflow-y:auto;padding:6px 0 16px;scrollbar-width:none}
+  .sheet__list::-webkit-scrollbar{display:none}
+  .srow{
+    width:100%;background:none;border:0;cursor:pointer;font:inherit;text-align:left;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:15px 22px;border-bottom:1px solid var(--fg08);color:var(--fg);
+  }
+  .srow:hover{background:var(--fg04)}
+  .srow.on{background:var(--tc);color:#000}
+  .srow__l{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+  .srow__n{font-size:11px;font-weight:700;color:var(--fg40)}
+  .srow.on .srow__n{color:rgba(0,0,0,.55)}
+
+  .caption{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--fg40);text-align:center}
+  .caption b{color:var(--tc);font-weight:800}
+
+  @media (max-width:980px){
+    .stage{flex-direction:column;align-items:center;gap:36px}
+    .panel{width:390px}
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <!-- ░░ recommendation / switcher ░░ -->
+    <div class="panel">
+      <div class="panel__kick">MultivRSS · Mobile</div>
+      <h1>Il filtro categoria, raggiungibile col pollice</h1>
+      <p class="intro">Oggi <b>CAT</b> vive in fondo alla striscia di telemetria che scorre in orizzontale: su mobile resta fuori schermo e serve scrollare a destra per trovarlo. Tre modi per risolverlo — toccane uno e provalo nel telefono.</p>
+
+      <div class="opts" id="opts">
+        <button class="opt on" data-opt="0">
+          <span class="opt__k">0</span>
+          <span><span class="opt__t">Com'è adesso</span><span class="opt__d">CAT nascosto in fondo alla striscia. Scorri a destra →</span></span>
+        </button>
+        <button class="opt" data-opt="A">
+          <span class="opt__k">A</span>
+          <span><span class="opt__t">Barra di categorie dedicata</span><span class="opt__d">Una riga di chip sotto la telemetria. Già presente nel codice (MobileCategoryStrip), basta attivarla.</span></span>
+        </button>
+        <button class="opt" data-opt="B">
+          <span class="opt__k">B</span>
+          <span><span class="opt__t">Pill CAT fissa → sheet<span class="opt__rec">Consigliato</span></span><span class="opt__d">CAT ancorato a sinistra, sempre visibile; il tap apre un pannello dal basso comodo per il pollice.</span></span>
+        </button>
+        <button class="opt" data-opt="C">
+          <span class="opt__k">C</span>
+          <span><span class="opt__t">Filtro nella tab bar</span><span class="opt__d">Pulsante CAT nella barra inferiore fissa → stesso sheet. Massima portata, ma aggiunge chrome.</span></span>
+        </button>
+      </div>
+
+      <div class="note">
+        <div class="note__h">Perché B</div>
+        <div class="note__b">La <b>pill resta sempre visibile</b> (non scorre via) quindi è scopribile a colpo d'occhio, e lo <span class="tc">sheet dal basso</span> cade sotto il pollice — meglio del minuscolo menu in alto. Riusa il param <span class="tc">?cat</span> esistente, zero logica nuova. <b>A</b> è l'alternativa più rapida: il componente esiste già.</div>
+      </div>
+    </div>
+
+    <!-- ░░ phone ░░ -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone__screen">
+          <div class="notch"></div>
+          <div class="sbar">
+            <span class="sbar__time">9:41</span>
+            <span class="sbar__r">●●● ⌃ ▤</span>
+          </div>
+
+          <div class="top">
+            <span class="wordmark"><img src="assets/multivrss-ico.png" alt="" /><span>MULTIVRSS</span></span>
+            <span class="top__ico">Q</span>
+            <span class="top__ico box">+</span>
+            <span class="top__ico">◐</span>
+            <span class="top__ico">⚙</span>
+          </div>
+
+          <!-- telemetry row (rebuilt per option) -->
+          <div class="tele-row" id="teleRow"></div>
+
+          <!-- chip rail (option A only) -->
+          <div id="railSlot"></div>
+
+          <div class="river" id="river"></div>
+
+          <button class="fab" id="fab" title="Apri navigazione">☰</button>
+
+          <!-- bottom sheet -->
+          <div class="scrim" id="scrim"></div>
+          <div class="sheet" id="sheet">
+            <div class="sheet__grab"></div>
+            <div class="sheet__head">
+              <span class="sheet__title">Filtra per categoria</span>
+              <button class="sheet__x" id="sheetX">✕</button>
+            </div>
+            <div class="sheet__list" id="sheetList"></div>
+          </div>
+
+          <!-- tab bar (option C only) -->
+          <div id="tabSlot"></div>
+        </div>
+      </div>
+      <div class="caption" id="caption">Opzione 0 — <b>scorri la striscia a destra</b> per trovare CAT</div>
+    </div>
+  </div>
+
+<script>
+const CATS = [
+  {name:'ALL', n:1000},{name:'MIND', n:42},{name:'NEWS', n:117},
+  {name:'NEWSLETTERS', n:28},{name:'SPORT', n:64},{name:'TECH', n:89},{name:'YOUTUBE', n:33}
+];
+const RIVER = [
+  {day:'JUN 19', cat:'MIND', src:'STANFORD ENCYCLOPEDIA OF PHILOSOPHY', date:'Jun 19', title:'Logical Truth', body:'Revised entry by Mario Gómez-Torrente on June 18, 2026. Changes to: Main text, Bibliography, notes.html', read:false},
+  {day:'JUN 18', cat:'NEWS', src:"NYT > WORLD NEWS", date:'Jun 18', title:'Iran War Live Updates: Vance Issues Blunt Warning to Israel', body:'The vice president delivered a rebuke to Israeli critics of the agreement', read:false},
+  {day:'JUN 18', cat:'NEWS', src:'THE GUARDIAN', date:'Jun 19', title:'Star-studded ceremony welcomes Obama Presidential Center to Chicago', body:'Former presidents, heads of state and celebrities converged on a lakefront park', read:false},
+  {day:'JUN 18', cat:'SPORT', src:'ESPN — TOP', date:'Jun 18', title:"Balogun living World Cup 'dream' as U.S. choice pays off", body:'The striker has settled questions about his international future', read:true},
+  {day:'JUN 18', cat:'TECH', src:'HACKER NEWS', date:'Jun 17', title:'Show HN: A local-first RSS reader built in a weekend', body:'After years of fighting cloud sync I finally committed to a SQLite-backed store', read:false},
+  {day:'JUN 17', cat:'NEWSLETTERS', src:'PLATFORMER', date:'Jun 17', title:'The quiet return of the chronological feed', body:'Algorithmic timelines are out, rivers are back in fashion this season', read:false},
+  {day:'JUN 17', cat:'YOUTUBE', src:'VERITASIUM', date:'Jun 16', title:'The maths problem that broke the internet', body:'A deceptively simple puzzle that hides surprising depth underneath', read:true},
+];
+
+const state = { opt:'0', cat:'ALL', read:'ALL', sheet:false, dropdown:false };
+
+const $ = s => document.querySelector(s);
+const teleRow = $('#teleRow'), railSlot = $('#railSlot'), tabSlot = $('#tabSlot');
+const river = $('#river'), sheet = $('#sheet'), scrim = $('#scrim'), sheetList = $('#sheetList');
+const fab = $('#fab'), caption = $('#caption');
+
+const CAPTIONS = {
+  '0':'Opzione 0 — <b>scorri la striscia a destra</b> per trovare CAT',
+  'A':'Opzione A — <b>tocca un chip</b> nella barra dedicata',
+  'B':'Opzione B — <b>tocca la pill CAT</b>, scegli dallo sheet',
+  'C':'Opzione C — <b>tocca CAT</b> nella barra inferiore',
+};
+
+/* ── telemetry builders ── */
+function readToggles(){
+  return ['ALL','UNREAD','READ'].map((f,i)=>{
+    const on = state.read===f;
+    return `${i>0?'<span class="tog mini">·</span>':''}<button class="tog ${on?'on':''}" data-read="${f}">${f}</button>`;
+  }).join('');
+}
+function meta(){
+  const shown = visibleCount();
+  return `<span class="seg">INDEX: <span class="v">${shown} / 1000 ITEMS</span></span><span class="dot">·</span>`+
+         `<span class="seg">TIME: <span class="v">3 MS</span></span><span class="dot">·</span>`+
+         `<span class="seg">FILTER: </span>${readToggles()}`;
+}
+function catInline(){
+  const act = state.cat!=='ALL';
+  return `<span class="dot">·</span><span class="seg">CAT: </span>`+
+    `<button class="cat-inline ${act?'act':''}" id="catInline">${state.cat}<span class="car">▾</span></button>`+
+    (act?`<button class="tog" id="catClear" style="margin-left:8px;color:var(--tc)">✕</button>`:'');
+}
+
+function buildTele(){
+  railSlot.innerHTML=''; tabSlot.innerHTML=''; fab.style.display='flex';
+  if(state.opt==='0'){
+    teleRow.innerHTML = `<div class="tele" id="teleScroll">${meta()}${catInline()}</div>`+
+      `<div class="scrollhint"><span>→</span></div>`;
+  } else if(state.opt==='A'){
+    teleRow.innerHTML = `<div class="tele">${meta()}</div>`;
+    railSlot.innerHTML = `<div class="rail" id="rail">`+
+      CATS.map(c=>`<button class="chip ${state.cat===c.name?'on':''}" data-cat="${c.name}">${c.name}<span class="chip__n">${String(c.n).padStart(2,'0')}</span></button>`).join('')+
+      `</div>`;
+  } else if(state.opt==='B'){
+    const act = state.cat!=='ALL';
+    teleRow.innerHTML =
+      `<div class="pin ${act?'act':''}" id="pin"><span class="pin__k">CAT</span><span class="pin__v">${state.cat}</span><span class="pin__car">▾</span></div>`+
+      `<div class="tele">${meta()}</div>`;
+  } else if(state.opt==='C'){
+    teleRow.innerHTML = `<div class="tele">${meta()}</div>`;
+    const badge = state.cat!=='ALL';
+    fab.style.display='none';
+    tabSlot.innerHTML = `<div class="tabbar">`+
+      `<button class="tab on"><span class="tab__l">FEED</span></button>`+
+      `<button class="tab" id="tabCat"><span class="tab__l">CAT</span>${badge?`<span class="tab__badge">${state.cat}</span>`:''}</button>`+
+      `<button class="tab"><span class="tab__l">ADD</span></button>`+
+      `<button class="tab"><span class="tab__l">ME</span></button>`+
+      `</div>`;
+  }
+  wireTele();
+}
+
+function wireTele(){
+  teleRow.querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>{state.read=b.dataset.read;render();});
+  const ci=$('#catInline'); if(ci) ci.onclick=()=>openDropdown(ci);
+  const cc=$('#catClear'); if(cc) cc.onclick=()=>{state.cat='ALL';render();};
+  $('#rail') && railSlot.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;render();});
+  const pin=$('#pin'); if(pin) pin.onclick=()=>openSheet();
+  const tc=$('#tabCat'); if(tc) tc.onclick=()=>openSheet();
+}
+
+/* ── option 0 dropdown (the cramped current menu) ── */
+function openDropdown(anchor){
+  closeDropdown();
+  const d=document.createElement('div');
+  d.id='dd';
+  d.style.cssText='position:absolute;z-index:45;width:190px;background:#000;border:2px solid #fff';
+  const r=anchor.getBoundingClientRect(), pr=$('.phone__screen').getBoundingClientRect();
+  d.style.top=(r.bottom-pr.top+4)+'px';
+  d.style.left=Math.min(r.left-pr.left, 390-200)+'px';
+  d.innerHTML=CATS.map(c=>{
+    const on=state.cat===c.name;
+    return `<button data-c="${c.name}" style="display:flex;width:100%;justify-content:space-between;align-items:center;padding:9px 12px;border:0;border-bottom:1px solid rgba(255,255,255,.1);background:${on?'#E2725B':'transparent'};color:${on?'#000':'#fff'};font:inherit;font-size:10px;font-weight:700;letter-spacing:.14em;cursor:pointer">${c.name}<span style="opacity:.6">${String(c.n).padStart(2,'0')}</span></button>`;
+  }).join('');
+  $('.phone__screen').appendChild(d);
+  d.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.c;closeDropdown();render();});
+  setTimeout(()=>document.addEventListener('pointerdown',outside),0);
+}
+function outside(e){ if(!e.target.closest('#dd')&&!e.target.closest('#catInline')) closeDropdown(); }
+function closeDropdown(){ const d=$('#dd'); if(d)d.remove(); document.removeEventListener('pointerdown',outside); }
+
+/* ── bottom sheet ── */
+function buildSheet(){
+  sheetList.innerHTML=CATS.map(c=>{
+    const on=state.cat===c.name;
+    return `<button class="srow ${on?'on':''}" data-c="${c.name}"><span class="srow__l">${c.name}</span><span class="srow__n">${String(c.n).padStart(2,'0')}</span></button>`;
+  }).join('');
+  sheetList.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{state.cat=b.dataset.c;closeSheet();render();});
+}
+function openSheet(){ buildSheet(); sheet.classList.add('show'); scrim.classList.add('show'); }
+function closeSheet(){ sheet.classList.remove('show'); scrim.classList.remove('show'); }
+$('#sheetX').onclick=closeSheet; scrim.onclick=closeSheet;
+
+/* ── river ── */
+function passCat(it){ return state.cat==='ALL' || it.cat===state.cat; }
+function passRead(it){ return state.read==='ALL' || (state.read==='READ')===!!it.read; }
+function visibleCount(){ return RIVER.filter(it=>passCat(it)&&passRead(it)).length; }
+
+function buildRiver(){
+  let html='', lastDay=null;
+  RIVER.forEach((it,i)=>{
+    const visible = passCat(it)&&passRead(it);
+    if(visible && it.day!==lastDay){
+      html+=`<div class="daymark"><span class="daymark__l">— ${it.day}</span><span class="daymark__line"></span><span class="daymark__arr">→</span></div>`;
+      lastDay=it.day;
+    }
+    html+=`<span class="item ${it.read?'read':''} ${visible?'':'hide'}">`+
+      `<span class="item__dot">${it.read?'●':'○'}</span>`+
+      `<span class="item__src">${it.src}</span><span class="item__mid">·</span>`+
+      `<span class="item__date">${it.date}</span><span class="item__mid">·</span>`+
+      `<span class="item__title">${it.title}</span> <span class="item__mid">—</span> <span class="item__body">${it.body}…</span>`+
+      `<span class="item__bk">▽</span>`+
+      `</span>`;
+  });
+  river.innerHTML=html || `<p style="color:var(--fg30);font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;padding:8px">Nessun risultato</p>`;
+}
+
+function render(){ closeDropdown(); buildTele(); buildRiver(); caption.innerHTML=CAPTIONS[state.opt]; }
+
+/* ── option switcher ── */
+$('#opts').querySelectorAll('.opt').forEach(b=>{
+  b.onclick=()=>{
+    $('#opts').querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
+    b.classList.add('on');
+    state.opt=b.dataset.opt; state.cat='ALL'; closeSheet();
+    render();
+  };
+});
+
+render();
+</script>
+</body>
+</html>

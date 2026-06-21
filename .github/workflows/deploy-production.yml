@@ -1,8 +1,8 @@
-name: Deploy to Staging
+name: Deploy to Production
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -48,16 +48,17 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
-            ${{ env.IMAGE }}:staging
+            ${{ env.IMAGE }}:production
+            ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: GIT_COMMIT=${{ github.sha }}
 
   deploy:
-    name: Deploy to Staging
+    name: Deploy to Production
     needs: build
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
@@ -75,8 +76,8 @@ jobs:
             set -euo pipefail
 
             # Save current SHA for rollback
-            PREV_SHA=$(cat ~/.multivrss_staging_sha 2>/dev/null || echo "")
-            echo "$SHA" > ~/.multivrss_staging_sha
+            PREV_SHA=$(cat ~/.multivrss_prod_sha 2>/dev/null || echo "")
+            echo "$SHA" > ~/.multivrss_prod_sha
 
             # Login to GHCR
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -88,19 +89,19 @@ jobs:
             # Run migrations (one-shot container, isolated)
             docker run --rm \
               --network multivrss_internal \
-              --env-file ~/multivrss/.env.staging \
+              --env-file ~/multivrss/.env.production \
               "$IMAGE:$SHA-migrator" \
               npx prisma migrate deploy
 
             # Deploy new stack
             cd ~/multivrss
             IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --env-file .env.staging up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --remove-orphans
 
             # Health check — 12 attempts × 5s = 60s timeout
             echo "Waiting for health check..."
             for i in $(seq 1 12); do
-              STATUS=$(curl -sf https://staging.multivrss.com/api/health \
+              STATUS=$(curl -sf https://multivrss.com/api/health \
                 | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
               if [ "$STATUS" = "ok" ]; then
                 echo "Health check passed (attempt $i)"
@@ -115,6 +116,6 @@ jobs:
             if [ -n "$PREV_SHA" ]; then
               docker pull "$IMAGE:$PREV_SHA"
               IMAGE_TAG="$PREV_SHA" \
-              docker compose -f docker-compose.prod.yml --env-file .env.staging up -d
+              docker compose -f docker-compose.prod.yml --env-file .env.production up -d
             fi
             exit 1

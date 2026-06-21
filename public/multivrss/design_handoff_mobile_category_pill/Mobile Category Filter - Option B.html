@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Option B — Pinned CAT pill → bottom sheet (reference states)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#000; --fg:#fff; --tc:#E2725B;
+    --fg50:rgba(255,255,255,.5); --fg40:rgba(255,255,255,.4);
+    --fg30:rgba(255,255,255,.3); --fg15:rgba(255,255,255,.15);
+    --fg08:rgba(255,255,255,.08); --fg04:rgba(255,255,255,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#161514;color:var(--fg);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 50% -10%, #231f1d 0%, #161514 60%);
+    padding:48px 40px 70px;
+  }
+  .head{max-width:1180px;margin:0 auto 40px}
+  .kick{color:var(--tc);font-size:10px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;margin-bottom:12px}
+  .head h1{font-size:26px;font-weight:800;letter-spacing:-.01em;margin-bottom:12px}
+  .head p{font-size:13px;line-height:1.6;color:var(--fg50);font-weight:500;max-width:680px}
+  .head p b{color:var(--fg);font-weight:700}
+  .head .tc{color:var(--tc);font-weight:700}
+
+  .row{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;align-items:flex-start;max-width:1300px;margin:0 auto}
+  .col{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .col__cap{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--fg40);text-align:center;max-width:300px;line-height:1.5}
+  .col__cap b{color:var(--tc);font-weight:800}
+  .col__n{color:var(--tc);font-size:11px;font-weight:800;letter-spacing:.2em}
+
+  .phone{
+    width:300px;height:620px;background:var(--bg);
+    border:9px solid #2a2826;border-radius:38px;
+    box-shadow:0 36px 80px -32px rgba(0,0,0,.85),0 0 0 1.5px #000;
+    position:relative;overflow:hidden;display:flex;flex-direction:column;
+  }
+  .screen{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden;border-radius:29px}
+  .notch{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:80px;height:20px;background:#000;border-radius:0 0 13px 13px;z-index:30}
+  .sbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 24px;font-size:10px;font-weight:700;flex-shrink:0}
+
+  .top{display:flex;align-items:center;gap:8px;padding:7px 13px;border-bottom:1px solid var(--fg15);flex-shrink:0}
+  .wm{display:flex;align-items:center;gap:6px;margin-right:auto}
+  .wm img{width:12px;height:12px}
+  .wm span{color:var(--tc);font-size:11px;font-weight:800;letter-spacing:.1em}
+  .ti{font-size:11px;color:var(--fg50)}
+  .ti.box{border:1.2px solid var(--fg30);width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px}
+
+  /* telemetry row: pinned pill + scrolling meta */
+  .tele-row{display:flex;align-items:stretch;border-bottom:2px solid var(--fg);flex-shrink:0;min-height:34px}
+  .pin{display:flex;align-items:center;gap:5px;padding:0 11px;border-right:2px solid var(--fg);cursor:pointer;background:var(--bg);flex-shrink:0}
+  .pin.act{background:var(--tc)}
+  .pin__k{font-size:8px;font-weight:800;letter-spacing:.14em;color:var(--fg40)}
+  .pin.act .pin__k{color:rgba(0,0,0,.55)}
+  .pin__v{font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--fg)}
+  .pin.act .pin__v{color:#000}
+  .pin__c{font-size:7px;color:var(--fg40)}
+  .pin.act .pin__c{color:rgba(0,0,0,.6)}
+  .tele{flex:1;min-width:0;display:flex;align-items:center;padding:0 12px;overflow:hidden;white-space:nowrap}
+  .seg{font-size:8.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--fg50)}
+  .seg .v{color:var(--fg)}
+  .dot{margin:0 7px;color:var(--fg30)}
+  .tog{font-size:8.5px;font-weight:700;letter-spacing:.13em;color:var(--fg30)}
+  .tog.on{color:var(--fg);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--tc)}
+  .tmini{margin:0 4px;color:var(--fg30);font-size:8.5px}
+
+  .river{flex:1;min-height:0;overflow:hidden;padding:14px 14px 40px}
+  .daymark{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
+  .dm__l{color:var(--tc);font-size:8px;font-weight:800;letter-spacing:.24em;white-space:nowrap}
+  .dm__line{flex:1;height:1px;background:rgba(226,114,91,.32)}
+  .dm__a{color:var(--fg30);font-size:8px}
+  .item{font-size:10.5px;line-height:1.7;font-weight:500;display:block;margin-bottom:1px}
+  .item.read{opacity:.3}
+  .idot{color:var(--tc);font-size:10px;margin-right:3px}
+  .isrc{color:var(--tc);font-size:7.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .imid{color:var(--fg40);margin:0 5px}
+  .idate{color:var(--fg50);font-size:9px}
+  .ititle{color:var(--fg)}
+  .ibody{color:var(--fg50);font-weight:400}
+
+  /* scrim + sheet */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:40}
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:41;background:var(--bg);border-top:2px solid var(--fg);max-height:80%;display:flex;flex-direction:column}
+  .grab{width:36px;height:4px;background:var(--fg30);margin:9px auto 3px;border-radius:2px}
+  .shead{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 11px;border-bottom:1px solid var(--fg15)}
+  .stitle{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--fg50)}
+  .sx{color:var(--fg50);font-size:14px;line-height:1}
+  .slist{overflow:hidden;padding:4px 0 12px}
+  .srow{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--fg08);color:var(--fg)}
+  .srow.on{background:var(--tc);color:#000}
+  .srl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+  .srn{font-size:9px;font-weight:700;color:var(--fg40)}
+  .srow.on .srn{color:rgba(0,0,0,.55)}
+
+  .fab{position:absolute;left:13px;bottom:16px;z-index:20;width:30px;height:26px;border:2px solid var(--fg);background:var(--bg);color:var(--fg);font-size:11px;display:flex;align-items:center;justify-content:center}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kick">MultivRSS · Mobile · Option B</div>
+    <h1>Pinned CAT pill → bottom sheet</h1>
+    <p>The <b>CAT</b> control is pulled out of the horizontally-scrolling telemetry and <b>anchored to the left edge</b> as a pill that never scrolls away. Tapping it opens a <span class="tc">bottom sheet</span> of categories that falls right under the thumb. Same <span class="tc">?cat</span> URL param as desktop — no new data layer. Below: the three states to build.</p>
+  </div>
+
+  <div class="row">
+    <!-- STATE 1: default -->
+    <div class="col">
+      <span class="col__n">01</span>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span>●●● ⌃ ▤</span></div>
+        <div class="top"><span class="wm"><img src="assets/multivrss-ico.png" alt=""><span>MULTIVRSS</span></span><span class="ti">Q</span><span class="ti box">+</span><span class="ti">◐</span></div>
+        <div class="tele-row">
+          <div class="pin"><span class="pin__k">CAT</span><span class="pin__v">ALL</span><span class="pin__c">▾</span></div>
+          <div class="tele"><span class="seg">INDEX: <span class="v">1000</span></span><span class="dot">·</span><span class="seg">TIME: <span class="v">3 MS</span></span><span class="dot">·</span><span class="seg">FILTER: </span><span class="tog on">ALL</span><span class="tmini">·</span><span class="tog">UNREAD</span></div>
+        </div>
+        <div class="river">
+          <div class="daymark"><span class="dm__l">— JUN 19</span><span class="dm__line"></span><span class="dm__a">→</span></div>
+          <span class="item"><span class="idot">○</span><span class="isrc">STANFORD ENC. PHIL.</span><span class="imid">·</span><span class="idate">Jun 19</span><span class="imid">·</span><span class="ititle">Logical Truth</span> <span class="imid">—</span> <span class="ibody">Revised entry by Mario Gómez-Torrente…</span></span>
+          <div class="daymark" style="margin-top:16px"><span class="dm__l">— JUN 18</span><span class="dm__line"></span><span class="dm__a">→</span></div>
+          <span class="item"><span class="idot">○</span><span class="isrc">NYT &gt; WORLD</span><span class="imid">·</span><span class="idate">Jun 18</span><span class="imid">·</span><span class="ititle">Iran War Live Updates: Vance Issues Warning</span> <span class="imid">—</span> <span class="ibody">The vice president delivered a rebuke…</span></span>
+          <span class="item read"><span class="idot">●</span><span class="isrc">ESPN — TOP</span><span class="imid">·</span><span class="idate">Jun 18</span><span class="imid">·</span><span class="ititle">Balogun living World Cup 'dream'</span> <span class="imid">—</span> <span class="ibody">The striker has settled questions…</span></span>
+        </div>
+        <div class="fab">☰</div>
+      </div></div>
+      <div class="col__cap"><b>Default.</b> Pill reads CAT · ALL, dimmed. Always visible, never scrolls off.</div>
+    </div>
+
+    <!-- STATE 2: sheet open -->
+    <div class="col">
+      <span class="col__n">02</span>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span>●●● ⌃ ▤</span></div>
+        <div class="top"><span class="wm"><img src="assets/multivrss-ico.png" alt=""><span>MULTIVRSS</span></span><span class="ti">Q</span><span class="ti box">+</span><span class="ti">◐</span></div>
+        <div class="tele-row">
+          <div class="pin"><span class="pin__k">CAT</span><span class="pin__v">ALL</span><span class="pin__c">▾</span></div>
+          <div class="tele"><span class="seg">INDEX: <span class="v">1000</span></span><span class="dot">·</span><span class="seg">TIME: <span class="v">3 MS</span></span><span class="dot">·</span><span class="seg">FILTER: </span><span class="tog on">ALL</span></div>
+        </div>
+        <div class="river">
+          <div class="daymark"><span class="dm__l">— JUN 19</span><span class="dm__line"></span><span class="dm__a">→</span></div>
+          <span class="item"><span class="idot">○</span><span class="isrc">STANFORD ENC. PHIL.</span><span class="imid">·</span><span class="idate">Jun 19</span><span class="imid">·</span><span class="ititle">Logical Truth</span></span>
+        </div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="shead"><span class="stitle">Filter by category</span><span class="sx">✕</span></div>
+          <div class="slist">
+            <div class="srow on"><span class="srl">ALL</span><span class="srn">1000</span></div>
+            <div class="srow"><span class="srl">MIND</span><span class="srn">42</span></div>
+            <div class="srow"><span class="srl">NEWS</span><span class="srn">117</span></div>
+            <div class="srow"><span class="srl">NEWSLETTERS</span><span class="srn">28</span></div>
+            <div class="srow"><span class="srl">SPORT</span><span class="srn">64</span></div>
+            <div class="srow"><span class="srl">TECH</span><span class="srn">89</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="col__cap"><b>Tap → sheet.</b> Slides up from the bottom; big thumb-friendly rows, current selection highlighted terracotta.</div>
+    </div>
+
+    <!-- STATE 3: active -->
+    <div class="col">
+      <span class="col__n">03</span>
+      <div class="phone"><div class="screen">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span>●●● ⌃ ▤</span></div>
+        <div class="top"><span class="wm"><img src="assets/multivrss-ico.png" alt=""><span>MULTIVRSS</span></span><span class="ti">Q</span><span class="ti box">+</span><span class="ti">◐</span></div>
+        <div class="tele-row">
+          <div class="pin act"><span class="pin__k">CAT</span><span class="pin__v">NEWS</span><span class="pin__c">▾</span></div>
+          <div class="tele"><span class="seg">INDEX: <span class="v">117</span></span><span class="dot">·</span><span class="seg">TIME: <span class="v">2 MS</span></span><span class="dot">·</span><span class="seg">FILTER: </span><span class="tog on">ALL</span></div>
+        </div>
+        <div class="river">
+          <div class="daymark"><span class="dm__l">— JUN 18</span><span class="dm__line"></span><span class="dm__a">→</span></div>
+          <span class="item"><span class="idot">○</span><span class="isrc">NYT &gt; WORLD</span><span class="imid">·</span><span class="idate">Jun 18</span><span class="imid">·</span><span class="ititle">Iran War Live Updates: Vance Issues Warning</span> <span class="imid">—</span> <span class="ibody">The vice president delivered a rebuke…</span></span>
+          <span class="item"><span class="idot">○</span><span class="isrc">THE GUARDIAN</span><span class="imid">·</span><span class="idate">Jun 19</span><span class="imid">·</span><span class="ititle">Obama Presidential Center welcomed to Chicago</span> <span class="imid">—</span> <span class="ibody">Former presidents converged on a lakefront park…</span></span>
+        </div>
+        <div class="fab">☰</div>
+      </div></div>
+      <div class="col__cap"><b>Active.</b> Pill fills terracotta with the chosen category. Tap again to switch; pick ALL to clear.</div>
+    </div>
+  </div>
+</body>
+</html>

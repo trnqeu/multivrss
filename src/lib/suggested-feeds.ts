@@ -75,6 +75,26 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Technology, science, art, and culture news.",
     category: "CULTURE",
   },
+  // SCIENCE
+  {
+    name: "Noema Magazine",
+    url: "https://www.noemamag.com/?feed=noemarss",
+    description: "Long-form essays on technology, philosophy, and society.",
+    category: "SCIENCE",
+  },
+  // HUMOR
+  {
+    name: "SMBC Comics",
+    url: "https://www.smbc-comics.com/comic/rss",
+    description: "Saturday Morning Breakfast Cereal — nerdy, philosophical webcomics.",
+    category: "HUMOR",
+  },
+  {
+    name: "xkcd",
+    url: "https://xkcd.com/atom.xml",
+    description: "A webcomic of romance, sarcasm, math, and language.",
+    category: "HUMOR",
+  },
 ];
 
 export function getSuggestedByCategory(): SuggestedCategory[] {
