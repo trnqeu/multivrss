@@ -33,8 +33,9 @@ async function getSourcesForUser(userId: string) {
 
 export async function getFrontPage(userId: string): Promise<FrontPage> {
     'use cache';
-    cacheLife('minutes');
-    cacheTag(`frontpage:${userId}`);
+    cacheLife('days');
+    const dateKey = new Date().toISOString().split('T')[0];
+    cacheTag(`frontpage:${userId}:${dateKey}`);
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
@@ -42,7 +43,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     }
 
     const sourceIds = sources.map(s => s.id);
-    const sourceName = new Map(sources.map(s => [s.id, s.title]));
+    const sourceName = new Map(sources.map(s => [s.id, s.title ?? '']));
     const sourceCat = new Map(sources.map(s => [s.id, s.category.name]));
     const ownershipFilter = sourceIds.map(id => `sourceId = "${id}"`).join(' OR ');
     const since = Date.now() - RECO_LOOKBACK_DAYS * 86_400_000;
@@ -142,50 +143,81 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         }
     }
 
-    // ── EMPTY STATE FALLBACK: newest unread per source, fetched in parallel ──
-    if (pick.size === 0) {
-        const fallbackSources = sources.slice(0, 10);
-        const fallbackResults = await Promise.all(
-            fallbackSources.map(source =>
-                prisma.feedItem.findMany({
-                    where: { sourceId: source.id, read: false },
-                    orderBy: { pubDate: 'desc' }, take: 1,
-                    select: { id: true, title: true, link: true, content: true, pubDate: true },
-                })
-            )
+    // ── MERGE → RANK → GROUP ──
+    const all = [...pick.values()].sort(byAffinity);
+
+    // forYou: top N globals (highest affinity across all categories)
+    const forYou = all.slice(0, FORYOU_COUNT);
+    const forYouIds = new Set(forYou.map(i => i.id));
+    // Track all picked IDs to avoid duplicates in the random fill
+    const shownIds = new Set(all.map(i => i.id));
+
+    // Group remaining by category (exclude forYou items to prevent duplicates)
+    const byCat = new Map<string, FrontPageItem[]>();
+    for (const it of all) {
+        if (forYouIds.has(it.id)) continue;
+        const arr = byCat.get(it.categoryName) ?? [];
+        arr.push(it);
+        byCat.set(it.categoryName, arr);
+    }
+
+    // Build category → sourceIds map covering ALL user categories, not just those with picks
+    const catSourceIds = new Map<string, string[]>();
+    for (const s of sources) {
+        const arr = catSourceIds.get(s.category.name) ?? [];
+        arr.push(s.id);
+        catSourceIds.set(s.category.name, arr);
+    }
+    // Ensure every category appears in byCat even if it has no affinity/similarity picks
+    for (const cat of catSourceIds.keys()) {
+        if (!byCat.has(cat)) byCat.set(cat, []);
+    }
+
+    // Fill each category up to PER_CATEGORY with random unread items
+    const categoriesNeedingFill = [...byCat.entries()].filter(([, items]) => items.length < PER_CATEGORY);
+    if (categoriesNeedingFill.length > 0) {
+        const fillResults = await Promise.all(
+            categoriesNeedingFill.map(async ([cat, existing]) => {
+                const needed = PER_CATEGORY - existing.length;
+                const sids = catSourceIds.get(cat) ?? [];
+                const candidates = await prisma.feedItem.findMany({
+                    where: {
+                        sourceId: { in: sids },
+                        read: false,
+                        savedAt: null,
+                        id: { notIn: [...shownIds] },
+                    },
+                    take: needed * 4,
+                    orderBy: { pubDate: 'desc' },
+                    select: { id: true, title: true, link: true, content: true, pubDate: true, sourceId: true },
+                });
+                return { cat, existing, needed, candidates };
+            })
         );
 
-        for (let i = 0; i < fallbackSources.length; i++) {
-            const source = fallbackSources[i];
-            for (const f of fallbackResults[i]) {
-                if (pick.has(f.id)) continue;
-                pick.set(f.id, {
+        for (const { cat, existing, needed, candidates } of fillResults) {
+            // Shuffle for daily variety, take only what's needed
+            const shuffled = candidates.sort(() => Math.random() - 0.5).slice(0, needed);
+            for (const f of shuffled) {
+                shownIds.add(f.id);
+                existing.push({
                     id: f.id, link: f.link, title: f.title, content: f.content ?? undefined,
                     pubDate: f.pubDate ? f.pubDate.getTime() : null,
-                    sourceTitle: source.title ?? undefined, categoryName: sourceCat.get(source.id) ?? '—',
+                    sourceTitle: sourceName.get(f.sourceId) ?? undefined,
+                    categoryName: cat,
                     read: false, savedAt: null,
                     reasonType: 'source',
-                    reason: `Fresh from ${source.title}`,
-                    affinity: 50,
+                    reason: `Fresh from ${sourceName.get(f.sourceId) ?? 'your feed'}`,
+                    affinity: 40,
                 });
             }
         }
     }
 
-    // ── MERGE → GROUP → RANK ──
-    const all = [...pick.values()];
-    const byCat = new Map<string, FrontPageItem[]>();
-    for (const it of all) {
-        const arr = byCat.get(it.categoryName) ?? [];
-        arr.push(it);
-        byCat.set(it.categoryName, arr);
-    }
     const sections = [...byCat.entries()]
-        .map(([category, items]) => ({ category, items: items.sort(byAffinity).slice(0, PER_CATEGORY) }))
+        .map(([category, items]) => ({ category, items }))
         .filter(s => s.items.length > 0)
         .sort((a, b) => b.items[0].affinity - a.items[0].affinity);
-
-    const forYou = all.sort(byAffinity).slice(0, FORYOU_COUNT);
 
     return {
         forYou,
