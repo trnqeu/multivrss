@@ -59,6 +59,104 @@ The authenticated product routes currently live inside `src/app/(app)`. The `(ap
 
 ---
 
+## CI/CD Pipeline
+
+### Overview
+
+Two deployment targets, one shared quality gate.
+
+```
+push → dev    →  Deploy to Staging    →  staging.multivrss.com
+push → main   →  Deploy to Production →  multivrss.com
+push → *      →  CI (quality gate, runs on every push and PR)
+```
+
+### Quality Gate (`ci.yml`)
+
+Runs on every push to any branch and on every PR targeting `dev` or `main`. Steps in order:
+
+1. `npm ci` — clean install
+2. `npx prisma generate` — generate the Prisma client
+3. `npx tsc --noEmit` — TypeScript type check
+4. `npm run lint` — ESLint
+5. `npm run test` — Vitest (91 tests across 10 files)
+6. `npm audit --audit-level=critical` — fails only on critical CVEs
+
+`ci.yml` is also a **reusable workflow** (via the `workflow_call` trigger). The staging and production deploy workflows call it with `uses: ./.github/workflows/ci.yml` instead of duplicating the steps.
+
+### Dockerfile (multi-stage)
+
+Three stages, each building on the previous:
+
+**`deps`** — installs `node_modules` only. Kept as a separate stage so Docker can cache it independently of source changes.
+
+**`builder`** — copies source, runs `npx prisma generate`, `npm run build` (Next.js standalone output), then compiles the background worker (`src/workers/feed-sync.ts`) into `dist/worker.js` via `esbuild`.
+
+**`runner`** — minimal production image. Copies only `.next/standalone`, `.next/static`, `public/`, and `dist/worker.js`. No source files, no full `node_modules`.
+
+### Deploy pipeline (staging and production)
+
+Both workflows are identical in structure; they differ only in the target URL, env file, and the production environment which requires a manual reviewer before the deploy job runs.
+
+Each deploy runs **three jobs in sequence**:
+
+**1. `quality-gate`** — calls `ci.yml` (reusable).
+
+**2. `build`** — builds two Docker images and pushes them to GHCR (`ghcr.io/trnqeu/multivrss`):
+- `:SHA-migrator` — the `builder` stage (contains Prisma CLI for running migrations)
+- `:SHA` + `:staging` or `:production` / `:latest` — the `runner` stage (the app)
+
+Layer caching uses `type=gha` (GitHub Actions cache) to avoid rebuilding unchanged layers.
+
+**3. `deploy`** — connects to the server via SSH (`appleboy/ssh-action`) and:
+1. Saves the current SHA to `~/.multivrss_staging_sha` (or `_prod_sha`) for rollback
+2. Authenticates Docker against GHCR using the workflow's `GITHUB_TOKEN`
+3. Pulls both new images
+4. Runs Prisma migrations in an isolated one-shot container on the internal Docker network (schema updated before the new app starts — prevents schema/code mismatch)
+5. Restarts the stack: `docker compose -f docker-compose.prod.yml up -d --remove-orphans`
+6. Health check: polls `GET /api/health` every 5 s for up to 60 s (12 attempts)
+7. On failure: pulls the previous image SHA and redeploys it automatically
+
+### Production stack (`docker-compose.prod.yml`)
+
+Five containers on an isolated `internal` Docker network. No service port is exposed publicly except the app, and even that is loopback-only (Nginx sits in front):
+
+| Container | Image | External port |
+|-----------|-------|---------------|
+| `app` | `ghcr.io/trnqeu/multivrss:SHA` | `127.0.0.1:3001` (Nginx in front) |
+| `worker` | same image, `node dist/worker.js` | none |
+| `db` | `postgres:16-alpine` | none |
+| `meilisearch` | `getmeili/meilisearch:v1.13` | none |
+| `redis` | `redis:8-alpine` | none |
+
+`adminer` is defined but only starts with `--profile tools` — never auto-started.
+
+### GitHub Environments
+
+| Environment | Branch | Secrets | Manual approval |
+|-------------|--------|---------|-----------------|
+| `staging` | `dev` | `SSH_HOST`, `SSH_USER`, `SSH_KEY` | no |
+| `production` | `main` | `SSH_HOST`, `SSH_USER`, `SSH_KEY` | yes (reviewer: trnq-eu) |
+
+### Full flow from `git push` to live
+
+```
+git push dev
+    ↓
+GitHub Actions — Deploy to Staging
+    ├─ quality-gate: tsc, lint, test, audit
+    ├─ build: Docker → GHCR (:SHA-migrator + :SHA)
+    └─ deploy (SSH on 217.160.100.29):
+           ├─ prisma migrate deploy (one-shot container)
+           ├─ docker compose up -d (new SHA)
+           ├─ GET /api/health × 12 (60 s timeout)
+           └─ rollback to previous SHA if health check fails
+```
+
+For production the flow is identical but triggers on `main` and requires manual approval before the deploy job starts.
+
+---
+
 ## Roadmap
 
 ### Done
@@ -133,31 +231,14 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 
 ### DevOps & CI/CD
 
-A structured CI/CD strategy to fully separate local, staging, and production environments.
-
-**Current state:** deploy is a raw SSH script triggered on `dev` push. No automated tests run in CI, no environment separation, no rollback.
-
-#### Environment separation
-
-- [ ] **Three explicit environments** — Local (`localhost:3002`), Staging (`dev` branch → staging server + staging DB), Production (`main` branch → prod server + prod DB)
-- [ ] **Per-environment env files** — `.env.staging` and `.env.production` managed via GitHub Secrets, never SSH-copied or committed
-
-#### CI/CD pipeline (GitHub Actions)
-
-- [ ] **`dev` push → staging deploy** — job sequence: `npm ci` → `npm run test` → `npm run lint` → `tsc --noEmit` → `npm audit` → `prisma migrate deploy` → SSH deploy → health check
-- [ ] **`main` push → production deploy** — same sequence with manual approval gate before SSH deploy to prod
-- [ ] **Prisma migration before code swap** — DB schema updated before new Next.js process starts; prevents schema/code mismatch during deploy
-
-#### Deployment safety
-
-- [ ] **`/api/health` route** — returns `{ status: "ok", db: "ok", meili: "ok" }` checking live DB and Meilisearch connectivity
-- [ ] **Health check post-deploy** — hit `/api/health` after each deploy; fail the workflow (and alert) on non-200
-- [ ] **Rollback on failure** — automated rollback to previous Git SHA if health check fails
-
-#### Secret management
-
-- [ ] **GitHub Secrets for all env vars** — replace SSH-copied `.env` with workflow-injected secrets at deploy time
-- [ ] **Secret rotation procedure** — documented runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
+- [x] **Three explicit environments** — Local (`localhost:3002`), Staging (`dev` → `staging.multivrss.com`), Production (`main` → `multivrss.com`)
+- [x] **`dev` push → staging deploy** — quality gate → Docker build → SSH deploy → health check → auto-rollback
+- [x] **`main` push → production deploy** — same pipeline with manual approval gate before deploy
+- [x] **Prisma migration before code swap** — runs in an isolated one-shot container before `docker compose up`
+- [x] **`/api/health` route** — checks DB, Meilisearch, and Redis connectivity
+- [x] **Rollback on failure** — automated rollback to previous SHA if health check fails after deploy
+- [x] **GitHub Environments** — `staging` (auto) and `production` (manual reviewer) with scoped secrets
+- [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
 
 ### Reading List (Instapaper/Pocket-style)
 
