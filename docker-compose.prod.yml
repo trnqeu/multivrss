@@ -1,6 +1,7 @@
 services:
   app:
-    image: multivrss-app:latest
+    image: ghcr.io/trnqeu/multivrss:${IMAGE_TAG:-latest}
+    pull_policy: always
     restart: unless-stopped
     env_file: ${ENV_FILE:-.env.production}
     ports:
@@ -43,7 +44,8 @@ services:
       - redisdata:/data
 
   worker:
-    image: multivrss-app:latest
+    image: ghcr.io/trnqeu/multivrss:${IMAGE_TAG:-latest}
+    pull_policy: always
     restart: unless-stopped
     command: node dist/worker.js
     env_file: ${ENV_FILE:-.env.production}
