@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
+import FrontPageLink from './FrontPageLink';
 
 // ── Reason component ──
 function Reason({ item }: { item: FrontPageItem }) {
@@ -42,7 +43,7 @@ function Reason({ item }: { item: FrontPageItem }) {
 // ── Category tag ──
 function CatTag({ name }: { name: string }) {
     return (
-        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono">
+        <span className="text-[8.5px] font-extrabold uppercase tracking-[.16em] text-terracotta border border-terracotta/40 px-1.5 py-0.5 font-mono whitespace-nowrap">
             {name}
         </span>
     );
@@ -115,14 +116,13 @@ function ForYouCard({ item }: { item: FrontPageItem }) {
                     {item.reasonType === 'source' ? '◆' : '✦'}
                 </span>
             </div>
-            <a
+            <FrontPageLink
+                itemId={item.id}
                 href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="font-serif text-[15px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
             >
                 {item.title}
-            </a>
+            </FrontPageLink>
             <div className="flex items-center gap-2 mt-auto pt-1">
                 <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono truncate">
                     {item.sourceTitle}
@@ -138,70 +138,78 @@ function ForYouCard({ item }: { item: FrontPageItem }) {
     );
 }
 
-// ── Category column (grid) ──
+// ── Category section ──
 function CategoryColumn({ category, items }: { category: string; items: FrontPageItem[] }) {
     const [lead, ...rest] = items;
     return (
-        <section aria-labelledby={`cat-${category}`}>
-            <div className="flex items-center gap-2 py-2 border-b border-foreground/30 mb-3">
-                <span id={`cat-${category}`} className="text-[10px] font-bold uppercase tracking-widest font-mono">
+        <section aria-labelledby={`cat-${category}`} className="py-6 border-t border-foreground/15">
+            {/* Section header: 13px / 800 / .22em tracking */}
+            <div className="flex items-center gap-3 mb-4">
+                <span id={`cat-${category}`} className="text-[13px] font-extrabold uppercase tracking-[.22em] font-mono whitespace-nowrap">
                     — {category}
                 </span>
-                <span className="text-[9px] text-foreground/30 font-mono ml-auto">{items.length}</span>
+                <span className="flex-1 h-px bg-foreground/15" aria-hidden="true" />
+                <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>
             </div>
 
-            {lead && (
-                <article className="mb-3">
-                    <Reason item={lead} />
-                    <a
-                        href={lead.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-serif text-[15px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline block mt-1"
-                    >
-                        {lead.title}
-                    </a>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono truncate">
-                            {lead.sourceTitle}
-                        </span>
-                        <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                        <PubDate ts={lead.pubDate} />
-                        <div className="ml-auto shrink-0">
-                            <FrontPageItemActions itemId={lead.id} />
-                        </div>
-                    </div>
-                </article>
-            )}
-
-            {rest.length > 0 && (
-                <ul role="list" className="flex flex-col divide-y divide-foreground/10">
-                    {rest.map(item => (
-                        <li key={item.id} className="py-2" role="listitem">
-                            <a
-                                href={item.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-serif text-[12px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block"
-                            >
-                                {item.title}
-                            </a>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[9px] text-foreground/40 font-mono truncate">
-                                    {item.sourceTitle}
-                                </span>
-                                <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                                <PubDate ts={item.pubDate} />
-                                <div className="ml-auto shrink-0">
-                                    <FrontPageItemActions itemId={item.id} />
-                                </div>
+            {/* 1.4fr / 1fr body grid */}
+            <div className="grid gap-9" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
+                {lead && (
+                    <article className="flex flex-col gap-2 items-start">
+                        <Reason item={lead} />
+                        <FrontPageLink
+                            itemId={lead.id}
+                            href={lead.link}
+                            className="font-serif text-[25px] font-semibold leading-[1.14] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
+                        >
+                            {lead.title}
+                        </FrontPageLink>
+                        {lead.content && (
+                            <p className="font-serif text-[14.5px] leading-relaxed text-foreground/50 font-normal max-w-[48ch] line-clamp-3">
+                                {lead.content}
+                            </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-auto">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
+                                {lead.sourceTitle}
+                            </span>
+                            <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
+                            <PubDate ts={lead.pubDate} />
+                            <div className="ml-auto shrink-0">
+                                <FrontPageItemActions itemId={lead.id} />
                             </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+                        </div>
+                    </article>
+                )}
 
-            <div className="mt-3 pt-2 border-t border-foreground/10">
+                {rest.length > 0 && (
+                    <ul role="list" className="flex flex-col border-t border-foreground/15">
+                        {rest.map(item => (
+                            <li key={item.id} className="py-3 border-b border-foreground/[0.08]">
+                                <FrontPageLink
+                                    itemId={item.id}
+                                    href={item.link}
+                                    className="font-serif text-[16px] font-medium leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block mb-1.5"
+                                >
+                                    {item.title}
+                                </FrontPageLink>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
+                                        {item.sourceTitle}
+                                    </span>
+                                    <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
+                                    <PubDate ts={item.pubDate} />
+                                    <div className="ml-auto shrink-0">
+                                        <FrontPageItemActions itemId={item.id} />
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            <div className="mt-4 pt-2">
                 <Link
                     href={`?view=river&cat=${encodeURIComponent(category)}`}
                     className="text-[9px] font-bold uppercase tracking-widest font-mono text-terracotta hover:text-foreground transition-colors"
@@ -259,12 +267,9 @@ export default function FrontPage({ data }: { data: FrontPageData }) {
                         </section>
                     )}
 
-                    {/* Category grid */}
+                    {/* Category sections */}
                     {sections.length > 0 && (
-                        <div
-                            className="grid gap-6 md:gap-8 border-t border-foreground/15 pt-4"
-                            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(240px, 1fr))` }}
-                        >
+                        <div className="flex flex-col">
                             {sections.map(s => (
                                 <CategoryColumn key={s.category} category={s.category} items={s.items} />
                             ))}
