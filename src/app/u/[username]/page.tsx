@@ -2,9 +2,9 @@ import { getCategories } from "@/app/actions";
 import { connection } from 'next/server';
 import SearchBar from "@/components/SearchBar";
 import PageHeader from "@/components/PageHeader";
-import EmptyStream from "@/components/EmptyStream";
 import FeedViewSwitch from "@/components/FeedViewSwitch";
 import FrontPage from "@/components/FrontPage";
+import OnboardingEmptyState from "@/components/OnboardingEmptyState";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -39,11 +39,18 @@ export default async function Home({
             {sourceCount > 0 && <FeedViewSwitch view={view} />}
             <main id="main-content" className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden scroll-smooth bg-background">
                 {sourceCount === 0 ? (
-                    <EmptyStream variant="no-sources" />
+                    <OnboardingEmptyState username={session?.user.username ?? ''} />
                 ) : view === 'river' ? (
                     <SearchBar />
                 ) : (
-                    <FrontPage data={await getFrontPage(userId)} />
+                    <FrontPage
+                        data={await getFrontPage(userId)}
+                        allTags={await prisma.tag.findMany({
+                            where: { userId },
+                            select: { id: true, name: true },
+                            orderBy: { name: 'asc' },
+                        })}
+                    />
                 )}
             </main>
         </>

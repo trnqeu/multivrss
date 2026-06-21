@@ -28,7 +28,7 @@ export default function PageHeader({ categories, username, email }: Props) {
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
     const [inputValue, setInputValue] = useState(searchParams.get('q') ?? '');
-    const [showAdd, setShowAdd] = useState(false);
+    const [showAdd, setShowAdd] = useState(() => searchParams.get('addSource') === '1');
     const [showSaveUrl, setShowSaveUrl] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -54,6 +54,17 @@ export default function PageHeader({ categories, username, email }: Props) {
         setShowSaveUrl(false);
         lastUrlTogglerRef.current?.focus();
     }
+
+    // Clean up ?addSource=1 from the URL after the panel has opened
+    useEffect(() => {
+        if (searchParams.get('addSource') === '1') {
+            const params = new URLSearchParams(searchParams.toString());
+            params.delete('addSource');
+            const qs = params.toString();
+            router.replace(window.location.pathname + (qs ? `?${qs}` : ''));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Move focus into the URL input when popover opens
     useEffect(() => {
