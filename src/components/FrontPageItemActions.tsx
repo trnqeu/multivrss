@@ -1,57 +1,80 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { markAsRead, saveFeedItem } from '@/app/actions';
+import { useState, useTransition, useCallback } from 'react';
+import { saveFeedItem, unsaveFeedItem } from '@/app/actions';
+import { Bookmark } from '@/components/icons/Bookmark';
+import AssignTagsModal from '@/components/AssignTagsModal';
+
+type TagVM = { id: string; name: string };
 
 type Props = {
     itemId: string;
+    allTags: TagVM[];
 };
 
-export default function FrontPageItemActions({ itemId }: Props) {
-    const [read, setRead] = useState(false);
+export default function FrontPageItemActions({ itemId, allTags }: Props) {
     const [saved, setSaved] = useState(false);
-    const [isPending, startTransition] = useTransition();
-
-    function handleRead() {
-        if (read) return;
-        setRead(true);
-        startTransition(async () => {
-            await markAsRead(itemId);
-        });
-    }
+    const [tags, setTags] = useState<TagVM[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [, startTransition] = useTransition();
 
     function handleSave() {
-        if (saved) return;
-        setSaved(true);
+        const next = !saved;
+        setSaved(next);
         startTransition(async () => {
-            await saveFeedItem(itemId);
+            if (next) await saveFeedItem(itemId);
+            else await unsaveFeedItem(itemId);
         });
     }
 
+    const handleTagsApplied = useCallback((_id: string, newTags: TagVM[]) => {
+        setTags(newTags);
+    }, []);
+
     return (
-        <div className="flex items-center gap-1">
+        <div className="inline-flex items-center gap-2">
+            {tags.length > 0 && (
+                <span className="inline-flex gap-1">
+                    {tags.map(tag => (
+                        <span
+                            key={tag.id}
+                            className="font-mono text-[9px] uppercase border border-current text-terracotta px-1 py-0.5 leading-none"
+                        >
+                            #{tag.name}
+                        </span>
+                    ))}
+                </span>
+            )}
             <button
-                onClick={handleRead}
-                disabled={read || isPending}
-                aria-label={read ? 'Marked as read' : 'Mark as read'}
-                title={read ? 'Marked as read' : 'Mark as read'}
-                className={`text-[10px] leading-none transition-colors bg-transparent border-none p-0.5 ${
-                    read ? 'text-terracotta' : 'text-foreground/20 hover:text-foreground/60'
-                } disabled:cursor-default`}
-            >
-                ●
-            </button>
-            <button
+                type="button"
                 onClick={handleSave}
-                disabled={saved || isPending}
-                aria-label={saved ? 'Saved' : 'Save'}
-                title={saved ? 'Saved' : 'Save'}
-                className={`text-[10px] leading-none transition-colors bg-transparent border-none p-0.5 ${
-                    saved ? 'text-terracotta' : 'text-foreground/20 hover:text-foreground/60'
-                } disabled:cursor-default`}
+                aria-label={saved ? 'Remove from saved' : 'Save'}
+                title={saved ? 'Remove from saved' : 'Save'}
+                className="bg-transparent border-0 px-0 py-0 cursor-pointer leading-none"
             >
-                ◇
+                <Bookmark
+                    filled={saved}
+                    size={12}
+                    className={saved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+                />
             </button>
+            <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/30 hover:text-foreground px-1 py-0.5 cursor-pointer leading-none transition-colors whitespace-nowrap"
+            >
+                + TAG
+            </button>
+            {modalOpen && (
+                <AssignTagsModal
+                    open={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                    itemId={itemId}
+                    initialTags={tags}
+                    allTags={allTags}
+                    onTagsApplied={handleTagsApplied}
+                />
+            )}
         </div>
     );
 }

@@ -90,21 +90,21 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
             </span>
         )}
         <button
-            type="button"
-            onClick={() => setModalOpen(true)}
-            className="ml-1 bg-transparent border-2 border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 cursor-pointer active:translate-x-[1px] active:translate-y-[1px] transition-all leading-none"
-        >
-            + TAG
-        </button>
-        <button
             onClick={handleSave}
             aria-label={isSaved ? 'Remove from saved' : 'Save'}
-            className={`group/save bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2 transition-opacity opacity-100`}
+            className="bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2"
         >
             <Bookmark
                 filled={isSaved}
                 className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
             />
+        </button>
+        <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="ml-1 bg-transparent border border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 cursor-pointer leading-none transition-colors"
+        >
+            + TAG
         </button>
         {modalOpen && (
             <AssignTagsModal
