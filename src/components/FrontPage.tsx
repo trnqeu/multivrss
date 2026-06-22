@@ -76,11 +76,8 @@ function Masthead() {
     }).toUpperCase();
 
     return (
-        <div className="border-b-2 border-foreground pb-3 mb-0">
-            <h1 className="text-3xl md:text-4xl">
-                THE FRONT PAGE
-            </h1>
-            <div className="h-[3px] bg-foreground my-2" />
+        <div className="border-b border-foreground/20 pb-3 mb-0">
+            <h1 className="sr-only">Front Page</h1>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold uppercase tracking-widest text-foreground/50 font-mono">
                 <span>Your Edition</span>
                 <span aria-hidden="true">·</span>
