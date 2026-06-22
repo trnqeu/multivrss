@@ -69,45 +69,6 @@ function PubDate({ ts }: { ts: number | null | undefined }) {
     );
 }
 
-// ── Masthead ──
-function Masthead() {
-    const today = new Date().toLocaleDateString('en-US', {
-        weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
-    }).toUpperCase();
-
-    return (
-        <div className="border-b border-foreground/20 pb-3 mb-0">
-            <h1 className="sr-only">Front Page</h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-bold uppercase tracking-widest text-foreground/50 font-mono">
-                <span>Your Edition</span>
-                <span aria-hidden="true">·</span>
-                <span>{today}</span>
-                <span aria-hidden="true">·</span>
-                <span className="text-terracotta">Assembled from what you read &amp; saved</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono">
-                <span><b className="text-terracotta">◆</b> From sources you follow</span>
-                <span aria-hidden="true">·</span>
-                <span><b className="text-terracotta">✦</b> Similar to your reads &amp; saves</span>
-            </div>
-        </div>
-    );
-}
-
-// ── Telemetry row ──
-function Telemetry({ stats }: { stats: FrontPageData['stats'] }) {
-    return (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 border-b border-foreground/15 text-[9px] font-bold uppercase tracking-widest text-foreground/40 font-mono">
-            <span>Curated from</span>
-            <span className="text-foreground">{stats.read} read</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-foreground">{stats.saved} saved</span>
-            <span aria-hidden="true">·</span>
-            <span>Across</span>
-            <span className="text-foreground">{stats.categories} categories</span>
-        </div>
-    );
-}
 
 // ── Strength meter — 3 ticks showing affinity ──
 function StrengthMeter({ affinity }: { affinity: number }) {
@@ -319,17 +280,16 @@ function EmptyFrontPage() {
 
 // ── Main FrontPage component ──
 export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
-    const { forYou, sections, stats } = data;
+    const { forYou, sections } = data;
     const isEmpty = forYou.length === 0 && sections.length === 0;
 
     return (
         <div className="px-4 md:px-7 py-4 max-w-[1400px] mx-auto">
-            <Masthead />
+            <h1 className="sr-only">Front Page</h1>
             {isEmpty ? (
                 <EmptyFrontPage />
             ) : (
                 <>
-                    <Telemetry stats={stats} />
                     <ForYouStrip items={forYou} allTags={allTags} />
                     {sections.length > 0 && (
                         <div className="flex flex-col">
