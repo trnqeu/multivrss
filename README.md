@@ -240,6 +240,16 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 - [x] **GitHub Environments** — `staging` (auto) and `production` (manual reviewer) with scoped secrets
 - [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
 
+### Self-Hosting
+
+Steps to make the repo public and let users run their own instance.
+
+- [ ] **Git history audit** — scan full history for committed secrets (`trufflehog filesystem .`); rewrite with `git filter-repo` if anything is found
+- [ ] **`.env.example`** — document all required env vars with placeholder values and comments on where to obtain each (OAuth credentials, Resend API key, etc.)
+- [ ] **All-in-one `docker-compose.yml`** — add an `app` service so `docker compose up` starts DB + Meilisearch + Next.js together; current compose assumes the app runs outside Docker
+- [ ] **Init entrypoint** — run `prisma migrate deploy` + `prisma generate` automatically on first container start
+- [ ] **Self-hosting guide in README** — prerequisites, clone, copy env, `docker compose up`, first login
+
 ### Reading List (Instapaper/Pocket-style)
 
 - [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)

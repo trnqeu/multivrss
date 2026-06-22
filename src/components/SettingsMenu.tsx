@@ -132,7 +132,10 @@ export default function SettingsMenu({
                     </div>
 
                     <button
-                        onClick={() => signOut({ callbackUrl: '/login' })}
+                        onClick={() => {
+                            try { new BroadcastChannel('auth').postMessage('logout'); } catch { /* unsupported */ }
+                            signOut({ callbackUrl: '/' });
+                        }}
                         className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-terracotta hover:bg-terracotta hover:text-background transition-colors cursor-pointer"
                     >
                         ⊘ LOGOUT
