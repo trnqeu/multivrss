@@ -116,6 +116,7 @@ Layer caching uses `type=gha` (GitHub Actions cache) to avoid rebuilding unchang
 5. Restarts the stack: `docker compose -f docker-compose.prod.yml up -d --remove-orphans`
 6. Health check: polls `GET /api/health` every 5 s for up to 60 s (12 attempts)
 7. On failure: pulls the previous image SHA and redeploys it automatically
+8. Remember to cancel old SHA images?
 
 ### Production stack (`docker-compose.prod.yml`)
 
@@ -240,7 +241,7 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 - [x] **GitHub Environments** — `staging` (auto) and `production` (manual reviewer) with scoped secrets
 - [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
 
-### Self-Hosting
+### Self-Hosting _(optional / not yet decided)_
 
 Steps to make the repo public and let users run their own instance.
 
