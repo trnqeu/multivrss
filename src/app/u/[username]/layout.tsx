@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AutoSync from '@/components/AutoSync';
+import SessionWatcher from '@/components/SessionWatcher';
 import MobileFloatingNav from '@/components/MobileFloatingNav';
 
 export default async function UserLayout({
@@ -26,6 +27,7 @@ export default async function UserLayout({
     return (
         <MobileSidebarProvider>
             <AutoSync />
+            <SessionWatcher />
             <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
                 <SidebarContainer>
                     <Sidebar username={session.user.username} />
