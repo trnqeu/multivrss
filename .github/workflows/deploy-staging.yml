@@ -96,7 +96,7 @@ jobs:
               --network multivrss_internal \
               --env-file ~/multivrss/.env.staging \
               "$IMAGE:$SHA-migrator" \
-              npx prisma migrate deploy
+              node node_modules/prisma/build/index.js migrate deploy
 
             # Deploy new stack
             cd ~/multivrss
