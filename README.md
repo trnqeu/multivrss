@@ -68,93 +68,114 @@ Two deployment targets, one shared quality gate.
 ```
 push → dev    →  Deploy to Staging    →  staging.multivrss.com
 push → main   →  Deploy to Production →  multivrss.com
-push → *      →  CI (quality gate, runs on every push and PR)
+PR   → dev/main  →  CI (quality gate only, no deploy)
 ```
 
 ### Quality Gate (`ci.yml`)
 
-Runs on every push to any branch and on every PR targeting `dev` or `main`. Steps in order:
+Runs on every PR targeting `dev` or `main`, and is called internally by both deploy workflows via `workflow_call`. Steps in order:
 
 1. `npm ci` — clean install
 2. `npx prisma generate` — generate the Prisma client
 3. `npx tsc --noEmit` — TypeScript type check
 4. `npm run lint` — ESLint
-5. `npm run test` — Vitest (91 tests across 10 files)
+5. `npm run test` — Vitest unit tests
 6. `npm audit --audit-level=critical` — fails only on critical CVEs
 
-`ci.yml` is also a **reusable workflow** (via the `workflow_call` trigger). The staging and production deploy workflows call it with `uses: ./.github/workflows/ci.yml` instead of duplicating the steps.
+`ci.yml` has no standalone `push` trigger. It runs either on PRs or when called by a deploy workflow — never duplicated.
 
 ### Dockerfile (multi-stage)
 
-Three stages, each building on the previous:
+Three stages:
 
-**`deps`** — installs `node_modules` only. Kept as a separate stage so Docker can cache it independently of source changes.
+**`deps`** — installs `node_modules` (all dependencies). Kept separate so Docker caches it independently of source changes.
 
-**`builder`** — copies source, runs `npx prisma generate`, `npm run build` (Next.js standalone output), then compiles the background worker (`src/workers/feed-sync.ts`) into `dist/worker.js` via `esbuild`.
+**`builder`** — copies source, runs `npx prisma generate` + `npm run build` (Next.js standalone output), then bundles the background worker (`src/workers/feed-sync.ts`) into a single `dist/worker.js` via esbuild. All worker dependencies except `@prisma/client` are bundled into the file; `@prisma/client` is left external because it requires native binaries and is already present in the standalone output.
 
 **`runner`** — minimal production image. Copies only `.next/standalone`, `.next/static`, `public/`, and `dist/worker.js`. No source files, no full `node_modules`.
 
 ### Deploy pipeline (staging and production)
 
-Both workflows are identical in structure; they differ only in the target URL, env file, and the production environment which requires a manual reviewer before the deploy job runs.
+Both workflows are identical in structure. They differ only in the branch, env file, and the floating image tags pushed (`:staging` vs `:production` / `:latest`).
 
 Each deploy runs **three jobs in sequence**:
 
 **1. `quality-gate`** — calls `ci.yml` (reusable).
 
 **2. `build`** — builds two Docker images and pushes them to GHCR (`ghcr.io/trnqeu/multivrss`):
-- `:SHA-migrator` — the `builder` stage (contains Prisma CLI for running migrations)
-- `:SHA` + `:staging` or `:production` / `:latest` — the `runner` stage (the app)
+- `:SHA-migrator` — the `builder` stage, used only to run `prisma migrate deploy`
+- `:SHA` + `:staging` or `:production` / `:latest` — the `runner` stage (the actual app)
 
 Layer caching uses `type=gha` (GitHub Actions cache) to avoid rebuilding unchanged layers.
 
-**3. `deploy`** — connects to the server via SSH (`appleboy/ssh-action`) and:
-1. Saves the current SHA to `~/.multivrss_staging_sha` (or `_prod_sha`) for rollback
-2. Authenticates Docker against GHCR using the workflow's `GITHUB_TOKEN`
-3. Pulls both new images
-4. Runs Prisma migrations in an isolated one-shot container on the internal Docker network (schema updated before the new app starts — prevents schema/code mismatch)
-5. Restarts the stack: `docker compose -f docker-compose.prod.yml up -d --remove-orphans`
-6. Health check: polls `GET /api/health` every 5 s for up to 60 s (12 attempts)
-7. On failure: pulls the previous image SHA and redeploys it automatically
-8. Remember to cancel old SHA images?
+**3. `deploy`** — connects to the server via SSH (`appleboy/ssh-action`) and runs:
+1. `git fetch origin <branch> && git checkout origin/<branch> -- docker-compose.prod.yml` — syncs the compose file from git on every deploy to prevent server drift
+2. Saves the current SHA to `~/.multivrss_staging_sha` (or `_prod_sha`) for rollback
+3. Authenticates Docker against GHCR using the workflow's `GITHUB_TOKEN`
+4. Pulls both new images explicitly
+5. Runs Prisma migrations in an isolated one-shot container on the internal Docker network — schema is always updated before the new app starts, preventing schema/code mismatch
+6. `docker compose pull app worker` — pulls new images for the two services that change on each deploy
+7. `docker compose up -d --remove-orphans --force-recreate` — recreates all containers, guaranteeing the new image is used
+8. Health check: polls `GET http://localhost:3001/api/health` every 5 s for up to 60 s (12 attempts). Uses the internal port directly — no DNS, no Nginx, no TLS in the path
+9. On failure: pulls the previous SHA image and redeploys it with `--force-recreate`
+
+### `/api/health` endpoint
+
+`GET /api/health` checks all three backing services in parallel via `Promise.allSettled`. Returns HTTP 200 `{"status":"ok"}` only when all pass; returns HTTP 503 `{"status":"degraded", ...}` if any fail. The deploy script matches on the `"ok"` string — a degraded response triggers rollback.
+
+| Field | Check |
+|-------|-------|
+| `db` | `prisma.$queryRaw\`SELECT 1\`` |
+| `meili` | `meili.health()` |
+| `redis` | `redis.ping()` |
 
 ### Production stack (`docker-compose.prod.yml`)
 
-Five containers on an isolated `internal` Docker network. No service port is exposed publicly except the app, and even that is loopback-only (Nginx sits in front):
+Five containers on an isolated `internal` Docker network. No service port is publicly exposed; the app listens on loopback only, with Nginx in front:
 
-| Container | Image | External port |
-|-----------|-------|---------------|
-| `app` | `ghcr.io/trnqeu/multivrss:SHA` | `127.0.0.1:3001` (Nginx in front) |
+| Container | Image | Host binding |
+|-----------|-------|-------------|
+| `app` | `ghcr.io/trnqeu/multivrss:SHA` | `127.0.0.1:3001` |
 | `worker` | same image, `node dist/worker.js` | none |
 | `db` | `postgres:16-alpine` | none |
 | `meilisearch` | `getmeili/meilisearch:v1.13` | none |
 | `redis` | `redis:8-alpine` | none |
 
-`adminer` is defined but only starts with `--profile tools` — never auto-started.
+`adminer` is defined but only starts with `--profile tools` — never auto-started in normal operation.
 
-### GitHub Environments
+### GitHub Secrets required
 
-| Environment | Branch | Secrets | Manual approval |
-|-------------|--------|---------|-----------------|
-| `staging` | `dev` | `SSH_HOST`, `SSH_USER`, `SSH_KEY` | no |
-| `production` | `main` | `SSH_HOST`, `SSH_USER`, `SSH_KEY` | yes (reviewer: trnq-eu) |
+| Secret | Used by |
+|--------|---------|
+| `SSH_HOST` | staging + production deploy |
+| `SSH_USER` | staging + production deploy |
+| `SSH_KEY` | staging + production deploy |
+| `GITHUB_TOKEN` | auto-provided by Actions (GHCR push + pull) |
 
 ### Full flow from `git push` to live
 
 ```
 git push dev
     ↓
-GitHub Actions — Deploy to Staging
-    ├─ quality-gate: tsc, lint, test, audit
-    ├─ build: Docker → GHCR (:SHA-migrator + :SHA)
-    └─ deploy (SSH on 217.160.100.29):
-           ├─ prisma migrate deploy (one-shot container)
-           ├─ docker compose up -d (new SHA)
-           ├─ GET /api/health × 12 (60 s timeout)
-           └─ rollback to previous SHA if health check fails
+GitHub Actions — Deploy to Staging (single workflow run)
+    ├─ quality-gate: tsc, lint, test, npm audit
+    ├─ build: Docker multi-stage → GHCR (:SHA-migrator + :SHA + :staging)
+    └─ deploy (SSH):
+           ├─ sync docker-compose.prod.yml from git
+           ├─ prisma migrate deploy (isolated one-shot container)
+           ├─ docker compose pull app worker
+           ├─ docker compose up -d --force-recreate
+           ├─ GET http://localhost:3001/api/health × 12 (60 s)
+           └─ on failure: --force-recreate with previous SHA
 ```
 
-For production the flow is identical but triggers on `main` and requires manual approval before the deploy job starts.
+For production the flow is identical but triggers on `main`.
+
+### Known limitations
+
+- **Brief downtime on deploy** — `--force-recreate` stops the app container before starting the new one. Typical gap is 5–15 s depending on Next.js cold-start time. Zero-downtime would require a blue/green swap at the Nginx level.
+- **Migration rollback asymmetry** — Prisma migrations run before the new container starts. If the deploy fails and rolls back to the previous code, the database schema stays at the newer version. All migrations must therefore be backwards-compatible with the previous code version (additive-only: no column renames, no drops).
+- **Rollback unavailable on first deploy** — `PREV_SHA` is read from `~/.multivrss_staging_sha`. If the file does not exist (first ever deploy on a fresh server), rollback is skipped and the script exits 1 with no recovery.
 
 ---
 

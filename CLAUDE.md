@@ -233,7 +233,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - Alternate env file: `ENV_FILE=.env.staging docker compose -f docker-compose.prod.yml up -d`
 - Adminer: `docker compose -f docker-compose.prod.yml --profile tools up -d adminer`
 
-**Staging CI deploy:** `npm ci` → `npx prisma generate` → `npx tsc --noEmit` → `npm run lint` → SSH deploy into `~/multivrss` on `dev` branch push.
+**CI/CD pipeline:** push to `dev` → single workflow run: quality-gate (tsc, lint, test, audit) → Docker build → GHCR push → SSH deploy (sync compose file from git, prisma migrate, docker compose pull + up --force-recreate, health check on `localhost:3001`, auto-rollback on failure). Push to `main` runs the same pipeline targeting production. PRs trigger quality-gate only (no deploy).
 
 ## Environment Variables
 
