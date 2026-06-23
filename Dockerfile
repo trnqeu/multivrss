@@ -14,7 +14,7 @@ RUN npx esbuild src/workers/feed-sync.ts \
     --bundle \
     --platform=node \
     --target=node24 \
-    --packages=external \
+    --external:@prisma/client \
     --outfile=dist/worker.js
 
 FROM node:24-alpine AS runner
