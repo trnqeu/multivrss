@@ -73,6 +73,11 @@ jobs:
           script: |
             set -euo pipefail
 
+            # Sync compose file from git to prevent drift
+            cd ~/multivrss
+            git fetch origin dev --depth=1
+            git checkout origin/dev -- docker-compose.prod.yml
+
             # Save current SHA for rollback
             PREV_SHA=$(cat ~/.multivrss_staging_sha 2>/dev/null || echo "")
             echo "$SHA" > ~/.multivrss_staging_sha
