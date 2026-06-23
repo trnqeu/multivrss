@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: migrator
+          target: builder
           push: true
           tags: ${{ env.IMAGE }}:${{ github.sha }}-migrator
           cache-from: type=gha
@@ -96,7 +96,7 @@ jobs:
               --network multivrss_internal \
               --env-file ~/multivrss/.env.staging \
               "$IMAGE:$SHA-migrator" \
-              node node_modules/prisma/build/index.js migrate deploy
+              npx prisma migrate deploy
 
             # Deploy new stack
             cd ~/multivrss
