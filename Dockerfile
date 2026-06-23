@@ -19,7 +19,6 @@ RUN npx esbuild src/workers/feed-sync.ts \
 
 FROM node:24-alpine AS migrator
 WORKDIR /app
-COPY --from=deps /app/node_modules/.bin/prisma* ./node_modules/.bin/
 COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
 COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 COPY prisma ./prisma
