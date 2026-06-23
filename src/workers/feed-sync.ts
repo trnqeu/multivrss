@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { Worker } from 'bullmq'
 import { connection, type FeedSyncJobData } from '@/lib/queue'
 import { syncFeed } from '@/lib/rss'
