@@ -17,6 +17,14 @@ RUN npx esbuild src/workers/feed-sync.ts \
     --external:@prisma/client \
     --outfile=dist/worker.js
 
+FROM node:24-alpine AS migrator
+WORKDIR /app
+COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production

@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: builder
+          target: migrator
           push: true
           tags: ${{ env.IMAGE }}:${{ github.sha }}-migrator
           cache-from: type=gha
@@ -58,6 +58,8 @@ jobs:
     name: Deploy to Production
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
@@ -125,3 +127,12 @@ jobs:
               docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate
             fi
             exit 1
+
+      - name: Cleanup old GHCR images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: multivrss
+          package-type: container
+          min-versions-to-keep: 10
+          ignore-versions: "^(staging|production|latest)$"
+        continue-on-error: true
