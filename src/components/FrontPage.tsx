@@ -155,7 +155,7 @@ function ForYouStrip({ items: initialItems, allTags }: { items: FrontPageItem[];
             </div>
             <div
                 className="grid gap-px bg-foreground/15"
-                style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, minmax(0, 1fr))` }}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}
             >
                 {items.map(item => (
                     <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
@@ -194,7 +194,7 @@ function CategoryColumn({ category, items: initialItems, allTags }: { category: 
                 <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>
             </div>
 
-            <div className="grid gap-9" style={{ gridTemplateColumns: '1.4fr 1fr' }}>
+            <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-9 items-start">
                 {lead && (
                     <article className="flex flex-col gap-2 items-start">
                         <Reason item={lead} />
