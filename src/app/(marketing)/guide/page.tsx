@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -248,11 +247,10 @@ export default function GuidePage() {
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="SIDEBAR · NAV_ROOT" />
                 <div className="flex items-center justify-center p-0">
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src="/guide/img/sidebar.png"
                     alt="Sidebar with categories and add buttons"
-                    width={600}
-                    height={800}
                     className="w-auto max-h-[520px] max-w-full block"
                     style={{ padding: "22px" }}
                   />
@@ -279,13 +277,8 @@ export default function GuidePage() {
             media={
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="YOUR EDITION · FOR YOU" />
-                <Image
-                  src="/guide/img/frontpage.png"
-                  alt="The Front Page with For You cards"
-                  width={900}
-                  height={600}
-                  className="w-full h-auto block"
-                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/guide/img/frontpage.png" alt="The Front Page with For You cards" className="w-full h-auto block" />
               </div>
             }
             mediaFirst={false}
@@ -311,13 +304,8 @@ export default function GuidePage() {
             media={
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="SAVED · ASSIGN_TAGS" />
-                <Image
-                  src="/guide/img/tags-modal.png"
-                  alt="Assign tags modal over the saved list"
-                  width={900}
-                  height={600}
-                  className="w-full h-auto block"
-                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/guide/img/tags-modal.png" alt="Assign tags modal over the saved list" className="w-full h-auto block" />
               </div>
             }
             mediaFirst
@@ -344,13 +332,8 @@ export default function GuidePage() {
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="TOP BAR · FILTER" />
                 <div className="flex items-center justify-center p-6">
-                  <Image
-                    src="/guide/img/cmd-search.png"
-                    alt="Filter the stream search field"
-                    width={700}
-                    height={200}
-                    className="w-full h-auto block"
-                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/guide/img/cmd-search.png" alt="Filter the stream search field" className="w-full h-auto block" />
                 </div>
               </div>
             }
@@ -378,13 +361,8 @@ export default function GuidePage() {
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="TOP BAR · SYNC" />
                 <div className="flex items-center justify-center p-6">
-                  <Image
-                    src="/guide/img/cmd-sync.png"
-                    alt="Sync button in the top bar"
-                    width={700}
-                    height={200}
-                    className="w-full h-auto block"
-                  />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/guide/img/cmd-sync.png" alt="Sync button in the top bar" className="w-full h-auto block" />
                 </div>
               </div>
             }
@@ -428,11 +406,13 @@ export default function GuidePage() {
             media={
               <div className="border-2 border-black bg-[#efeae0]">
                 <ShotBar label="MOBILE · RESPONSIVE" />
+                {/* eslint-disable @next/next/no-img-element */}
                 <div className="flex gap-5 items-center justify-center p-6 bg-[#1d1b18] max-[560px]:flex-wrap">
-                  <Image src="/guide/img/mobile-front.png" alt="Mobile front page" width={200} height={360} className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
-                  <Image src="/guide/img/mobile-river.png" alt="Mobile river" width={200} height={360} className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
-                  <Image src="/guide/img/mobile-cat.png" alt="Mobile category view" width={200} height={360} className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
+                  <img src="/guide/img/mobile-front.png" alt="Mobile front page" className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
+                  <img src="/guide/img/mobile-river.png" alt="Mobile river" className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
+                  <img src="/guide/img/mobile-cat.png" alt="Mobile category view" className="h-[360px] w-auto block border border-white/14 max-[560px]:h-[280px]" />
                 </div>
+                {/* eslint-enable @next/next/no-img-element */}
               </div>
             }
             mediaFirst
