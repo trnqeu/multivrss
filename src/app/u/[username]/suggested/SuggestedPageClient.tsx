@@ -185,42 +185,6 @@ export default function SuggestedPageClient({
         ))}
       </div>
 
-      {/* Staff Pick */}
-      <div className="border-t-2 border-foreground p-6 md:p-8">
-        <div className="max-w-3xl mx-auto border-2 border-foreground p-6 md:p-8 flex flex-col md:flex-row gap-6">
-          <div className="flex-1 flex flex-col gap-4">
-            <span className="label-system text-[10px] text-terracotta border border-terracotta px-2 py-0.5 w-fit">
-              STAFF PICK — RECOMMENDED
-            </span>
-            <h2 className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight m-0 leading-tight">
-              The Low-Level Logs
-            </h2>
-            <p className="font-mono text-xs text-foreground/55 leading-relaxed m-0">
-              Deep technical essays on systems programming, kernel internals, and
-              low-level software engineering. Hand-picked by the MultivRSS team.
-            </p>
-            <div className="flex items-center gap-3 mt-2">
-              <button
-                type="button"
-                className="bg-terracotta text-background border-2 border-terracotta px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-background hover:text-terracotta transition-colors active:translate-x-[2px] active:translate-y-[2px]"
-              >
-                Subscribe to Logs
-              </button>
-              <button
-                type="button"
-                className="bg-transparent text-foreground border-2 border-foreground px-5 py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors active:translate-x-[2px] active:translate-y-[2px]"
-              >
-                Preview
-              </button>
-            </div>
-          </div>
-          <div className="hidden md:flex w-48 h-48 border-2 border-foreground items-center justify-center bg-foreground/5">
-            <span className="font-mono text-[10px] text-foreground/30 uppercase tracking-widest">
-              [code]
-            </span>
-          </div>
-        </div>
-      </div>
     </main>
   );
 }
