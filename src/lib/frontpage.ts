@@ -11,7 +11,7 @@ export type FrontPageItem = SearchHit & {
 };
 
 export type FrontPage = {
-    forYou: FrontPageItem[];
+    forYouPool: FrontPageItem[];
     sections: { category: string; items: FrontPageItem[] }[];
     stats: { read: number; saved: number; categories: number };
 };
@@ -19,7 +19,7 @@ export type FrontPage = {
 const RECO_LOOKBACK_DAYS = 30;
 const SEED_LIMIT = 12;
 const PER_CATEGORY = 5;
-const FORYOU_COUNT = 4;
+const FORYOU_POOL_SIZE = 12;
 
 async function getSourcesForUser(userId: string) {
     'use cache';
@@ -39,7 +39,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
-        return { forYou: [], sections: [], stats: { read: 0, saved: 0, categories: 0 } };
+        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0 } };
     }
 
     const sourceIds = sources.map(s => s.id);
@@ -146,9 +146,9 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     // ── MERGE → RANK → GROUP ──
     const all = [...pick.values()].sort(byAffinity);
 
-    // forYou: top N globals (highest affinity across all categories)
-    const forYou = all.slice(0, FORYOU_COUNT);
-    const forYouIds = new Set(forYou.map(i => i.id));
+    // forYouPool: top N globals (highest affinity across all categories), randomized client-side
+    const forYouPool = all.slice(0, FORYOU_POOL_SIZE);
+    const forYouIds = new Set(forYouPool.map(i => i.id));
     // Track all picked IDs to avoid duplicates in the random fill
     const shownIds = new Set(all.map(i => i.id));
 
@@ -220,7 +220,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         .sort((a, b) => b.items[0].affinity - a.items[0].affinity);
 
     return {
-        forYou,
+        forYouPool,
         sections,
         stats: { read: readCount, saved: savedCount, categories: sections.length },
     };

@@ -13,6 +13,18 @@ export type SuggestedCategory = {
 export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   // TECH
   {
+    name: "NPR Technology",
+    url: "https://feeds.npr.org/1019/rss.xml",
+    description: "Technology news and analysis from NPR.",
+    category: "TECH",
+  },
+  {
+    name: "Kagi News — Tech",
+    url: "https://news.kagi.com/tech.xml",
+    description: "Tech news curated by Kagi Search.",
+    category: "TECH",
+  },
+  {
     name: "Hacker News",
     url: "https://news.ycombinator.com/rss",
     description: "Tech news and discussion from the Y Combinator community.",
@@ -37,6 +49,36 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "TECH",
   },
   // NEWS
+  {
+    name: "Wikipedia — Current Events",
+    url: "https://www.to-rss.xyz/wikipedia/current_events/",
+    description: "Wikipedia's daily current events portal as an RSS feed.",
+    category: "NEWS",
+  },
+  {
+    name: "NPR News",
+    url: "https://feeds.npr.org/1001/rss.xml",
+    description: "Top news stories from NPR.",
+    category: "NEWS",
+  },
+  {
+    name: "NPR — World Story of the Day",
+    url: "https://feeds.npr.org/1056/rss.xml",
+    description: "NPR's daily featured world news story.",
+    category: "NEWS",
+  },
+  {
+    name: "Kagi News — World",
+    url: "https://news.kagi.com/world.xml",
+    description: "World news curated by Kagi Search.",
+    category: "NEWS",
+  },
+  {
+    name: "The Conversation",
+    url: "https://theconversation.com/articles.atom?language=en",
+    description: "Academic experts explain the news in plain language.",
+    category: "NEWS",
+  },
   {
     name: "The Guardian",
     url: "https://www.theguardian.com/world/rss",
@@ -69,6 +111,12 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   },
   // SPORT
   {
+    name: "Kagi News — Sports",
+    url: "https://news.kagi.com/sports.xml",
+    description: "Sports news curated by Kagi Search.",
+    category: "SPORT",
+  },
+  {
     name: "CBS Sports Headlines",
     url: "https://www.cbssports.com/rss/headlines/",
     description: "Top sports headlines from CBS Sports.",
@@ -88,6 +136,18 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "DESIGN",
   },
   {
+    name: "NPR Culture",
+    url: "https://feeds.npr.org/1008/rss.xml",
+    description: "Arts, culture, and entertainment news from NPR.",
+    category: "CULTURE",
+  },
+  {
+    name: "NPR Book Reviews",
+    url: "https://feeds.npr.org/1034/rss.xml",
+    description: "Book reviews from NPR.",
+    category: "CULTURE",
+  },
+  {
     name: "The Verge",
     url: "https://www.theverge.com/rss/index.xml",
     description: "Technology, science, art, and culture news.",
@@ -100,6 +160,18 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "CULTURE",
   },
   // SCIENCE
+  {
+    name: "NPR Science",
+    url: "https://feeds.npr.org/1007/rss.xml",
+    description: "Science news and discoveries from NPR.",
+    category: "SCIENCE",
+  },
+  {
+    name: "Kagi News — Science",
+    url: "https://news.kagi.com/science.xml",
+    description: "Science news curated by Kagi Search.",
+    category: "SCIENCE",
+  },
   {
     name: "Noema Magazine",
     url: "https://www.noemamag.com/?feed=noemarss",
@@ -137,7 +209,63 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Long-form interviews with leading figures in tech, science, and history.",
     category: "PODCAST",
   },
+  // MUSIC
+  {
+    name: "The Quietus",
+    url: "https://thequietus.com/feed/",
+    description: "Independent music and culture criticism — reviews, features, and interviews.",
+    category: "MUSIC",
+  },
+  {
+    name: "Pitchfork — Album Reviews",
+    url: "https://pitchfork.com/feed/feed-album-reviews/rss",
+    description: "Album reviews from Pitchfork, the leading indie music publication.",
+    category: "MUSIC",
+  },
+  {
+    name: "The Guardian — Music",
+    url: "https://www.theguardian.com/music/rss",
+    description: "Music news, reviews, and features from The Guardian.",
+    category: "MUSIC",
+  },
+  {
+    name: "The Fader",
+    url: "https://www.thefader.com/feed.rss",
+    description: "Music, culture, and style — tastemaker coverage of emerging artists.",
+    category: "MUSIC",
+  },
+  {
+    name: "Best Fit Music",
+    url: "https://bestfitmusic.substack.com/feed",
+    description: "Indie music discovery — new releases, reviews, and artist spotlights.",
+    category: "MUSIC",
+  },
+  // ARTS & CULTURE
+  {
+    name: "NPR Movies",
+    url: "https://feeds.npr.org/1045/rss.xml",
+    description: "Film reviews and movie news from NPR.",
+    category: "ARTS & CULTURE",
+  },
+  {
+    name: "Wikipedia — Photo of the Day",
+    url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=potd&feedformat=atom",
+    description: "Wikipedia's daily featured photograph, curated by editors.",
+    category: "ARTS & CULTURE",
+  },
+  {
+    name: "Wikipedia — On This Day",
+    url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=onthisday&feedformat=atom",
+    description: "Historical events and anniversaries featured by Wikipedia each day.",
+    category: "ARTS & CULTURE",
+  },
   // HUMOR
+  {
+    name: "NPR Humor & Fun",
+    url: "https://feeds.npr.org/1052/rss.xml",
+    description: "Humor, wit, and lighthearted stories from NPR.",
+    category: "HUMOR",
+  },
   {
     name: "SMBC Comics",
     url: "https://www.smbc-comics.com/comic/rss",

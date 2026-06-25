@@ -89,17 +89,6 @@ function StrengthMeter({ affinity }: { affinity: number }) {
     );
 }
 
-// ── Fisher-Yates shuffle ──
-function shuffle<T>(arr: T[]): T[] {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-const FORYOU_COUNT = 4;
-
 // ── Dismiss button ──
 function DismissButton({ onClick }: { onClick: () => void }) {
     return (
@@ -142,21 +131,22 @@ function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags
 }
 
 // ── FOR YOU strip — stateful ──
-function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
-    const [pool, setPool] = useState(() => shuffle([...initialPool]));
+function ForYouStrip({ items: initialItems, allTags }: { items: FrontPageItem[]; allTags: TagVM[] }) {
+    const [items, setItems] = useState(initialItems);
     const [, startTransition] = useTransition();
 
-    const displayed = pool.slice(0, FORYOU_COUNT);
-
     function dismiss(item: FrontPageItem) {
-        const excludeIds = pool.map(i => i.id);
-        setPool(prev => prev.filter(i => i.id !== item.id));
+        const excludeIds = items.map(i => i.id);
+        setItems(prev => prev.filter(i => i.id !== item.id));
         startTransition(async () => {
-            await dismissFrontPageItem(item.id, item.categoryName, excludeIds);
+            const res = await dismissFrontPageItem(item.id, item.categoryName, excludeIds);
+            if (res.replacement) {
+                setItems(prev => [...prev, res.replacement!]);
+            }
         });
     }
 
-    if (displayed.length === 0) return null;
+    if (items.length === 0) return null;
     return (
         <section aria-label="For you" className="mt-4 mb-6">
             <div className="flex items-center gap-2 mb-3">
@@ -167,7 +157,7 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
                 className="grid gap-px bg-foreground/15"
                 style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}
             >
-                {displayed.map(item => (
+                {items.map(item => (
                     <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
                 ))}
             </div>
@@ -290,8 +280,8 @@ function EmptyFrontPage() {
 
 // ── Main FrontPage component ──
 export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
-    const { forYouPool, sections } = data;
-    const isEmpty = forYouPool.length === 0 && sections.length === 0;
+    const { forYou, sections } = data;
+    const isEmpty = forYou.length === 0 && sections.length === 0;
 
     return (
         <div className="px-4 md:px-7 py-4 max-w-[1400px] mx-auto">
@@ -300,7 +290,7 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
                 <EmptyFrontPage />
             ) : (
                 <>
-                    <ForYouStrip pool={forYouPool} allTags={allTags} />
+                    <ForYouStrip items={forYou} allTags={allTags} />
                     {sections.length > 0 && (
                         <div className="flex flex-col">
                             {sections.map(s => (
