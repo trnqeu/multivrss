@@ -17,7 +17,10 @@ export async function validateFeedUrl(rawUrl: string): Promise<void> {
     throw new Error('Only http and https URLs are allowed.');
   }
 
-  const { address } = await dns.promises.lookup(parsed.hostname);
+  const dnsTimeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('DNS lookup timed out.')), 5_000)
+  );
+  const { address } = await Promise.race([dns.promises.lookup(parsed.hostname), dnsTimeout]);
 
   if (isPrivateIp(address)) {
     throw new Error('URL resolves to a private or reserved IP address.');
@@ -28,6 +31,22 @@ const FEED_PATHS = ['/feed', '/rss', '/rss.xml', '/atom.xml', '/feed.xml', '/ind
 
 // Additional feed paths for deeper discovery (less common).
 const DEEP_FEED_PATHS = ['/feeds/', '/feeds', '/rss/feed', '/rss/', '/atom/'];
+
+const FEED_EXTENSIONS = ['.xml', '.rss', '.atom', '.json'];
+
+function looksLikeDirectFeedUrl(rawUrl: string): boolean {
+  try {
+    const { pathname } = new URL(rawUrl);
+    const lower = pathname.toLowerCase();
+    return (
+      FEED_EXTENSIONS.some(ext => lower.endsWith(ext)) ||
+      FEED_PATHS.some(p => lower === p || lower === p + '/') ||
+      DEEP_FEED_PATHS.some(p => lower === p || lower === p + '/')
+    );
+  } catch {
+    return false;
+  }
+}
 
 export type DiscoveryResult = { url: string; feed: ParsedFeed };
 
@@ -77,12 +96,25 @@ async function discoverFromHtmlAutolink(rawUrl: string): Promise<DiscoveryResult
 }
 
 export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
+  const TOTAL_TIMEOUT_MS = 30_000;
+  const deadline = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error('Feed discovery timed out. The server may be slow or unreachable.')), TOTAL_TIMEOUT_MS)
+  );
+  return Promise.race([_discoverFeedUrl(rawUrl), deadline]);
+}
+
+async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
   // 1. Try the URL directly as a feed.
   try {
     const feed = await parser.parseURL(rawUrl);
     return { url: rawUrl, feed };
-  } catch {
-    // not a feed — continue
+  } catch (err) {
+    // If the URL already looks like a direct feed (e.g. ends in .xml), don't
+    // waste time on HTML discovery or well-known path fallbacks — fail fast.
+    if (looksLikeDirectFeedUrl(rawUrl)) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new Error(`Could not fetch feed at this URL: ${reason}`);
+    }
   }
 
   // 2. YouTube channel resolution.

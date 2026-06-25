@@ -61,6 +61,12 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             return { success: false, message: 'Feed limit reached (max 200 feeds per account).' };
         }
 
+        // Reject immediately if the user already has this URL in any category
+        const existingFeed = await prisma.feedSource.findFirst({
+            where: { url, category: { userId } },
+        });
+        if (existingFeed) return { success: false, message: 'You already have this feed in your library.' };
+
         // 1. Handle New Category
         if (newCategoryName && newCategoryName.trim() !== "") {
             const normalizedName = newCategoryName.trim().toUpperCase();
