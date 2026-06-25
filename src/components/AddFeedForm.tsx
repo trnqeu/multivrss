@@ -8,15 +8,16 @@ interface Props {
     categories: Category[];
     open: boolean;
     onClose: () => void;
+    initialUrl?: string;
 }
 
 const initialState: ActionState = { success: false };
 const URL_REGEX = /^https?:\/\/.+\..+/;
 
-export default function AddFeedForm({ categories, open, onClose }: Props) {
+export default function AddFeedForm({ categories, open, onClose, initialUrl }: Props) {
     const [state, formAction, isPending] = useActionState(createFeedSource, initialState);
 
-    const [url, setUrl] = useState("");
+    const [url, setUrl] = useState(initialUrl ?? "");
     const [pickedCategoryId, setPickedCategoryId] = useState("");
     const [creatingNew, setCreatingNew] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
@@ -32,6 +33,10 @@ export default function AddFeedForm({ categories, open, onClose }: Props) {
         setNewCategoryName("");
         setDropdownOpen(false);
     }, []);
+
+    // Sync initialUrl when the modal opens with a new URL
+    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+    useEffect(() => { if (open && initialUrl) setUrl(initialUrl); }, [open, initialUrl]);
 
     // Close on success
     useEffect(() => {
