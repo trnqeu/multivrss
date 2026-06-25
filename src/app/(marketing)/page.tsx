@@ -3,26 +3,19 @@ import { redirect } from "next/navigation";
 
 import { authOptions } from "@/lib/auth";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import MarketingPillars from "@/components/marketing/MarketingPillars";
-import MarketingLivePreview from "@/components/marketing/MarketingLivePreview";
-import MarketingTips from "@/components/marketing/MarketingTips";
-import MarketingPricing from "@/components/marketing/MarketingPricing";
+import MarketingBlog from "@/components/marketing/MarketingBlog";
+import MarketingSourcesPreview from "@/components/marketing/MarketingSourcesPreview";
 import MarketingClosing from "@/components/marketing/MarketingClosing";
 
 export default async function MarketingPage() {
   const session = await getServerSession(authOptions);
-
-  if (session?.user) {
-    redirect(`/u/${session.user.username}`);
-  }
+  if (session?.user) redirect(`/u/${session.user.username}`);
 
   return (
     <>
       <MarketingHero />
-      <MarketingPillars />
-      <MarketingLivePreview />
-      <MarketingTips />
-      <MarketingPricing />
+      <MarketingBlog />
+      <MarketingSourcesPreview />
       <MarketingClosing />
     </>
   );

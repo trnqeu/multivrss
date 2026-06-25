@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MultivRSS — Curated Sources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Major+Mono+Display&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --black:#000; --paper:#f6f3ec; --terra:#E2725B;
+    --ink-2:rgba(0,0,0,.55); --ink-3:rgba(0,0,0,.30);
+    --ink-line:rgba(0,0,0,.12); --ink-hair:rgba(0,0,0,.07);
+    --w-2:rgba(255,255,255,.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--black);
+    font-family:'Inter',ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  button{background:transparent;color:inherit;border:0;outline:0;font:inherit;border-radius:0;cursor:pointer;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;}
+  .terra{color:var(--terra);}
+  .wrap{max-width:1200px;margin:0 auto;}
+  .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;}
+
+  .sys{display:flex;align-items:center;justify-content:space-between;padding:11px 34px;border-bottom:1px solid var(--ink-line);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.13em;color:var(--ink-3);}
+  .sys .group{display:flex;align-items:center;gap:20px;}
+  .sys .group span{white-space:nowrap;}
+  .sys .dot{width:7px;height:7px;background:var(--terra);display:inline-block;margin-right:7px;vertical-align:-1px;}
+  .sys b{color:var(--ink-2);font-weight:700;}
+  .lang{display:flex;align-items:center;gap:9px;}
+  .lang__b{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);padding:2px;transition:.12s;}
+  .lang__b:hover{color:var(--black);}
+  .lang__b.on{color:var(--terra);}
+  .lang__sep{color:var(--ink-line);}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:26px 34px;border-bottom:2px solid var(--black);}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand img{width:34px;height:34px;object-fit:contain;display:block;}
+  .brand .word{font-size:17px;font-weight:800;letter-spacing:.22em;color:var(--terra);text-transform:uppercase;}
+  .brand .ver{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-3);border-left:1px solid var(--ink-line);padding-left:13px;}
+  .nav .menu{display:flex;align-items:center;gap:30px;}
+  .nav .menu a{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--black);}
+  .nav .menu a:hover{color:var(--terra);}
+  .nav .menu a.on{color:var(--terra);}
+  .nav .cta{display:flex;align-items:center;gap:10px;}
+  .btn-line{border:2px solid var(--black);padding:10px 15px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;}
+  .btn-line:hover{background:var(--black);color:var(--paper);}
+  .btn-solid{background:var(--black);color:var(--paper);border:2px solid var(--black);padding:10px 15px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;}
+  .btn-solid:hover{background:var(--terra);color:var(--black);border-color:var(--terra);}
+  .btn-terra{background:var(--terra);color:var(--black);border:2px solid var(--terra);padding:14px 20px;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;}
+  .btn-terra:hover{background:var(--black);color:var(--terra);border-color:var(--black);}
+
+  /* header */
+  .head{padding:80px 34px 46px;}
+  .head .kicker{color:var(--terra);margin-bottom:22px;}
+  .head h1{font-weight:900;font-size:clamp(48px,6vw,104px);line-height:.95;letter-spacing:-.035em;margin:0 0 26px;}
+  .head .intro{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:end;}
+  .head .intro p{font-size:17px;line-height:1.6;color:var(--ink-2);margin:0;max-width:560px;}
+  .head .count{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase;text-align:right;line-height:1.7;}
+  .head .count b{color:var(--black);font-weight:700;}
+
+  /* category groups */
+  .groups{padding:0 34px 30px;}
+  .grp{border-top:2px solid var(--black);padding:26px 0 30px;}
+  .grp__head{display:flex;align-items:center;gap:16px;margin-bottom:6px;}
+  .grp__name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap;}
+  .grp__line{flex:1;height:1px;background:var(--ink-line);}
+  .grp__count{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--ink-3);}
+  .grp__list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:0 56px;}
+  .src{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid var(--ink-hair);}
+  .src__main{display:flex;align-items:baseline;gap:12px;min-width:0;}
+  .src__name{font-size:16.5px;font-weight:700;letter-spacing:-.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .src__dom{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-3);letter-spacing:.04em;white-space:nowrap;}
+  .btn-add{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--black);padding:7px 12px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    flex-shrink:0;transition:.12s;}
+  .btn-add:hover{background:var(--terra);border-color:var(--terra);color:var(--black);}
+  .btn-add .p{color:var(--terra);font-size:13px;line-height:1;}
+  .btn-add:hover .p{color:var(--black);}
+
+  /* closing */
+  .close{padding:96px 34px;background:var(--black);color:var(--paper);border-top:2px solid var(--black);text-align:center;}
+  .close .tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--terra);margin-bottom:18px;}
+  .close h2{font-size:clamp(34px,4.6vw,68px);font-weight:900;letter-spacing:-.03em;line-height:1;margin:0 0 20px;}
+  .close h2 em{font-style:normal;color:var(--terra);}
+  .close p{font-size:15.5px;color:var(--w-2);max-width:520px;margin:0 auto 32px;line-height:1.6;}
+
+  footer{background:var(--paper);border-top:2px solid var(--black);padding:34px 34px 28px;}
+  footer .bot{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-3);}
+  footer .bot a:hover{color:var(--black);}
+  footer .bot b{color:var(--terra);font-weight:700;}
+
+  @media (max-width:920px){
+    .sys{padding:11px 22px;flex-wrap:wrap;gap:10px;}
+    .nav{padding:20px 22px;}.nav .menu{display:none;}.brand .ver{display:none;}
+    .head{padding:56px 22px 36px;}.head .intro{grid-template-columns:1fr;gap:18px;}.head .count{text-align:left;}
+    .groups{padding:0 22px 20px;}.grp__list{grid-template-columns:1fr;gap:0;}
+    .close{padding:72px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sys">
+  <div class="group">
+    <span><span class="dot"></span><b data-i18n="sys.live">LIVE</b></span>
+    <span>NODE_<b>multivrss_alpha</b></span>
+    <span data-i18n="sys.public">PUBLIC_<b>shelf</b></span>
+  </div>
+  <div class="lang" role="group" aria-label="language">
+    <button class="lang__b" data-lang-btn="it">IT</button>
+    <span class="lang__sep">/</span>
+    <button class="lang__b" data-lang-btn="en">EN</button>
+  </div>
+</div>
+
+<nav class="nav">
+  <a class="brand" href="MultivRSS%20Home.html">
+    <img src="assets/multivrss-ico.png" alt="multivrss" />
+    <div class="word">multivrss</div>
+    <div class="ver" data-i18n="nav.ver">INTERNET READING ROOM</div>
+  </a>
+  <div class="menu">
+    <a href="MultivRSS%20Home.html#manifesto">MANIFESTO</a>
+    <a href="MultivRSS%20Home.html#blog">BLOG</a>
+    <a class="on" href="MultivRSS%20Curated%20Sources.html">SOURCES</a>
+    <a href="MultivRSS%20Tips.html">TIPS</a>
+  </div>
+  <div class="cta">
+    <button class="btn-line" data-i18n="nav.signin">SIGN IN</button>
+    <button class="btn-solid" data-i18n="nav.start">GET STARTED →</button>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="head">
+  <div class="wrap">
+    <div class="label kicker" data-i18n="cs.kicker">// CURATED SOURCES · PUBLIC</div>
+    <h1 data-i18n="cs.h1">The shelf.</h1>
+    <div class="intro">
+      <p data-i18n="cs.intro">These are the feeds we actually read at MultivRSS — hand-picked, no sponsorships, no rankings. Public and free: add any of them to your reader in one click. New here? Adding takes you to a 20-second sign-up.</p>
+      <div class="count"><b data-i18n="cs.count1">18 SOURCES</b><br /><span data-i18n="cs.count2">07 CATEGORIES · UPDATED WEEKLY</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- GROUPS -->
+<section class="groups">
+  <div class="wrap">
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">MIND</span><span class="grp__line"></span><span class="grp__count">03</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">Farnam Street</span><span class="src__dom">fs.blog</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">The Marginalian</span><span class="src__dom">themarginalian.org</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Aeon</span><span class="src__dom">aeon.co</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">TECHNOLOGY</span><span class="grp__line"></span><span class="grp__count">04</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">Simon Willison's Weblog</span><span class="src__dom">simonwillison.net</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Stratechery</span><span class="src__dom">stratechery.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Hacker News</span><span class="src__dom">news.ycombinator.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Pluralistic</span><span class="src__dom">pluralistic.net</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">NEWS</span><span class="grp__line"></span><span class="grp__count">03</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">The Guardian</span><span class="src__dom">theguardian.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Reuters</span><span class="src__dom">reuters.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">NYT › World</span><span class="src__dom">nytimes.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">SCIENCE</span><span class="grp__line"></span><span class="grp__count">02</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">Quanta Magazine</span><span class="src__dom">quantamagazine.org</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Nautilus</span><span class="src__dom">nautil.us</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">DESIGN</span><span class="grp__line"></span><span class="grp__count">02</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">It's Nice That</span><span class="src__dom">itsnicethat.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Brand New</span><span class="src__dom">underconsideration.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">ENGINEERING</span><span class="grp__line"></span><span class="grp__count">02</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">Julia Evans</span><span class="src__dom">jvns.ca</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">Dan Luu</span><span class="src__dom">danluu.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+    <div class="grp">
+      <div class="grp__head"><span class="grp__name">CULTURE</span><span class="grp__line"></span><span class="grp__count">02</span></div>
+      <ul class="grp__list">
+        <li class="src"><div class="src__main"><span class="src__name">Longreads</span><span class="src__dom">longreads.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+        <li class="src"><div class="src__main"><span class="src__name">The Browser</span><span class="src__dom">thebrowser.com</span></div><a class="btn-add" href="#signup"><span class="p">+</span><span data-i18n="add">ADD</span></a></li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="close">
+  <div class="tag">// READY_TO_READ</div>
+  <h2 data-i18n="cs.closeh">Add the whole <em>shelf</em>.</h2>
+  <p data-i18n="cs.closep">Create your reading room and import every source above in one move — then make it yours: add, remove, organize by category.</p>
+  <button class="btn-terra" data-i18n="cs.closecta">→ START FREE</button>
+</section>
+
+<footer>
+  <div class="bot">
+    <a href="MultivRSS%20Home.html" data-i18n="cs.back">← BACK TO HOME</a>
+    <span data-i18n="footer.copy">© 2026 MULTIVRSS · MADE IN TORINO</span>
+  </div>
+</footer>
+
+<script>
+  const DICT = {
+    it:{
+      'sys.live':'LIVE','sys.public':'PUBBLICO_<b>shelf</b>',
+      'nav.ver':'INTERNET READING ROOM','nav.signin':'ACCEDI','nav.start':'INIZIA →',
+      'cs.kicker':'// FONTI CURATE · PUBBLICO',
+      'cs.h1':'Lo scaffale.',
+      'cs.intro':'Sono i feed che leggiamo davvero in MultivRSS — scelti a mano, senza sponsor, senza classifiche. Pubblici e gratuiti: aggiungine uno al tuo reader in un clic. Nuovo qui? Con ADD passi a una registrazione da 20 secondi.',
+      'cs.count1':'18 FONTI','cs.count2':'07 CATEGORIE · AGGIORNATO OGNI SETTIMANA',
+      'add':'AGGIUNGI',
+      'cs.closeh':'Aggiungi tutto lo <em>scaffale</em>.',
+      'cs.closep':'Crea la tua reading room e importa tutte le fonti qui sopra in una mossa — poi rendila tua: aggiungi, rimuovi, organizza per categoria.',
+      'cs.closecta':'→ INIZIA GRATIS',
+      'cs.back':'← TORNA ALLA HOME',
+      'footer.copy':'© 2026 MULTIVRSS · MADE IN TORINO'
+    },
+    en:{
+      'sys.live':'LIVE','sys.public':'PUBLIC_<b>shelf</b>',
+      'nav.ver':'INTERNET READING ROOM','nav.signin':'SIGN IN','nav.start':'GET STARTED →',
+      'cs.kicker':'// CURATED SOURCES · PUBLIC',
+      'cs.h1':'The shelf.',
+      'cs.intro':'These are the feeds we actually read at MultivRSS — hand-picked, no sponsorships, no rankings. Public and free: add any of them to your reader in one click. New here? Adding takes you to a 20-second sign-up.',
+      'cs.count1':'18 SOURCES','cs.count2':'07 CATEGORIES · UPDATED WEEKLY',
+      'add':'ADD',
+      'cs.closeh':'Add the whole <em>shelf</em>.',
+      'cs.closep':'Create your reading room and import every source above in one move — then make it yours: add, remove, organize by category.',
+      'cs.closecta':'→ START FREE',
+      'cs.back':'← BACK TO HOME',
+      'footer.copy':'© 2026 MULTIVRSS · MADE IN TORINO'
+    }
+  };
+  const TITLES={it:'MultivRSS — Fonti curate',en:'MultivRSS — Curated Sources'};
+  function applyLang(lang){
+    const d=DICT[lang]; if(!d) return;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(d[k]!=null)el.innerHTML=d[k];});
+    document.documentElement.lang=lang; document.title=TITLES[lang];
+    document.querySelectorAll('[data-lang-btn]').forEach(b=>b.classList.toggle('on',b.getAttribute('data-lang-btn')===lang));
+    try{localStorage.setItem('mv_lang',lang);}catch(e){}
+  }
+  (function(){
+    let lang='en';
+    try{const s=localStorage.getItem('mv_lang');if(s==='it'||s==='en')lang=s;else if((navigator.language||'').toLowerCase().startsWith('it'))lang='it';}catch(e){}
+    applyLang(lang);
+    document.querySelectorAll('[data-lang-btn]').forEach(b=>b.addEventListener('click',()=>applyLang(b.getAttribute('data-lang-btn'))));
+  })();
+</script>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#f6f3ec"/>
+    <rect x="26" y="30" width="34" height="4" fill="#000"/>
+    <rect x="26" y="40" width="48" height="3" fill="#000" opacity="0.3"/>
+    <rect x="26" y="52" width="34" height="4" fill="#000"/>
+    <rect x="26" y="62" width="48" height="3" fill="#000" opacity="0.3"/>
+    <rect x="64" y="48" width="10" height="10" fill="#E2725B"/>
+  </svg>
+</template>
+
+</body>
+</html>

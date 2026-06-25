@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MultivRSS — Tips &amp; Tricks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Major+Mono+Display&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --black:#000; --paper:#f6f3ec; --terra:#E2725B;
+    --ink-2:rgba(0,0,0,.55); --ink-3:rgba(0,0,0,.30);
+    --ink-line:rgba(0,0,0,.12); --ink-hair:rgba(0,0,0,.07); --w-2:rgba(255,255,255,.55);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--black);font-family:'Inter',ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  a{color:inherit;text-decoration:none;}
+  button{background:transparent;color:inherit;border:0;outline:0;font:inherit;border-radius:0;cursor:pointer;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;}
+  .terra{color:var(--terra);}
+  .wrap{max-width:1200px;margin:0 auto;}
+  .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;}
+
+  .sys{display:flex;align-items:center;justify-content:space-between;padding:11px 34px;border-bottom:1px solid var(--ink-line);font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.13em;color:var(--ink-3);}
+  .sys .group{display:flex;align-items:center;gap:20px;}
+  .sys .group span{white-space:nowrap;}
+  .sys .dot{width:7px;height:7px;background:var(--terra);display:inline-block;margin-right:7px;vertical-align:-1px;}
+  .sys b{color:var(--ink-2);font-weight:700;}
+  .lang{display:flex;align-items:center;gap:9px;}
+  .lang__b{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);padding:2px;transition:.12s;}
+  .lang__b:hover{color:var(--black);}
+  .lang__b.on{color:var(--terra);}
+  .lang__sep{color:var(--ink-line);}
+
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:26px 34px;border-bottom:2px solid var(--black);}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand img{width:34px;height:34px;object-fit:contain;display:block;}
+  .brand .word{font-size:17px;font-weight:800;letter-spacing:.22em;color:var(--terra);text-transform:uppercase;}
+  .brand .ver{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-3);border-left:1px solid var(--ink-line);padding-left:13px;}
+  .nav .menu{display:flex;align-items:center;gap:30px;}
+  .nav .menu a{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--black);}
+  .nav .menu a:hover{color:var(--terra);}
+  .nav .menu a.on{color:var(--terra);}
+  .nav .cta{display:flex;align-items:center;gap:10px;}
+  .btn-line{border:2px solid var(--black);padding:10px 15px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;}
+  .btn-line:hover{background:var(--black);color:var(--paper);}
+  .btn-solid{background:var(--black);color:var(--paper);border:2px solid var(--black);padding:10px 15px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;}
+  .btn-solid:hover{background:var(--terra);color:var(--black);border-color:var(--terra);}
+  .btn-terra{background:var(--terra);color:var(--black);border:2px solid var(--terra);padding:14px 20px;font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;}
+  .btn-terra:hover{background:var(--black);color:var(--terra);border-color:var(--black);}
+
+  .head{padding:80px 34px 44px;}
+  .head .kicker{color:var(--terra);margin-bottom:22px;}
+  .head .row{display:grid;grid-template-columns:1.15fr 1fr;gap:48px;align-items:end;}
+  .head h1{font-weight:900;font-size:clamp(40px,5vw,84px);line-height:.98;letter-spacing:-.03em;margin:0;}
+  .head p{font-size:16px;line-height:1.6;color:var(--ink-2);margin:0;max-width:480px;}
+  .head p .src{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--terra);}
+
+  .tips{padding:8px 34px 40px;}
+  .tips-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:2px solid var(--black);border-left:2px solid var(--black);}
+  .tip{border-right:2px solid var(--black);border-bottom:2px solid var(--black);padding:24px 24px 28px;min-height:236px;display:flex;flex-direction:column;}
+  .tip .num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;letter-spacing:.18em;color:var(--terra);margin-bottom:10px;}
+  .tip h4{margin:0 0 10px;font-size:19px;font-weight:800;letter-spacing:-.005em;}
+  .tip p{margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--ink-2);}
+  .tip code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--black);}
+  .tip .snip{margin-top:auto;padding:11px 13px;background:var(--black);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.55;letter-spacing:.02em;white-space:pre-wrap;word-break:break-all;}
+  .tip .snip b{color:var(--terra);}
+
+  .close{padding:96px 34px;background:var(--black);color:var(--paper);border-top:2px solid var(--black);text-align:center;}
+  .close .tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--terra);margin-bottom:18px;}
+  .close h2{font-size:clamp(34px,4.6vw,68px);font-weight:900;letter-spacing:-.03em;line-height:1;margin:0 0 20px;}
+  .close h2 em{font-style:normal;color:var(--terra);}
+  .close p{font-size:15.5px;color:var(--w-2);max-width:520px;margin:0 auto 32px;line-height:1.6;}
+
+  footer{background:var(--paper);border-top:2px solid var(--black);padding:34px 34px 28px;}
+  footer .bot{display:flex;justify-content:space-between;align-items:center;max-width:1200px;margin:0 auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-3);}
+  footer .bot a:hover{color:var(--black);}
+  footer .bot b{color:var(--terra);font-weight:700;}
+
+  @media (max-width:920px){
+    .sys{padding:11px 22px;flex-wrap:wrap;gap:10px;}
+    .nav{padding:20px 22px;}.nav .menu{display:none;}.brand .ver{display:none;}
+    .head{padding:56px 22px 32px;}.head .row{grid-template-columns:1fr;gap:18px;}
+    .tips{padding:8px 22px 28px;}.tips-grid{grid-template-columns:1fr 1fr;}
+    .close{padding:72px 22px;}
+  }
+  @media (max-width:560px){.tips-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="sys">
+  <div class="group">
+    <span><span class="dot"></span><b data-i18n="sys.live">LIVE</b></span>
+    <span>NODE_<b>multivrss_alpha</b></span>
+    <span data-i18n="sys.manual">FIELD_<b>manual</b></span>
+  </div>
+  <div class="lang" role="group" aria-label="language">
+    <button class="lang__b" data-lang-btn="it">IT</button>
+    <span class="lang__sep">/</span>
+    <button class="lang__b" data-lang-btn="en">EN</button>
+  </div>
+</div>
+
+<nav class="nav">
+  <a class="brand" href="MultivRSS%20Home.html">
+    <img src="assets/multivrss-ico.png" alt="multivrss" />
+    <div class="word">multivrss</div>
+    <div class="ver" data-i18n="nav.ver">INTERNET READING ROOM</div>
+  </a>
+  <div class="menu">
+    <a href="MultivRSS%20Home.html#manifesto">MANIFESTO</a>
+    <a href="MultivRSS%20Home.html#blog">BLOG</a>
+    <a href="MultivRSS%20Curated%20Sources.html">SOURCES</a>
+    <a class="on" href="MultivRSS%20Tips.html">TIPS</a>
+  </div>
+  <div class="cta">
+    <button class="btn-line" data-i18n="nav.signin">SIGN IN</button>
+    <button class="btn-solid" data-i18n="nav.start">GET STARTED →</button>
+  </div>
+</nav>
+
+<header class="head">
+  <div class="wrap">
+    <div class="label kicker" data-i18n="tips.kicker">// FIELD MANUAL — 08 TRICKS</div>
+    <div class="row">
+      <h1 data-i18n="tips.title">Every site has a feed. Most just hide it well.</h1>
+      <p data-i18n="tips.intro">A working list of URL tricks to turn almost any site into an RSS feed — Google News searches, Substacks, subreddits, YouTube channels, GitHub releases. Paste any of these into the <span class="src">+ SOURCE</span> field and you're subscribed.</p>
+    </div>
+  </div>
+</header>
+
+<section class="tips">
+  <div class="wrap">
+    <div class="tips-grid">
+      <div class="tip">
+        <div class="num">01 / GOOGLE NEWS</div>
+        <h4 data-i18n="tip1.h">Any search becomes a feed.</h4>
+        <p data-i18n="tip1.p">Insert <code>/rss</code> after the TLD in any Google News search URL.</p>
+        <div class="snip">news.google.com<b>/rss</b>/search?q=site%3Areuters.com&amp;hl=en</div>
+      </div>
+      <div class="tip">
+        <div class="num">02 / SUBSTACK</div>
+        <h4 data-i18n="tip2.h">/feed at the root.</h4>
+        <p data-i18n="tip2.p">Every Substack publication exposes its feed at <code>/feed</code>.</p>
+        <div class="snip">stratechery.com<b>/feed</b></div>
+      </div>
+      <div class="tip">
+        <div class="num">03 / REDDIT</div>
+        <h4 data-i18n="tip3.h">Any subreddit, any user.</h4>
+        <p data-i18n="tip3.p">Append <code>.rss</code> to any subreddit or user URL.</p>
+        <div class="snip">reddit.com/r/programming<b>.rss</b>
+reddit.com/r/worldnews<b>.rss</b></div>
+      </div>
+      <div class="tip">
+        <div class="num">04 / YOUTUBE</div>
+        <h4 data-i18n="tip4.h">The hidden Atom feed.</h4>
+        <p data-i18n="tip4.p">Every channel has one. Grab the channel ID and use:</p>
+        <div class="snip">youtube.com/feeds/videos.xml?<b>channel_id=…</b></div>
+      </div>
+      <div class="tip">
+        <div class="num">05 / MEDIUM</div>
+        <h4 data-i18n="tip5.h">Users and publications.</h4>
+        <p data-i18n="tip5.p">Prefix the path with <code>/feed</code> on medium.com.</p>
+        <div class="snip">medium.com<b>/feed</b>/@username
+medium.com<b>/feed</b>/publication-name</div>
+      </div>
+      <div class="tip">
+        <div class="num">06 / WORDPRESS</div>
+        <h4 data-i18n="tip6.h">The original RSS.</h4>
+        <p data-i18n="tip6.p">Nearly every WordPress site exposes a feed at <code>/feed</code>.</p>
+        <div class="snip">example.com<b>/feed</b></div>
+      </div>
+      <div class="tip">
+        <div class="num">07 / GITHUB</div>
+        <h4 data-i18n="tip7.h">Releases, commits, tags.</h4>
+        <p data-i18n="tip7.p">Atom feeds, no auth required. Three flavors per repo.</p>
+        <div class="snip">github.com/owner/repo<b>/releases.atom</b>
+github.com/owner/repo<b>/commits.atom</b></div>
+      </div>
+      <div class="tip">
+        <div class="num">08 / NEWSLETTERS</div>
+        <h4 data-i18n="tip8.h">Kill the Newsletter.</h4>
+        <p data-i18n="tip8.p">Generates a unique inbox; subscribe with it, get the feed.</p>
+        <div class="snip">kill-the-newsletter.com<b> ↗</b></div>
+      </div>
+      <div class="tip" style="background:var(--black);color:var(--paper);">
+        <div class="num">09 / RSSHUB</div>
+        <h4 data-i18n="tip9.h" style="color:var(--paper);">When all else fails.</h4>
+        <p data-i18n="tip9.p" style="color:var(--w-2);">RSSHub builds feeds for hundreds of sites that ship none. Self-host it or use a public instance.</p>
+        <div class="snip" style="background:var(--paper);color:var(--black);">docs.rsshub.app<b style="color:var(--terra);"> ↗</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="close">
+  <div class="tag">// + SOURCE</div>
+  <h2 data-i18n="tips.closeh">Now point them at <em>one river</em>.</h2>
+  <p data-i18n="tips.closep">Collect every feed above into a single, calm, typography-first reader. No thumbnails, no infinite scroll — just what's new.</p>
+  <button class="btn-terra" data-i18n="tips.closecta">→ START FREE</button>
+</section>
+
+<footer>
+  <div class="bot">
+    <a href="MultivRSS%20Home.html" data-i18n="tips.back">← BACK TO HOME</a>
+    <span data-i18n="footer.copy">© 2026 MULTIVRSS · MADE IN TORINO</span>
+  </div>
+</footer>
+
+<script>
+  const DICT={
+    it:{
+      'sys.live':'LIVE','sys.manual':'MANUALE_<b>di campo</b>',
+      'nav.ver':'INTERNET READING ROOM','nav.signin':'ACCEDI','nav.start':'INIZIA →',
+      'tips.kicker':'// MANUALE DI CAMPO — 08 TRUCCHI',
+      'tips.title':'Ogni sito ha un feed. Molti lo nascondono bene.',
+      'tips.intro':'Una lista di trucchi con gli URL per trasformare quasi ogni sito in un feed RSS — ricerche su Google News, Substack, subreddit, canali YouTube, release GitHub. Incolla uno di questi nel campo <span class="src">+ SOURCE</span> e sei iscritto.',
+      'tip1.h':'Ogni ricerca diventa un feed.','tip1.p':'Inserisci <code>/rss</code> dopo il TLD in qualsiasi URL di ricerca di Google News.',
+      'tip2.h':'/feed alla radice.','tip2.p':'Ogni pubblicazione Substack espone il feed su <code>/feed</code>.',
+      'tip3.h':'Qualsiasi subreddit o utente.','tip3.p':'Aggiungi <code>.rss</code> all\'URL di un subreddit o di un utente.',
+      'tip4.h':'Il feed Atom nascosto.','tip4.p':'Ogni canale ne ha uno. Prendi l\'ID del canale e usa:',
+      'tip5.h':'Utenti e pubblicazioni.','tip5.p':'Anteponi <code>/feed</code> al percorso su medium.com.',
+      'tip6.h':'L\'RSS originale.','tip6.p':'Quasi ogni sito WordPress espone un feed su <code>/feed</code>.',
+      'tip7.h':'Release, commit, tag.','tip7.p':'Feed Atom, senza autenticazione. Tre tipi per repo.',
+      'tip8.h':'Kill the Newsletter.','tip8.p':'Genera una casella unica; iscriviti con quella e ottieni il feed.',
+      'tip9.h':'Quando non c\'è altro modo.','tip9.p':'RSSHub costruisce feed per centinaia di siti che non ne hanno. Self-host o istanza pubblica.',
+      'tips.closeh':'Ora puntali su <em>un unico river</em>.','tips.closep':'Raccogli tutti i feed qui sopra in un lettore unico, calmo, typography-first. Niente miniature, niente scroll infinito — solo ciò che è nuovo.','tips.closecta':'→ INIZIA GRATIS',
+      'tips.back':'← TORNA ALLA HOME','footer.copy':'© 2026 MULTIVRSS · MADE IN TORINO'
+    },
+    en:{
+      'sys.live':'LIVE','sys.manual':'FIELD_<b>manual</b>',
+      'nav.ver':'INTERNET READING ROOM','nav.signin':'SIGN IN','nav.start':'GET STARTED →',
+      'tips.kicker':'// FIELD MANUAL — 08 TRICKS',
+      'tips.title':'Every site has a feed. Most just hide it well.',
+      'tips.intro':'A working list of URL tricks to turn almost any site into an RSS feed — Google News searches, Substacks, subreddits, YouTube channels, GitHub releases. Paste any of these into the <span class="src">+ SOURCE</span> field and you\'re subscribed.',
+      'tip1.h':'Any search becomes a feed.','tip1.p':'Insert <code>/rss</code> after the TLD in any Google News search URL.',
+      'tip2.h':'/feed at the root.','tip2.p':'Every Substack publication exposes its feed at <code>/feed</code>.',
+      'tip3.h':'Any subreddit, any user.','tip3.p':'Append <code>.rss</code> to any subreddit or user URL.',
+      'tip4.h':'The hidden Atom feed.','tip4.p':'Every channel has one. Grab the channel ID and use:',
+      'tip5.h':'Users and publications.','tip5.p':'Prefix the path with <code>/feed</code> on medium.com.',
+      'tip6.h':'The original RSS.','tip6.p':'Nearly every WordPress site exposes a feed at <code>/feed</code>.',
+      'tip7.h':'Releases, commits, tags.','tip7.p':'Atom feeds, no auth required. Three flavors per repo.',
+      'tip8.h':'Kill the Newsletter.','tip8.p':'Generates a unique inbox; subscribe with it, get the feed.',
+      'tip9.h':'When all else fails.','tip9.p':'RSSHub builds feeds for hundreds of sites that ship none. Self-host it or use a public instance.',
+      'tips.closeh':'Now point them at <em>one river</em>.','tips.closep':'Collect every feed above into a single, calm, typography-first reader. No thumbnails, no infinite scroll — just what\'s new.','tips.closecta':'→ START FREE',
+      'tips.back':'← BACK TO HOME','footer.copy':'© 2026 MULTIVRSS · MADE IN TORINO'
+    }
+  };
+  const TITLES={it:'MultivRSS — Tips & Tricks',en:'MultivRSS — Tips & Tricks'};
+  function applyLang(lang){
+    const d=DICT[lang]; if(!d) return;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(d[k]!=null)el.innerHTML=d[k];});
+    document.documentElement.lang=lang; document.title=TITLES[lang];
+    document.querySelectorAll('[data-lang-btn]').forEach(b=>b.classList.toggle('on',b.getAttribute('data-lang-btn')===lang));
+    try{localStorage.setItem('mv_lang',lang);}catch(e){}
+  }
+  (function(){
+    let lang='en';
+    try{const s=localStorage.getItem('mv_lang');if(s==='it'||s==='en')lang=s;else if((navigator.language||'').toLowerCase().startsWith('it'))lang='it';}catch(e){}
+    applyLang(lang);
+    document.querySelectorAll('[data-lang-btn]').forEach(b=>b.addEventListener('click',()=>applyLang(b.getAttribute('data-lang-btn'))));
+  })();
+</script>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#f6f3ec"/>
+    <rect x="24" y="26" width="52" height="48" fill="none" stroke="#000" stroke-width="3"/>
+    <line x1="50" y1="26" x2="50" y2="74" stroke="#000" stroke-width="3"/>
+    <line x1="24" y1="50" x2="76" y2="50" stroke="#000" stroke-width="3"/>
+    <rect x="30" y="32" width="12" height="3" fill="#E2725B"/>
+  </svg>
+</template>
+
+</body>
+</html>

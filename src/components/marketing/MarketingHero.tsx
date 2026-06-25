@@ -1,50 +1,58 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 
 export default function MarketingHero() {
   return (
-    <section className="px-7 pt-[72px] pb-0 border-b-2 border-black overflow-hidden">
-      <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_1fr] gap-12 items-end">
+    <section
+      id="manifesto"
+      className="px-[34px] pt-[104px] pb-[96px] max-[920px]:px-[26px] max-[920px]:pt-16 max-[920px]:pb-16"
+    >
+      <div className="grid grid-cols-1 min-[920px]:grid-cols-[1.2fr_1fr] gap-14 items-center max-w-[1200px] mx-auto">
         <div>
-          <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-7">
-            {'//'} MANIFESTO — 03 LINES
+          <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px]">
+            {"//"} YOUR INTERNET READING ROOM
           </p>
-          <h1 className="font-sans font-black text-[clamp(56px,7.4vw,122px)] leading-[0.95] tracking-[-0.035em] mb-8 text-balance">
-            Read the open web.<br />
-            <span className="text-terracotta font-extrabold px-[6px]">/</span>Save what matters.<br />
-            <span className="text-terracotta font-extrabold px-[6px]">/</span>Publish your best.
+          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] leading-[0.95] tracking-[-0.035em] mb-[34px] text-balance">
+            Read the open web.
+            <br />
+            <span className="text-terracotta font-extrabold px-[6px]">/</span>
+            Save what matters.
           </h1>
-          <p className="text-[17.5px] leading-[1.55] max-w-[560px] text-black/55 font-medium mb-9">
-            MultivRSS is an RSS aggregator, a reading list, and a public &ldquo;best-of&rdquo; profile — in <b className="text-black font-bold">one fast, ad-free, open-format</b> dashboard.
-            No algorithm, no engagement traps. Just the feeds <b className="text-black font-bold">you</b> picked, the links <b className="text-black font-bold">you</b> kept, and the page <b className="text-black font-bold">you</b> publish.
+          <p className="text-[18px] leading-[1.6] max-w-[540px] text-black/55 font-medium mb-[40px]">
+            MultivRSS is your Internet Reading Room — the calm place to read
+            the internet. All you really want from the web is{" "}
+            <b className="text-black font-bold">updates</b> and{" "}
+            <b className="text-black font-bold">bookmarks</b>: the feeds you
+            picked, the links you kept. No ads, no engagement traps.{" "}
+            <b className="text-black font-bold">Reclaim your attention.</b>
           </p>
-          <div className="flex items-center gap-[18px] pb-14 flex-wrap">
+          <div className="flex items-center gap-5 flex-wrap">
             <Link
               href="/register"
-              className="bg-terracotta text-black border-2 border-terracotta px-[18px] py-[13px] font-mono text-[11.5px] font-extrabold tracking-[0.2em] uppercase hover:bg-black hover:text-terracotta hover:border-black transition-colors"
+              className="bg-terracotta text-black border-2 border-terracotta px-[20px] py-[14px] font-mono text-[11.5px] font-extrabold tracking-[0.2em] uppercase hover:bg-black hover:text-terracotta hover:border-black transition-colors"
             >
               → START FREE
             </Link>
-            <button
-              onClick={() => signIn("github")}
-              className="border-2 border-black px-[14px] py-[9px] font-mono text-[10.5px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
-            >
-              CONTINUE WITH GITHUB
-            </button>
-            <span className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-black/55 uppercase">
+            <span className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-black/30 uppercase">
               FREE FOREVER · NO CARD
             </span>
           </div>
         </div>
 
-        <div className="relative min-h-[280px] lg:min-h-[460px] flex items-end justify-end">
-          <div className="absolute top-3 left-3 font-mono text-[10px] font-bold tracking-[0.18em] text-black/55 border border-black/10 px-[10px] py-[6px]">
-            MARK_v2.1 · ICOSAHEDRON + WAVES · <b className="text-terracotta">STABLE</b>
+        <div className="flex items-center justify-end max-[920px]:justify-start">
+          <div className="relative w-full max-w-[460px]">
+            <div className="font-mono text-[10px] font-bold tracking-[0.16em] text-black/30 mb-[6px]">
+              MARK_v2.1 · ICOSAHEDRON + WAVES ·{" "}
+              <b className="text-terracotta">STABLE</b>
+            </div>
+            <Image
+              src="/assets/multivrss-mark.png"
+              alt=""
+              width={920}
+              height={704}
+              className="w-full h-auto"
+            />
           </div>
-          <Image src="/assets/multivrss-mark.png" alt="" width={520} height={400} className="w-full max-w-[520px] h-auto" />
         </div>
       </div>
     </section>

@@ -35,7 +35,7 @@ async function CachedFeedContent({
         link: hit.link,
         content: hit.content ?? null,
         pubDate: hit.pubDate ? new Date(hit.pubDate) : null,
-        read: false,
+        read: hit.read ?? false,
         savedAt: hit.savedAt ? new Date(hit.savedAt) : null,
         source: { title: hit.sourceTitle ?? null },
     }));
