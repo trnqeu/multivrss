@@ -2,12 +2,13 @@ import Sidebar from '@/components/Sidebar';
 import SidebarContainer from '@/components/SidebarContainer';
 import MobileShell from '@/components/MobileShell';
 import { MobileSidebarProvider } from '@/components/MobileSidebarContext';
+import { MobileActionsProvider } from '@/components/MobileActionsContext';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AutoSync from '@/components/AutoSync';
 import SessionWatcher from '@/components/SessionWatcher';
-import MobileFloatingNav from '@/components/MobileFloatingNav';
+import { getCategories } from '@/app/actions';
 
 export default async function UserLayout({
     children,
@@ -24,19 +25,22 @@ export default async function UserLayout({
         redirect(`/u/${session.user.username}`);
     }
 
+    const categories = await getCategories();
+
     return (
         <MobileSidebarProvider>
-            <AutoSync />
-            <SessionWatcher />
-            <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
-                <SidebarContainer>
-                    <Sidebar username={session.user.username} />
-                </SidebarContainer>
-                <MobileShell>
-                    {children}
-                </MobileShell>
-            </div>
-            <MobileFloatingNav />
+            <MobileActionsProvider categories={categories}>
+                <AutoSync />
+                <SessionWatcher />
+                <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
+                    <SidebarContainer>
+                        <Sidebar username={session.user.username} />
+                    </SidebarContainer>
+                    <MobileShell username={session.user.username}>
+                        {children}
+                    </MobileShell>
+                </div>
+            </MobileActionsProvider>
         </MobileSidebarProvider>
     );
 }
