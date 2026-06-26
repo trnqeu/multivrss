@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { syncAllFeeds } from '@/app/actions';
 import AddPopover from './AddPopover';
-import { useMobileSidebar } from './MobileSidebarContext';
 import { useSync } from './SyncProvider';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
@@ -27,7 +26,6 @@ export default function PageHeader({ categories, username, email }: Props) {
     const [searchOpen, setSearchOpen] = useState(false);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { startSync, isSyncing } = useSync();
-    const { setOpen: setMobileSidebarOpen } = useMobileSidebar();
 
     function handleSync() {
         startSync(async () => { await syncAllFeeds(); });
@@ -86,13 +84,6 @@ export default function PageHeader({ categories, username, email }: Props) {
             {/* ── MOBILE: search closed ── */}
             {!searchOpen && (
                 <div className="flex items-center w-full gap-4 md:hidden">
-                    <button
-                        onClick={() => setMobileSidebarOpen(true)}
-                        aria-label="Open navigation"
-                        className="bg-transparent border-none p-0 text-foreground text-base leading-none"
-                    >
-                        ☰
-                    </button>
                     <Link
                         href={`/u/${username}`}
                         className="text-terracotta text-[13px] font-extrabold uppercase tracking-[0.22em] flex-1"
