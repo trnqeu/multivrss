@@ -116,7 +116,7 @@ function IdleView({
   onAddPack: (id: string) => void;
 }) {
   return (
-    <div className="max-w-[760px] mx-auto px-8 pt-[60px] pb-[100px] flex flex-col items-center text-center">
+    <div className="max-w-[760px] mx-auto px-8 pt-[90px] pb-[100px] flex flex-col items-center text-center">
       <Image
         src="/logo/multivrss-mark.png"
         alt=""
@@ -124,19 +124,21 @@ function IdleView({
         height={92}
         className="w-[120px] h-auto object-contain opacity-[0.95]"
       />
-      <div className="mt-[18px] text-[26px] font-extrabold uppercase tracking-[.24em] text-terracotta">
+      <div className="mt-[22px] text-[26px] font-extrabold uppercase tracking-[.24em] text-terracotta">
         multivrss
       </div>
-      <div className="mt-[26px] inline-flex items-center gap-2 border border-terracotta/40 px-3 py-[5px] text-[10px] font-extrabold tracking-[.26em] uppercase text-terracotta">
+      <div className="mt-[36px] inline-flex items-center gap-2 border border-terracotta/40 px-3 py-[5px] text-[10px] font-extrabold tracking-[.26em] uppercase text-terracotta">
         <span className="w-[6px] h-[6px] rounded-full bg-terracotta shrink-0" aria-hidden="true" />
-        00 SOURCES · STANDBY
+        00 SOURCES
       </div>
-      <h1 className="mt-5 font-serif font-semibold text-[40px] leading-[1.08] tracking-[-0.02em]">
+      <div className="flex flex-col items-center gap-5" style={{ marginTop: '72px' }}>
+      <h1 className="m-0 font-serif font-semibold text-[40px] leading-[1.08] tracking-[-0.02em]">
         No signal yet.
       </h1>
-      <p className="mt-[14px] text-[13px] font-medium text-foreground/55 leading-relaxed max-w-[42ch]">
+      <p className="m-0 text-[13px] font-medium text-foreground/55 leading-relaxed max-w-[42ch]">
         Feed the reader. Drop in a <strong className="text-foreground font-bold">starter pack</strong> and the stream comes alive — or wire up sources by hand.
       </p>
+      </div>
 
       <Rule label="FASTEST WAY IN" />
 
