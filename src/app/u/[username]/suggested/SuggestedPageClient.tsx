@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { createFeedSource } from "@/app/actions";
 import type { SuggestedCategory, SuggestedFeed } from "@/lib/suggested-feeds";
 import type { Category } from "@prisma/client";
@@ -27,21 +27,50 @@ function FeedCard({
 }) {
   const [adding, setAdding] = useState(false);
   const [pickedCategoryId, setPickedCategoryId] = useState("");
+  const [creatingNew, setCreatingNew] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const selectedLabel = categories.find((c) => c.id === pickedCategoryId)?.name ?? "CATEGORY…";
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const newCatInputRef = useRef<HTMLInputElement>(null);
+
+  const selectedLabel = creatingNew
+    ? newCategoryName || "NEW CATEGORY…"
+    : categories.find((c) => c.id === pickedCategoryId)?.name ?? "CATEGORY…";
+
+  const categoryReady = creatingNew
+    ? newCategoryName.trim().length > 0
+    : pickedCategoryId !== "";
+
+  useEffect(() => {
+    if (creatingNew) newCatInputRef.current?.focus();
+  }, [creatingNew]);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    function onOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [dropdownOpen]);
 
   const handleAdd = useCallback(async () => {
-    if (!pickedCategoryId) return;
+    if (!categoryReady) return;
     setAdding(true);
     setStatus("idle");
     const formData = new FormData();
     formData.set("url", feed.url);
-    formData.set("categoryId", pickedCategoryId);
+    formData.set("categoryId", creatingNew ? "" : pickedCategoryId);
+    formData.set("newCategoryName", creatingNew ? newCategoryName : "");
     const result = await createFeedSource(null, formData);
     setStatus(result.success ? "success" : "error");
     setAdding(false);
-  }, [feed.url, pickedCategoryId]);
+  }, [feed.url, pickedCategoryId, creatingNew, newCategoryName, categoryReady]);
+
+  const showPicker = (pickedCategoryId || creatingNew) && status !== "success";
 
   return (
     <div className="border-2 border-foreground bg-background p-5 flex flex-col gap-3">
@@ -68,7 +97,7 @@ function FeedCard({
         {feed.description}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <a
           href={new URL(feed.url).origin}
           target="_blank"
@@ -77,38 +106,67 @@ function FeedCard({
         >
           {getHost(feed.url)}
         </a>
-        {pickedCategoryId && status !== "success" && (
+        {showPicker && (
           <div className="flex items-center gap-2 ml-auto">
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="font-mono text-[10px] bg-transparent border border-foreground px-2 py-1 text-foreground flex items-center gap-2"
-              >
-                {selectedLabel}
-                <span className="text-terracotta">▾</span>
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full z-10 mt-px bg-background border-2 border-foreground min-w-[140px]">
-                  {categories.map((c) => (
+            {creatingNew ? (
+              <div className="flex border border-terracotta">
+                <label htmlFor={`newcat-${feed.url}`} className="sr-only">New category name</label>
+                <input
+                  id={`newcat-${feed.url}`}
+                  ref={newCatInputRef}
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value.toUpperCase())}
+                  placeholder="NEW CATEGORY…"
+                  className="w-28 px-2 py-1 bg-transparent font-mono text-[10px] text-foreground placeholder:text-foreground/30 border-none focus-visible:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setCreatingNew(false); setNewCategoryName(""); }}
+                  className="px-2 border-l border-terracotta bg-transparent text-terracotta font-mono text-[10px] hover:bg-white/5 transition-colors"
+                >
+                  ←
+                </button>
+              </div>
+            ) : (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen((v) => !v)}
+                  className="font-mono text-[10px] bg-transparent border border-foreground px-2 py-1 text-foreground flex items-center gap-2"
+                >
+                  {selectedLabel}
+                  <span className="text-terracotta">▾</span>
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-full z-10 mt-px bg-background border-2 border-foreground min-w-[160px]">
+                    {categories.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => { setPickedCategoryId(c.id); setDropdownOpen(false); }}
+                        className={`block w-full text-left px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors ${
+                          pickedCategoryId === c.id ? "bg-terracotta text-background" : "text-foreground bg-background"
+                        }`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
                     <button
-                      key={c.id}
                       type="button"
-                      onClick={() => { setPickedCategoryId(c.id); setDropdownOpen(false); }}
-                      className={`block w-full text-left px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors ${
-                        pickedCategoryId === c.id ? 'bg-terracotta text-background' : 'text-foreground bg-background'
-                      }`}
+                      onClick={() => { setCreatingNew(true); setDropdownOpen(false); }}
+                      className="block w-full text-left px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest border-t border-foreground/20 bg-terracotta text-background hover:opacity-90 transition-opacity"
                     >
-                      {c.name}
+                      + NEW CATEGORY…
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
             <button
               type="button"
               onClick={handleAdd}
-              disabled={adding || !pickedCategoryId}
+              disabled={adding || !categoryReady}
               className="bg-terracotta text-background border-2 border-terracotta px-3 py-1 text-[10px] font-bold uppercase tracking-widest hover:bg-background hover:text-terracotta transition-colors disabled:opacity-40 active:translate-x-[2px] active:translate-y-[2px]"
             >
               {adding ? "…" : "ADD →"}
