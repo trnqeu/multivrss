@@ -146,8 +146,8 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     // ── MERGE → RANK → GROUP ──
     const all = [...pick.values()].sort(byAffinity);
 
-    // forYouPool: top N globals (highest affinity across all categories), randomized client-side
-    const forYouPool = all.slice(0, FORYOU_POOL_SIZE);
+    // forYouPool: top N globals (highest affinity across all categories), pre-shuffled server-side
+    const forYouPool = all.slice(0, FORYOU_POOL_SIZE).sort(() => Math.random() - 0.5);
     const forYouIds = new Set(forYouPool.map(i => i.id));
     // Track all picked IDs to avoid duplicates in the random fill
     const shownIds = new Set(all.map(i => i.id));
