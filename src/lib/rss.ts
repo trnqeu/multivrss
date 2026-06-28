@@ -2,7 +2,7 @@ import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { meili } from './meili';
 import dns from 'dns';
-import { isPrivateIp, decodeHtmlEntities } from './utils';
+import { isPrivateIp, decodeHtmlEntities, stripHtml } from './utils';
 import { resolveYouTubeChannel, fetchYouTubeVideosAsFeed } from './youtube';
 
 export async function validateFeedUrl(rawUrl: string): Promise<void> {
@@ -202,7 +202,8 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     for (const item of feed.items) {
         const externalId = item.guid || item.link || '';
         const title = decodeHtmlEntities(item.title || 'Untitled');
-        const content = decodeHtmlEntities(item.contentSnippet || item.summary || item.content || '');
+        const rawContent = item.contentSnippet || stripHtml(item.summary || item.content || '');
+        const content = decodeHtmlEntities(rawContent);
 
         const existing = existingByExtId.get(externalId);
         if (!existing) {
