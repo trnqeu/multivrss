@@ -89,15 +89,6 @@ function StrengthMeter({ affinity }: { affinity: number }) {
     );
 }
 
-// ── Fisher-Yates shuffle ──
-function shuffle<T>(arr: T[]): T[] {
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
 const FORYOU_COUNT = 4;
 
 // ── Dismiss button ──
@@ -143,7 +134,7 @@ function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags
 
 // ── FOR YOU strip — stateful ──
 function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
-    const [pool, setPool] = useState(() => shuffle([...initialPool]));
+    const [pool, setPool] = useState(initialPool);
     const [, startTransition] = useTransition();
 
     const displayed = pool.slice(0, FORYOU_COUNT);
@@ -178,6 +169,7 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
 // ── Category section — stateful ──
 function CategoryColumn({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
     const [items, setItems] = useState(initialItems);
+    const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
 
     function dismiss(item: FrontPageItem) {
@@ -197,79 +189,90 @@ function CategoryColumn({ category, items: initialItems, allTags }: { category: 
     return (
         <section aria-labelledby={`cat-${category}`} className="py-6 border-t border-foreground/15">
             <div className="flex items-center gap-3 mb-4">
-                <span id={`cat-${category}`} className="text-[13px] font-extrabold uppercase tracking-[.22em] font-mono whitespace-nowrap">
-                    — {category}
-                </span>
+                <button
+                    type="button"
+                    onClick={() => setCollapsed(v => !v)}
+                    aria-expanded={!collapsed}
+                    aria-controls={`cat-body-${category}`}
+                    className="text-[13px] font-extrabold uppercase tracking-[.22em] font-mono whitespace-nowrap text-left bg-transparent border-0 p-0 cursor-pointer text-foreground hover:text-terracotta transition-colors"
+                    id={`cat-${category}`}
+                >
+                    {collapsed ? '+' : '—'} {category}
+                </button>
                 <span className="flex-1 h-px bg-foreground/15" aria-hidden="true" />
-                <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>
+                {!collapsed && <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-9 items-start">
-                {lead && (
-                    <article className="flex flex-col gap-2 items-start">
-                        <Reason item={lead} />
-                        <FrontPageLink
-                            itemId={lead.id}
-                            href={lead.link}
-                            className="font-serif text-[25px] font-semibold leading-[1.14] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
-                        >
-                            {lead.title}
-                        </FrontPageLink>
-                        {lead.content && (
-                            <p className="font-serif text-[14.5px] leading-relaxed text-foreground/50 font-normal max-w-[48ch] line-clamp-3">
-                                {lead.content}
-                            </p>
-                        )}
-                        <div className="flex items-center gap-2 mt-auto">
-                            <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
-                                {lead.sourceTitle}
-                            </span>
-                            <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                            <PubDate ts={lead.pubDate} />
-                            <div className="ml-auto shrink-0 flex items-center gap-2">
-                                <FrontPageItemActions itemId={lead.id} allTags={allTags} />
-                                <DismissButton onClick={() => dismiss(lead)} />
-                            </div>
-                        </div>
-                    </article>
-                )}
-
-                {rest.length > 0 && (
-                    <ul role="list" className="flex flex-col border-t border-foreground/15">
-                        {rest.map(item => (
-                            <li key={item.id} className="py-3 border-b border-foreground/[0.08]">
+            {!collapsed && (
+                <div id={`cat-body-${category}`}>
+                    <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-9 items-start">
+                        {lead && (
+                            <article className="flex flex-col gap-2 items-start">
+                                <Reason item={lead} />
                                 <FrontPageLink
-                                    itemId={item.id}
-                                    href={item.link}
-                                    className="font-serif text-[16px] font-medium leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block mb-1.5"
+                                    itemId={lead.id}
+                                    href={lead.link}
+                                    className="font-serif text-[25px] font-semibold leading-[1.14] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
                                 >
-                                    {item.title}
+                                    {lead.title}
                                 </FrontPageLink>
-                                <div className="flex items-center gap-2">
+                                {lead.content && (
+                                    <p className="font-serif text-[14.5px] leading-relaxed text-foreground/50 font-normal max-w-[48ch] line-clamp-3">
+                                        {lead.content}
+                                    </p>
+                                )}
+                                <div className="flex items-center gap-2 mt-auto">
                                     <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
-                                        {item.sourceTitle}
+                                        {lead.sourceTitle}
                                     </span>
                                     <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                                    <PubDate ts={item.pubDate} />
+                                    <PubDate ts={lead.pubDate} />
                                     <div className="ml-auto shrink-0 flex items-center gap-2">
-                                        <FrontPageItemActions itemId={item.id} allTags={allTags} />
-                                        <DismissButton onClick={() => dismiss(item)} />
+                                        <FrontPageItemActions itemId={lead.id} allTags={allTags} />
+                                        <DismissButton onClick={() => dismiss(lead)} />
                                     </div>
                                 </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </div>
+                            </article>
+                        )}
 
-            <div className="mt-4 pt-2">
-                <Link
-                    href={`?view=river&cat=${encodeURIComponent(category)}`}
-                    className="text-[9px] font-bold uppercase tracking-widest font-mono text-terracotta hover:text-foreground transition-colors"
-                >
-                    See all →
-                </Link>
-            </div>
+                        {rest.length > 0 && (
+                            <ul role="list" className="flex flex-col border-t border-foreground/15">
+                                {rest.map(item => (
+                                    <li key={item.id} className="py-3 border-b border-foreground/[0.08]">
+                                        <FrontPageLink
+                                            itemId={item.id}
+                                            href={item.link}
+                                            className="font-serif text-[16px] font-medium leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block mb-1.5"
+                                        >
+                                            {item.title}
+                                        </FrontPageLink>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
+                                                {item.sourceTitle}
+                                            </span>
+                                            <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
+                                            <PubDate ts={item.pubDate} />
+                                            <div className="ml-auto shrink-0 flex items-center gap-2">
+                                                <FrontPageItemActions itemId={item.id} allTags={allTags} />
+                                                <DismissButton onClick={() => dismiss(item)} />
+                                            </div>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="mt-4 pt-2">
+                        <Link
+                            href={`?view=river&cat=${encodeURIComponent(category)}`}
+                            className="text-[9px] font-bold uppercase tracking-widest font-mono text-terracotta hover:text-foreground transition-colors"
+                        >
+                            See all →
+                        </Link>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
