@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MultivRSS — Navigazione mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#000; --fg:#fff; --tc:#E2725B;
+    --fg50:rgba(255,255,255,.5); --fg40:rgba(255,255,255,.4);
+    --fg30:rgba(255,255,255,.3); --fg15:rgba(255,255,255,.15);
+    --fg08:rgba(255,255,255,.08); --fg04:rgba(255,255,255,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#161514;color:var(--fg);
+    font-family:"JetBrains Mono",ui-monospace,monospace;
+    -webkit-font-smoothing:antialiased;display:flex;min-height:100%;
+    background-image:radial-gradient(circle at 28% 0%, #211f1d 0%, #161514 55%);
+  }
+  .stage{flex:1;display:flex;gap:54px;align-items:flex-start;justify-content:center;padding:46px 40px 80px}
+  .lbl{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+
+  /* panel */
+  .panel{width:344px;flex-shrink:0;padding-top:8px}
+  .panel__kick{color:var(--tc);font-size:9px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;margin-bottom:14px}
+  .panel h1{font-size:23px;font-weight:800;line-height:1.18;letter-spacing:-.01em;margin-bottom:14px}
+  .panel p.intro{font-size:12.5px;line-height:1.65;color:var(--fg50);font-weight:500;margin-bottom:26px}
+  .panel p.intro b{color:var(--fg);font-weight:700}
+  .opts{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+  .opt{text-align:left;background:transparent;border:1.5px solid var(--fg15);color:var(--fg);padding:13px 15px;cursor:pointer;display:flex;gap:13px;align-items:flex-start;transition:border-color .15s,background .15s;font-family:inherit}
+  .opt:hover{border-color:var(--fg40)}
+  .opt.on{border-color:var(--tc);background:rgba(226,114,91,.07)}
+  .opt__k{font-size:11px;font-weight:800;color:var(--fg40);width:14px;flex-shrink:0;margin-top:1px}
+  .opt.on .opt__k{color:var(--tc)}
+  .opt__t{font-size:12.5px;font-weight:700;letter-spacing:.02em;margin-bottom:4px}
+  .opt__d{font-size:10.5px;font-weight:500;line-height:1.5;color:var(--fg50)}
+  .opt__rec{display:inline-block;margin-left:7px;color:var(--tc);font-size:8px;font-weight:800;letter-spacing:.16em;border:1px solid var(--tc);padding:2px 5px;vertical-align:middle}
+  .note{border-top:1.5px solid var(--fg15);padding-top:18px}
+  .note__h{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--fg40);margin-bottom:10px}
+  .note__b{font-size:11.5px;line-height:1.62;color:var(--fg50);font-weight:500}
+  .note__b b{color:var(--fg);font-weight:700}.note__b .tc{color:var(--tc);font-weight:700}
+
+  /* phone */
+  .phone-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;flex-shrink:0}
+  .phone{width:390px;height:800px;background:var(--bg);border:11px solid #2a2826;border-radius:46px;box-shadow:0 40px 90px -30px rgba(0,0,0,.85),0 0 0 1.5px #000;position:relative;overflow:hidden;display:flex;flex-direction:column}
+  .screen{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden;border-radius:35px;touch-action:none}
+  .notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:96px;height:24px;background:#000;border-radius:0 0 16px 16px;z-index:60}
+  .sbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 30px;flex-shrink:0;font-size:12px;font-weight:700}
+
+  .top{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--fg15);flex-shrink:0}
+  .top__ham{background:none;border:0;color:var(--fg);font-size:16px;cursor:pointer;line-height:1;padding:0;width:18px}
+  .wordmark{display:flex;align-items:center;gap:7px;margin-right:auto}
+  .wordmark img{width:15px;height:15px;display:block}
+  .wordmark span{color:var(--tc);font-size:13px;font-weight:800;letter-spacing:.12em}
+  .top__ico{font-size:13px;color:var(--fg50);width:18px;text-align:center}
+  .top__ico.box{border:1.4px solid var(--fg30);width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:12px}
+
+  .tele{display:flex;align-items:center;padding:9px 16px;border-bottom:2px solid var(--fg);flex-shrink:0;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--fg50);white-space:nowrap;overflow:hidden}
+  .tele b{color:var(--fg)}.tele .d{margin:0 9px;color:var(--fg30)}
+
+  .feed{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 30px;scrollbar-width:none}
+  .feed::-webkit-scrollbar{display:none}
+  .daymark{display:flex;align-items:center;gap:10px;margin:4px 0 14px}
+  .daymark:not(:first-child){margin-top:22px}
+  .daymark__l{color:var(--tc);font-size:9px;font-weight:800;letter-spacing:.26em;white-space:nowrap}
+  .daymark__line{flex:1;height:1px;background:rgba(226,114,91,.32)}
+  .item{font-size:13px;line-height:1.7;font-weight:500;display:block;margin-bottom:3px}
+  .item.read{opacity:.32}
+  .item__dot{color:var(--tc);font-size:12px;margin-right:4px}
+  .item__src{color:var(--tc);font-size:9px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+  .item__mid{color:var(--fg40);margin:0 6px}
+  .item__date{color:var(--fg50);font-size:11px}
+  .item__title{color:var(--fg)}
+  .item__body{color:var(--fg50);font-weight:400}
+
+  /* ── affordances ── */
+  /* opt0 floating bare glyph */
+  .fab{position:absolute;left:16px;bottom:22px;z-index:30;border:2px solid var(--fg);background:var(--bg);color:var(--fg);font-size:13px;font-weight:700;line-height:1;padding:6px 8px;cursor:pointer}
+  .fab:hover{background:var(--fg);color:var(--bg)}
+  /* optA labeled pill */
+  .navpill{position:absolute;left:16px;bottom:22px;z-index:30;border:2px solid var(--fg);background:var(--bg);color:var(--fg);font-size:10px;font-weight:800;letter-spacing:.16em;line-height:1;padding:9px 13px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px -8px rgba(0,0,0,.7)}
+  .navpill:hover{background:var(--fg);color:var(--bg)}
+  /* edge handle (A + C) */
+  .edge{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:25;width:5px;height:64px;background:var(--tc);border-radius:0 4px 4px 0;cursor:grab;opacity:.85}
+  .edge::after{content:"";position:absolute;left:0;top:0;width:22px;height:100%}
+  .edgehint{position:absolute;left:10px;top:50%;transform:translateY(-50%);z-index:24;color:var(--fg30);font-size:8px;font-weight:800;letter-spacing:.18em;writing-mode:vertical-rl;text-transform:uppercase;pointer-events:none}
+
+  /* bottom tab bar (B) */
+  .tabbar{height:62px;flex-shrink:0;border-top:2px solid var(--fg);display:flex;background:var(--bg);z-index:30}
+  .tab{flex:1;background:none;border:0;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;color:var(--fg50)}
+  .tab__g{font-size:15px;line-height:1}
+  .tab__l{font-size:8.5px;font-weight:800;letter-spacing:.16em}
+  .tab.on{color:var(--tc)}
+  .tab.on::before{content:"";position:absolute;top:0;left:24%;right:24%;height:2px;background:var(--tc)}
+
+  /* drawer */
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .22s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:absolute;left:0;top:0;bottom:0;width:80%;max-width:300px;z-index:41;background:var(--bg);border-right:2px solid var(--fg);transform:translateX(-102%);transition:transform .26s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
+  .drawer.show{transform:translateX(0)}
+  .drawer__brand{display:flex;align-items:center;gap:11px;padding:18px 18px;border-bottom:2px solid var(--fg)}
+  .drawer__brand img{width:26px;height:26px}
+  .drawer__brand span{font-size:13px;font-weight:800;letter-spacing:.16em;color:var(--tc)}
+  .drawer__x{margin-left:auto;color:var(--fg50);background:none;border:0;font-size:15px;cursor:pointer}
+  .drawer__body{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:13px;scrollbar-width:none}
+  .drawer__body::-webkit-scrollbar{display:none}
+  .dnav{display:flex;align-items:center;gap:11px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg);padding-left:7px;border-left:2px solid transparent}
+  .dnav.on{border-left-color:var(--tc);color:var(--tc)}
+  .dnav__c{margin-left:auto;font-size:9px;color:var(--fg40)}
+  .dgroup{margin-top:8px;color:var(--fg40)}
+  .dcat{display:flex;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--fg50);text-transform:uppercase;padding:3px 0}
+  .dcat span:last-child{color:var(--fg30)}
+
+  .caption{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--fg40);text-align:center;max-width:330px;line-height:1.5}
+  .caption b{color:var(--tc);font-weight:800}
+
+  @media (max-width:980px){.stage{flex-direction:column;align-items:center;gap:34px}.panel{width:390px}}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="panel">
+      <div class="panel__kick">MultivRSS · Mobile · Navigazione</div>
+      <h1>Aprire la sidebar col pollice, con eleganza</h1>
+      <p class="intro">Oggi apri il menu con un <b>☰ nudo in basso a sinistra</b> (più un secondo ☰ ridondante nell'header). L'istinto della posizione è giusto — il pollice arriva in basso — ma la forma no. Toccane uno e provalo.</p>
+      <div class="opts" id="opts">
+        <button class="opt on" data-opt="0"><span class="opt__k">0</span><span><span class="opt__t">Com'è adesso</span><span class="opt__d">☰ isolato in basso a sinistra + ☰ ridondante nell'header.</span></span></button>
+        <button class="opt" data-opt="A"><span class="opt__k">A</span><span><span class="opt__t">Pill etichettata + swipe</span><span class="opt__d">Il floating diventa “☰ MENU” con contenitore; apri anche con swipe dal bordo. Header pulito.</span></span></button>
+        <button class="opt" data-opt="B"><span class="opt__k">B</span><span><span class="opt__t">Bottom tab bar<span class="opt__rec">Consigliato</span></span><span class="opt__d">Barra inferiore fissa: FEED · SAVED · MENU · ADD. “MENU” apre il drawer. Componente già scritto nel codice.</span></span></button>
+        <button class="opt" data-opt="C"><span class="opt__k">C</span><span><span class="opt__t">Solo gesto dal bordo</span><span class="opt__d">Niente floating: ☰ nell'header + swipe dal bordo sinistro. Nativo ma meno scopribile.</span></span></button>
+      </div>
+      <div class="note">
+        <div class="note__h">Perché B</div>
+        <div class="note__b">La <b>tab bar inferiore</b> è raggiungibile col pollice, <span class="tc">sempre visibile e scopribile</span>, e dà struttura alle azioni primarie invece di un glifo solitario. Hai già <span class="tc">MobileTabBar</span> nel codice, non montato. <b>A</b> è la via rapida se vuoi restare sul drawer.</div>
+      </div>
+    </div>
+
+    <div class="phone-wrap">
+      <div class="phone"><div class="screen" id="screen">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span>●●● ⌃ ▤</span></div>
+        <div class="top" id="topbar"></div>
+        <div class="tele"><span>INDEX: <b>11 / 373</b></span><span class="d">·</span><span>TIME: <b>3 MS</b></span><span class="d">·</span><span>FILTER: <b>ALL</b></span></div>
+        <div class="feed" id="feed"></div>
+
+        <!-- affordance slot (floating / pill / edge) -->
+        <div id="afford"></div>
+
+        <!-- drawer -->
+        <div class="scrim" id="scrim"></div>
+        <div class="drawer" id="drawer">
+          <div class="drawer__brand"><img src="assets/multivrss-ico.png" alt="" /><span>MULTIVRSS</span><button class="drawer__x" id="drawerX">✕</button></div>
+          <div class="drawer__body">
+            <div class="dnav on">⌁ ALL FEEDS</div>
+            <div class="dnav">▤ FRONT PAGE</div>
+            <div class="dnav">❏ SAVED <span class="dnav__c">28</span></div>
+            <div class="dnav">◎ SUGGESTED</div>
+            <div class="dgroup lbl">Categories</div>
+            <div class="dcat"><span>MIND</span><span>03</span></div>
+            <div class="dcat"><span>NEWS</span><span>03</span></div>
+            <div class="dcat"><span>TECH</span><span>03</span></div>
+            <div class="dcat"><span>NEWSLETTERS</span><span>03</span></div>
+            <div class="dcat"><span>SPORT</span><span>02</span></div>
+            <div class="dcat"><span>YOUTUBE</span><span>02</span></div>
+          </div>
+        </div>
+
+        <!-- bottom tab bar slot -->
+        <div id="tabSlot"></div>
+      </div></div>
+      <div class="caption" id="caption"></div>
+    </div>
+  </div>
+
+<script>
+const FEED = [
+  {src:'STANFORD ENC. PHIL.',date:'Jun 19',title:'Logical Truth',body:'Revised entry by Mario Gómez-Torrente. Changes to main text, bibliography',read:false,day:'JUN 19'},
+  {src:'NYT › WORLD',date:'Jun 19',title:'Vance Issues Blunt Warning as Cease-Fire Holds',body:'The vice president delivered a rebuke to critics of the agreement',read:false,day:'JUN 19'},
+  {src:'STRATECHERY',date:'Jun 19',title:'The Quiet Consolidation of the AI Stack',body:'Foundation-model labs are absorbing the tooling layer wholesale',read:false,day:'JUN 19'},
+  {src:'HACKER NEWS',date:'Jun 18',title:'Show HN: A local-first RSS reader built in a weekend',body:'After years of fighting cloud sync I committed to a SQLite-backed store',read:false,day:'JUN 18'},
+  {src:'ESPN — TOP',date:'Jun 18',title:'Balogun living World Cup “dream” as U.S. choice pays off',body:'The striker has settled questions about his international future',read:true,day:'JUN 18'},
+  {src:'PLATFORMER',date:'Jun 18',title:'The chronological feed is having a moment',body:'Why three major platforms quietly shipped a reverse-chron option',read:false,day:'JUN 18'},
+  {src:'AEON',date:'Jun 18',title:'Attention is not a resource to be spent',body:'The economic metaphor we use for the mind quietly distorts how we live',read:true,day:'JUN 18'},
+  {src:'VERITASIUM',date:'Jun 17',title:'The maths problem that broke the internet',body:'A deceptively simple puzzle that hides surprising depth underneath',read:true,day:'JUN 17'},
+];
+const CAPS = {
+  '0':'Opzione 0 — <b>tocca il ☰ in basso a sinistra</b> (o quello nell\'header)',
+  'A':'Opzione A — <b>tocca “☰ MENU”</b> o <b>trascina dal bordo sinistro</b>',
+  'B':'Opzione B — <b>tocca MENU</b> nella barra inferiore',
+  'C':'Opzione C — <b>trascina dal bordo sinistro</b> o usa il ☰ in alto',
+};
+const state = { opt:'0' };
+const $ = s => document.querySelector(s);
+const topEl=$('#topbar'), afford=$('#afford'), tabSlot=$('#tabSlot'), feed=$('#feed');
+const drawer=$('#drawer'), scrim=$('#scrim'), screenEl=$('#screen'), caption=$('#caption');
+
+function buildFeed(){
+  let last=null,h='';
+  FEED.forEach(it=>{
+    if(it.day!==last){h+=`<div class="daymark"><span class="daymark__l">— ${it.day}</span><span class="daymark__line"></span></div>`;last=it.day;}
+    h+=`<span class="item ${it.read?'read':''}"><span class="item__dot">${it.read?'●':'○'}</span><span class="item__src">${it.src}</span><span class="item__mid">·</span><span class="item__date">${it.date}</span><span class="item__mid">·</span><span class="item__title">${it.title}</span> <span class="item__mid">—</span> <span class="item__body">${it.body}…</span></span>`;
+  });
+  feed.innerHTML=h;
+}
+
+function topBar(withHam){
+  return `${withHam?'<button class="top__ham" id="ham">☰</button>':''}`+
+    `<span class="wordmark"><img src="assets/multivrss-ico.png" alt="" /><span>MULTIVRSS</span></span>`+
+    `<span class="top__ico">⌕</span><span class="top__ico box">+</span><span class="top__ico">↻</span><span class="top__ico">◐</span>`;
+}
+
+function build(){
+  closeDrawer(true);
+  afford.innerHTML=''; tabSlot.innerHTML='';
+  if(state.opt==='0'){
+    topEl.innerHTML=topBar(true);
+    afford.innerHTML=`<button class="fab" id="open0">☰</button>`;
+  } else if(state.opt==='A'){
+    topEl.innerHTML=topBar(false);
+    afford.innerHTML=`<button class="navpill" id="openA">☰ MENU</button><div class="edge" id="edge"></div><div class="edgehint">swipe</div>`;
+  } else if(state.opt==='B'){
+    topEl.innerHTML=topBar(false);
+    tabSlot.innerHTML=`<div class="tabbar">`+
+      `<button class="tab on"><span class="tab__g">≡</span><span class="tab__l">FEED</span></button>`+
+      `<button class="tab"><span class="tab__g">❏</span><span class="tab__l">SAVED</span></button>`+
+      `<button class="tab" id="tabMenu"><span class="tab__g">☰</span><span class="tab__l">MENU</span></button>`+
+      `<button class="tab"><span class="tab__g">＋</span><span class="tab__l">ADD</span></button>`+
+      `</div>`;
+  } else if(state.opt==='C'){
+    topEl.innerHTML=topBar(true);
+    afford.innerHTML=`<div class="edge" id="edge"></div><div class="edgehint">swipe</div>`;
+  }
+  wire();
+  caption.innerHTML=CAPS[state.opt];
+}
+
+function wire(){
+  ['ham','open0','openA','tabMenu'].forEach(id=>{const el=document.getElementById(id);if(el)el.onclick=openDrawer;});
+}
+
+function openDrawer(){ drawer.classList.add('show'); scrim.classList.add('show'); }
+function closeDrawer(instant){
+  if(instant){drawer.style.transition='none';requestAnimationFrame(()=>drawer.style.transition='');}
+  drawer.classList.remove('show'); scrim.classList.remove('show');
+  drawer.style.transform='';
+}
+$('#drawerX').onclick=()=>closeDrawer();
+scrim.onclick=()=>closeDrawer();
+
+/* edge swipe for A and C */
+let dragging=false,startX=0,w=0;
+screenEl.addEventListener('pointerdown',e=>{
+  if(!(state.opt==='A'||state.opt==='C'))return;
+  if(drawer.classList.contains('show'))return;
+  const r=screenEl.getBoundingClientRect();
+  if(e.clientX-r.left>26)return;
+  dragging=true;startX=e.clientX;w=drawer.offsetWidth;
+  drawer.style.transition='none';scrim.style.transition='none';
+  drawer.classList.add('show');
+  screenEl.setPointerCapture(e.pointerId);
+});
+screenEl.addEventListener('pointermove',e=>{
+  if(!dragging)return;
+  let dx=Math.max(0,Math.min(w,e.clientX-startX));
+  drawer.style.transform=`translateX(${-w+dx}px)`;
+  scrim.style.opacity=(dx/w*0.55).toFixed(2);scrim.style.pointerEvents='auto';
+});
+screenEl.addEventListener('pointerup',e=>{
+  if(!dragging)return;dragging=false;
+  drawer.style.transition='';scrim.style.transition='';scrim.style.opacity='';
+  const dx=Math.max(0,Math.min(w,e.clientX-startX));
+  if(dx>w*0.4){drawer.style.transform='';openDrawer();}
+  else closeDrawer();
+});
+
+$('#opts').querySelectorAll('.opt').forEach(b=>{
+  b.onclick=()=>{
+    $('#opts').querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
+    b.classList.add('on');state.opt=b.dataset.opt;build();
+  };
+});
+
+buildFeed();build();
+</script>
+</body>
+</html>
