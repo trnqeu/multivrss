@@ -56,6 +56,11 @@ export function isPrivateIp(ip: string): boolean {
 /** Password strength regex: 8+ chars, upper, lower, digit, special char. */
 export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+/** Strips HTML tags, collapsing whitespace. */
+export function stripHtml(str: string): string {
+    return str.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 /** Decodes HTML/XML character entities (handles double-encoded feeds, e.g. &#39; → '). */
 export function decodeHtmlEntities(str: string): string {
     return str
