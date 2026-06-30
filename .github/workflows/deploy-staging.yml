@@ -92,17 +92,25 @@ jobs:
             docker pull "$IMAGE:$SHA-migrator"
             docker pull "$IMAGE:$SHA"
 
-            # Run migrations against the live db network
+            # Bring up infrastructure first so the migrator can reach db:5432
+            cd ~/multivrss
+            IMAGE_TAG="$SHA" \
+            docker compose -f docker-compose.prod.yml --project-name multivrss-staging --env-file .env.staging up -d db redis meilisearch
+
+            # Wait for Postgres to be ready (up to 30s)
+            for i in $(seq 1 15); do
+              docker exec multivrss-staging-db-1 pg_isready -q && break
+              sleep 2
+            done
+
+            # Run migrations
             docker run --rm \
-              --network multivrss_internal \
+              --network multivrss-staging_internal \
               --env-file ~/multivrss/.env.staging \
               "$IMAGE:$SHA-migrator" \
               npx prisma migrate deploy
 
-            # Deploy new stack
-            cd ~/multivrss
-            IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --project-name multivrss-staging --env-file .env.staging pull app worker
+            # Deploy full stack
             IMAGE_TAG="$SHA" \
             docker compose -f docker-compose.prod.yml --project-name multivrss-staging --env-file .env.staging up -d --remove-orphans --force-recreate
 
