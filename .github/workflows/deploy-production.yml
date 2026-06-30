@@ -58,6 +58,7 @@ jobs:
     name: Deploy to Production
     needs: build
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       packages: write
     steps:
@@ -92,9 +93,12 @@ jobs:
             docker pull "$IMAGE:$SHA-migrator"
             docker pull "$IMAGE:$SHA"
 
+            # Ensure the internal network exists before the migrator needs it
+            docker network create multivrss-prod_internal 2>/dev/null || true
+
             # Run migrations (one-shot container, isolated)
             docker run --rm \
-              --network multivrss_internal \
+              --network multivrss-prod_internal \
               --env-file ~/multivrss/.env.production \
               "$IMAGE:$SHA-migrator" \
               npx prisma migrate deploy
@@ -102,11 +106,11 @@ jobs:
             # Deploy new stack
             cd ~/multivrss
             IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --env-file .env.production pull app worker
+            docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production pull app worker
             IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --env-file .env.production up -d --remove-orphans --force-recreate
+            docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production up -d --remove-orphans --force-recreate
 
-            # Health check — 12 attempts × 5s = 60s timeout
+            # Health check — 12 attempts × 5s = 60s timeout (production on port 3001)
             echo "Waiting for health check..."
             for i in $(seq 1 12); do
               STATUS=$(curl -s http://localhost:3001/api/health \
@@ -124,7 +128,7 @@ jobs:
             if [ -n "$PREV_SHA" ]; then
               docker pull "$IMAGE:$PREV_SHA"
               IMAGE_TAG="$PREV_SHA" \
-              docker compose -f docker-compose.prod.yml --env-file .env.production up -d --force-recreate
+              docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production up -d --force-recreate
             fi
             exit 1
 
