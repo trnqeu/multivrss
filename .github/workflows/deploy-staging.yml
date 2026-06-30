@@ -92,6 +92,9 @@ jobs:
             docker pull "$IMAGE:$SHA-migrator"
             docker pull "$IMAGE:$SHA"
 
+            # Remove any orphan network left by previous manual docker network create
+            docker network rm multivrss-staging_internal 2>/dev/null || true
+
             # Bring up infrastructure first so the migrator can reach db:5432
             cd ~/multivrss
             IMAGE_TAG="$SHA" \
