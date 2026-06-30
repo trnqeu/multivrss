@@ -92,12 +92,9 @@ jobs:
             docker pull "$IMAGE:$SHA-migrator"
             docker pull "$IMAGE:$SHA"
 
-            # Ensure the internal network exists before the migrator needs it
-            docker network create multivrss-staging_internal 2>/dev/null || true
-
-            # Run migrations (one-shot container, isolated)
+            # Run migrations against the live db network
             docker run --rm \
-              --network multivrss-staging_internal \
+              --network multivrss_internal \
               --env-file ~/multivrss/.env.staging \
               "$IMAGE:$SHA-migrator" \
               npx prisma migrate deploy
