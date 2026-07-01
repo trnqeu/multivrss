@@ -30,6 +30,7 @@ function FeedCard({
   const [creatingNew, setCreatingNew] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const newCatInputRef = useRef<HTMLInputElement>(null);
@@ -61,12 +62,23 @@ function FeedCard({
     if (!categoryReady) return;
     setAdding(true);
     setStatus("idle");
+    setErrorMsg("");
     const formData = new FormData();
     formData.set("url", feed.url);
     formData.set("categoryId", creatingNew ? "" : pickedCategoryId);
     formData.set("newCategoryName", creatingNew ? newCategoryName : "");
-    const result = await createFeedSource(null, formData);
-    setStatus(result.success ? "success" : "error");
+    try {
+      const result = await createFeedSource(null, formData);
+      if (result.success) {
+        setStatus("success");
+      } else {
+        setStatus("error");
+        setErrorMsg(result.message ?? "Failed to add feed.");
+      }
+    } catch {
+      setStatus("error");
+      setErrorMsg("Something went wrong. Please try again.");
+    }
     setAdding(false);
   }, [feed.url, pickedCategoryId, creatingNew, newCategoryName, categoryReady]);
 
@@ -85,7 +97,13 @@ function FeedCard({
         ) : (
           <button
             type="button"
-            onClick={() => setPickedCategoryId(categories[0]?.id ?? "")}
+            onClick={() => {
+              if (categories.length > 0) {
+                setPickedCategoryId(categories[0].id);
+              } else {
+                setCreatingNew(true);
+              }
+            }}
             className="bg-transparent text-foreground border-2 border-foreground px-3 py-1 text-[10px] font-bold uppercase tracking-widest shrink-0 mt-0.5 hover:bg-foreground hover:text-background transition-colors active:translate-x-[2px] active:translate-y-[2px]"
           >
             + ADD
@@ -106,6 +124,9 @@ function FeedCard({
         >
           {getHost(feed.url)}
         </a>
+        {status === "error" && errorMsg && (
+          <p role="alert" className="font-mono text-[10px] text-terracotta w-full mt-1">{errorMsg}</p>
+        )}
         {showPicker && (
           <div className="flex items-center gap-2 ml-auto">
             {creatingNew ? (
