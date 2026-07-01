@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   output: 'standalone',
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['multivrss.com', 'www.multivrss.com'],
+    },
+  },
   outputFileTracingIncludes: {
     '/**': ['./node_modules/.prisma/**/*'],
   },
