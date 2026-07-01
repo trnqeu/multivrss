@@ -138,9 +138,19 @@ export async function deleteFeedSource(sourceId: string) {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
     try {
+        const items = await prisma.feedItem.findMany({
+            where: { source: { id: sourceId, category: { userId: session.user.id } } },
+            select: { id: true }
+        });
+
         await prisma.feedSource.delete({
             where: { id: sourceId, category: { userId: session.user.id } }
         });
+
+        if (items.length > 0) {
+            meili.index('items').deleteDocuments(items.map(i => i.id))
+                .catch((err: unknown) => console.error('Meilisearch delete failed:', err));
+        }
     } catch (error) {
         console.error("❌ Error deleting feed source:", error);
         return { success: false, message: "Failed to delete feed source." };
