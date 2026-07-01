@@ -93,8 +93,24 @@ jobs:
             docker pull "$IMAGE:$SHA-migrator"
             docker pull "$IMAGE:$SHA"
 
-            # Ensure the internal network exists before the migrator needs it
-            docker network create multivrss-prod_internal 2>/dev/null || true
+            # Remove any manually-created network to avoid label mismatch
+            docker network rm multivrss-prod_internal 2>/dev/null || true
+
+            # Start backing services first so the migrator can reach the DB
+            IMAGE_TAG="$SHA" \
+            docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production up -d db redis meilisearch
+
+            # Wait for Postgres to accept connections (12 × 5s = 60s)
+            echo "Waiting for Postgres..."
+            for i in $(seq 1 12); do
+              if docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production exec -T db pg_isready -q 2>/dev/null; then
+                echo "Postgres ready (attempt $i)"
+                break
+              fi
+              [ "$i" = "12" ] && echo "Postgres did not become ready in time" && exit 1
+              echo "Attempt $i/12, retrying in 5s..."
+              sleep 5
+            done
 
             # Run migrations (one-shot container, isolated)
             docker run --rm \
@@ -103,7 +119,7 @@ jobs:
               "$IMAGE:$SHA-migrator" \
               npx prisma migrate deploy
 
-            # Deploy new stack
+            # Deploy full stack
             cd ~/multivrss
             IMAGE_TAG="$SHA" \
             docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production pull app worker
