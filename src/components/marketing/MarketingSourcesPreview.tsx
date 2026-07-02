@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Dictionary, Lang } from "@/lib/i18n";
 
 const SOURCES = [
   { cat: "MIND", name: "Farnam Street", domain: "fs.blog" },
@@ -9,7 +10,14 @@ const SOURCES = [
   { cat: "ENG", name: "Julia Evans", domain: "jvns.ca" },
 ] as const;
 
-export default function MarketingSourcesPreview() {
+interface Props {
+  lang: Lang;
+  dict: Dictionary;
+}
+
+export default function MarketingSourcesPreview({ lang, dict }: Props) {
+  const t = dict.sources;
+
   return (
     <section
       id="sources"
@@ -17,25 +25,24 @@ export default function MarketingSourcesPreview() {
     >
       <div className="max-w-[1200px] mx-auto">
         <p className="font-mono text-[11px] font-extrabold tracking-[0.22em] text-terracotta uppercase mb-4">
-          {"//"} CURATED SOURCES
+          {"//"} {t.kicker}
         </p>
 
         {/* Header */}
         <div className="flex items-end justify-between gap-10 mb-10 flex-wrap">
           <div>
             <h2 className="normal-case font-black text-[clamp(34px,4.4vw,60px)] tracking-[-0.025em] leading-[1]">
-              The feeds we actually read.
+              {t.title}
             </h2>
             <p className="text-[15px] text-black/55 leading-[1.55] max-w-[460px] mt-[14px]">
-              A hand-picked shelf to start from — no sponsorships, no rankings.
-              Add any one to your reader; you&apos;ll be asked to sign up first.
+              {t.subtitle}
             </p>
           </div>
           <Link
-            href="/sources"
+            href={`/${lang}/sources`}
             className="font-mono text-[11px] font-extrabold tracking-[0.16em] uppercase border-b-2 border-black pb-1 whitespace-nowrap hover:text-terracotta hover:border-terracotta transition-colors"
           >
-            SEE ALL 18 SOURCES →
+            {t.seeAll}
           </Link>
         </div>
 
@@ -64,15 +71,14 @@ export default function MarketingSourcesPreview() {
                 <span className="text-terracotta text-[13px] leading-none group-hover:text-black transition-colors">
                   +
                 </span>
-                ADD
+                {t.add}
               </Link>
             </div>
           ))}
         </div>
 
         <p className="mt-8 font-mono text-[10px] tracking-[0.12em] text-black/30 uppercase">
-          PUBLIC SHELF · <b className="text-terracotta">/sources</b> · UPDATED
-          WEEKLY · NO ACCOUNT NEEDED TO BROWSE
+          {t.footer}
         </p>
       </div>
     </section>

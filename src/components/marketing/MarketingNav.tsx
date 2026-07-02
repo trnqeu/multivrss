@@ -3,21 +3,28 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import type { Lang } from "@/lib/i18n";
+import type { Dictionary } from "@/lib/i18n";
 
-const NAV_ITEMS = [
-  { label: "MANIFESTO", href: "/#manifesto" },
-  { label: "GUIDE", href: "/guide" },
-  { label: "SOURCES", href: "/sources" },
-  { label: "TIPS", href: "/tips" },
-] as const;
+interface Props {
+  lang: Lang;
+  dict: Dictionary;
+}
 
-export default function MarketingNav() {
+export default function MarketingNav({ lang, dict }: Props) {
   const pathname = usePathname();
+  const t = dict.nav;
 
-  const isActive = (href: string) => {
-    if (href.startsWith("/#")) return pathname === "/";
-    return pathname === href;
+  const hrefFor = (item: (typeof t.items)[number]) =>
+    "isAnchor" in item && item.isAnchor ? `/${lang}${item.slug}` : `/${lang}/${item.slug}`;
+
+  const isActive = (item: (typeof t.items)[number]) => {
+    if ("isAnchor" in item && item.isAnchor) return pathname === `/${lang}`;
+    return pathname === `/${lang}/${item.slug}`;
   };
+
+  const switchLangHref = (target: Lang) =>
+    pathname.replace(/^\/(en|it)/, `/${target}`);
 
   return (
     <nav
@@ -25,7 +32,7 @@ export default function MarketingNav() {
       className="flex items-center justify-between px-[34px] py-[26px] border-b-2 border-black max-[920px]:px-[22px] max-[920px]:py-5"
     >
       <div className="flex items-center gap-[14px]">
-        <Link href="/" className="flex items-center gap-[14px]">
+        <Link href={`/${lang}`} className="flex items-center gap-[14px]">
           <Image src="/assets/multivrss-ico.png" alt="multivrss" width={34} height={34} className="w-[34px] h-[34px]" />
           <span className="text-[17px] font-extrabold tracking-[0.22em] text-terracotta uppercase">multivrss</span>
         </Link>
@@ -35,31 +42,49 @@ export default function MarketingNav() {
       </div>
 
       <div className="hidden min-[920px]:flex items-center gap-[30px]">
-        {NAV_ITEMS.map(({ label, href }) => (
+        {t.items.map((item) => (
           <Link
-            key={label}
-            href={href}
+            key={item.label}
+            href={hrefFor(item)}
             className={`font-mono text-[11px] font-bold tracking-[0.18em] uppercase transition-colors ${
-              isActive(href) ? "text-terracotta" : "text-black hover:text-terracotta"
+              isActive(item) ? "text-terracotta" : "text-black hover:text-terracotta"
             }`}
           >
-            {label}
+            {item.label}
           </Link>
         ))}
       </div>
 
       <div className="flex items-center gap-[10px]">
+        {/* Language switcher */}
+        <div className="hidden min-[920px]:flex items-center gap-0 border border-black/20 font-mono text-[9.5px] font-extrabold tracking-[0.14em]">
+          {(["en", "it"] as const).map((l, i) => (
+            <Link
+              key={l}
+              href={switchLangHref(l)}
+              aria-label={`Switch to ${l === "en" ? "English" : "Italian"}`}
+              className={`px-[9px] py-[6px] uppercase transition-colors ${
+                lang === l
+                  ? "bg-black text-paper"
+                  : "text-black/40 hover:text-black"
+              } ${i === 0 ? "" : "border-l border-black/20"}`}
+            >
+              {l}
+            </Link>
+          ))}
+        </div>
+
         <Link
           href="/login"
-          className="border-2 border-black px-[15px] py-[10px] font-mono text-[10.5px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
+          className="hidden min-[920px]:inline-flex border-2 border-black px-[15px] py-[10px] font-mono text-[10.5px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
         >
-          SIGN IN
+          {t.signIn}
         </Link>
         <Link
           href="/register"
           className="bg-black text-paper border-2 border-black px-[15px] py-[10px] font-mono text-[10.5px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
         >
-          GET STARTED →
+          {t.getStarted}
         </Link>
       </div>
     </nav>
