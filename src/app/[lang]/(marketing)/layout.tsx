@@ -28,7 +28,7 @@ export default async function MarketingLayout({ children, params }: Props) {
 
   return (
     <div className="bg-paper text-black font-sans min-h-screen flex flex-col">
-      <SystemStrip />
+      <SystemStrip lang={lang} />
       <MarketingNav lang={lang} dict={dict} />
       <main id="main-content" className="flex-1">
         {children}

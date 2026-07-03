@@ -13,17 +13,17 @@ export const en: Dictionary = {
   },
   hero: {
     kicker: "YOUR INTERNET READING ROOM",
-    headline1: "Read the open web.",
+    headline1: "Read the web.",
     headline2: "Save what matters.",
     bodyIntro:
-      "MultivRSS is your Internet Reading Room — the calm place to read the internet. All you really want from the web is ",
+      "MultivRSS is your Internet Reading Room — a calm place to read the internet. Here you will find two things: ",
     bodyBold1: "updates",
     bodyMid: " and ",
     bodyBold2: "bookmarks",
-    bodySuffix: ": the feeds you picked, the links you kept. Just the internet you want: clean, smart and unslopped.",
-    bodyReclaim: "Reclaim your attention.",
-    cta: "→ START FREE",
-    subCta: "FREE FOREVER · NO CARD",
+    bodySuffix: ": the feeds you picked, the links you kept. ",
+    bodyReclaim: "Start reading and reclaim your attention.",
+    cta: "→ START HERE",
+    subCta: "IT'S FREE!",
   },
   blog: {
     kicker: "JOURNAL",
@@ -38,7 +38,7 @@ export const en: Dictionary = {
     title: "The feeds we actually read.",
     subtitle:
       "A hand-picked shelf to start from — no sponsorships, no rankings. Add any one to your reader; you'll be asked to sign up first.",
-    seeAll: "SEE ALL 18 SOURCES →",
+    seeAll: "SEE ALL SOURCES →",
     add: "ADD",
     footer: "PUBLIC SHELF · /sources · UPDATED WEEKLY · NO ACCOUNT NEEDED TO BROWSE",
   },

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Wordmark from "@/components/Wordmark";
 
 type Variant = "no-sources" | "empty-category" | "no-results" | "no-saved";
 
@@ -46,9 +47,7 @@ export default function EmptyStream({ variant, contextLabel, onAddSource }: Prop
                 className="w-[280px] h-auto object-contain"
             />
 
-            <div className="text-[30px] font-extrabold uppercase tracking-[0.22em] text-terracotta mt-2">
-                multivrss
-            </div>
+            <Wordmark className="text-[30px] tracking-[0.1em] mt-2" />
 
             <div className="text-center max-w-[480px] mt-1">
                 <div className="label-system text-terracotta mb-2.5">{copy.label}</div>

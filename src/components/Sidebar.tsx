@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Wordmark from "@/components/Wordmark";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -53,9 +54,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                             priority
                         />
                     </SpinningWrapper>
-                    <span className="text-lg font-extrabold uppercase tracking-[0.18em] text-terracotta">
-                        multivrss
-                    </span>
+                    <Wordmark className="text-lg tracking-[0.1em]" />
                 </MobileNavLink>
                 <SyncBadge />
             </div>

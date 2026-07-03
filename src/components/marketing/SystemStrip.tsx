@@ -1,27 +1,18 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { Lang } from "@/lib/i18n";
 
-export default function SystemStrip() {
-  const [lang, setLang] = useState<"en" | "it">("en");
+interface Props {
+  lang: Lang;
+}
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("mv_lang");
-      const next: "en" | "it" =
-        saved === "it" || saved === "en"
-          ? saved
-          : navigator.language?.toLowerCase().startsWith("it")
-            ? "it"
-            : "en";
-      startTransition(() => setLang(next));
-    } catch {}
-  }, []);
+export default function SystemStrip({ lang }: Props) {
+  const pathname = usePathname();
 
-  const toggle = (l: "en" | "it") => {
-    setLang(l);
-    try { localStorage.setItem("mv_lang", l); } catch {}
-  };
+  const switchLangHref = (target: Lang) =>
+    pathname.replace(/^\/(en|it)/, `/${target}`);
 
   return (
     <div className="flex items-center justify-between px-[34px] py-[11px] border-b border-black/12 font-mono text-[10.5px] font-semibold tracking-[0.13em] text-black/30 max-[920px]:px-[22px]">
@@ -34,23 +25,25 @@ export default function SystemStrip() {
         <span>BUILD_<b className="text-black/55">0.1.0</b></span>
       </div>
       <div className="flex items-center gap-[9px]" role="group" aria-label="Language">
-        <button
-          onClick={() => toggle("it")}
-          className={`border-0 bg-transparent font-mono text-[10.5px] font-bold tracking-[0.16em] transition-colors px-0.5 ${
-            lang === "it" ? "text-terracotta" : "text-black/30 hover:text-black"
-          }`}
-        >
-          IT
-        </button>
-        <span className="text-black/12" aria-hidden="true">/</span>
-        <button
-          onClick={() => toggle("en")}
-          className={`border-0 bg-transparent font-mono text-[10.5px] font-bold tracking-[0.16em] transition-colors px-0.5 ${
+        <Link
+          href={switchLangHref("en")}
+          aria-label="Switch to English"
+          className={`font-mono text-[10.5px] font-bold tracking-[0.16em] transition-colors px-0.5 ${
             lang === "en" ? "text-terracotta" : "text-black/30 hover:text-black"
           }`}
         >
           EN
-        </button>
+        </Link>
+        <span className="text-black/12" aria-hidden="true">/</span>
+        <Link
+          href={switchLangHref("it")}
+          aria-label="Switch to Italian"
+          className={`font-mono text-[10.5px] font-bold tracking-[0.16em] transition-colors px-0.5 ${
+            lang === "it" ? "text-terracotta" : "text-black/30 hover:text-black"
+          }`}
+        >
+          IT
+        </Link>
       </div>
     </div>
   );

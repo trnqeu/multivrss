@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Wordmark from "@/components/Wordmark";
 import { STARTER_PACKS, type StarterPack } from '@/lib/suggested-feeds';
 import { addStarterPack, undoStarterPack } from '@/app/actions';
 
@@ -124,9 +125,7 @@ function IdleView({
         height={92}
         className="w-[120px] h-auto object-contain opacity-[0.95]"
       />
-      <div className="mt-[22px] text-[26px] font-extrabold uppercase tracking-[.24em] text-terracotta">
-        multivrss
-      </div>
+      <Wordmark className="mt-[22px] text-[26px] tracking-[0.1em]" />
       <div className="mt-[36px] inline-flex items-center gap-2 border border-terracotta/40 px-3 py-[5px] text-[10px] font-extrabold tracking-[.26em] uppercase text-terracotta">
         <span className="w-[6px] h-[6px] rounded-full bg-terracotta shrink-0" aria-hidden="true" />
         00 SOURCES
@@ -187,9 +186,7 @@ function WorkingView({ pack, logLines }: { pack: StarterPack; logLines: string[]
         height={92}
         className="w-[120px] h-auto object-contain opacity-50"
       />
-      <div className="mt-[18px] text-[26px] font-extrabold uppercase tracking-[.24em] text-terracotta">
-        multivrss
-      </div>
+      <Wordmark className="mt-[18px] text-[26px] tracking-[0.1em]" />
       <div className="mt-[34px] flex flex-col items-center gap-[14px]">
         <Spinner />
         <span className="font-serif text-[26px] font-semibold">Adding {pack.name}…</span>
@@ -232,9 +229,7 @@ function DoneView({
         height={92}
         className="w-[120px] h-auto object-contain opacity-[0.95]"
       />
-      <div className="mt-[18px] text-[26px] font-extrabold uppercase tracking-[.24em] text-terracotta">
-        multivrss
-      </div>
+      <Wordmark className="mt-[18px] text-[26px] tracking-[0.1em]" />
       <div className="mt-[26px] inline-flex items-center gap-2 border border-terracotta px-3 py-[5px] text-[10px] font-extrabold tracking-[.26em] uppercase text-terracotta">
         <span className="w-[6px] h-[6px] rounded-full bg-terracotta shrink-0 animate-pulse" aria-hidden="true" />
         SIGNAL ACQUIRED

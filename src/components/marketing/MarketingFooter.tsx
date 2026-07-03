@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, Lang } from "@/lib/i18n";
+import Wordmark from "@/components/Wordmark";
 
 interface Props {
   lang: Lang;
@@ -16,7 +17,7 @@ export default function MarketingFooter({ lang, dict }: Props) {
         <div className="col-span-2 min-[920px]:col-span-1">
           <div className="flex items-center gap-[14px] mb-[14px]">
             <Image src="/assets/multivrss-ico.png" alt="" width={28} height={28} className="w-[28px] h-[28px]" />
-            <span className="text-[14px] font-extrabold tracking-[0.22em] text-terracotta uppercase">multivrss</span>
+            <Wordmark className="text-[15px] tracking-[0.1em]" />
           </div>
           <p className="text-[12.5px] text-black/55 font-medium max-w-[300px] leading-[1.95]">
             {t.tagline}
