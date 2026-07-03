@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import type { Lang } from "@/lib/i18n";
 import type { Dictionary } from "@/lib/i18n";
+import Wordmark from "@/components/Wordmark";
 
 interface Props {
   lang: Lang;
@@ -23,8 +24,13 @@ export default function MarketingNav({ lang, dict }: Props) {
     return pathname === `/${lang}/${item.slug}`;
   };
 
-  const switchLangHref = (target: Lang) =>
-    pathname.replace(/^\/(en|it)/, `/${target}`);
+  const switchLangHref = (target: Lang) => {
+    // Blog post slugs are translated independently per language and have no
+    // shared mapping, so a same-slug swap can 404. Fall back to the blog
+    // index on the target language instead.
+    if (/^\/(en|it)\/blog\/.+/.test(pathname)) return `/${target}#blog`;
+    return pathname.replace(/^\/(en|it)/, `/${target}`);
+  };
 
   return (
     <nav
@@ -32,12 +38,18 @@ export default function MarketingNav({ lang, dict }: Props) {
       className="flex items-center justify-between px-[34px] py-[26px] border-b-2 border-black max-[920px]:px-[22px] max-[920px]:py-5"
     >
       <div className="flex items-center gap-[14px]">
-        <Link href={`/${lang}`} className="flex items-center gap-[14px]">
-          <Image src="/assets/multivrss-ico.png" alt="multivrss" width={34} height={34} className="w-[34px] h-[34px]" />
-          <span className="text-[17px] font-extrabold tracking-[0.22em] text-terracotta uppercase">multivrss</span>
+        <Link href={`/${lang}`} className="group flex items-center gap-[14px]">
+          <Image
+            src="/assets/multivrss-ico.png"
+            alt="multivrss"
+            width={34}
+            height={34}
+            className="w-[34px] h-[34px] motion-safe:group-hover:animate-spin"
+          />
+          <Wordmark className="text-[19px] tracking-[0.1em]" />
         </Link>
         <span className="font-mono text-[10px] tracking-[0.12em] text-black/30 border-l border-black/12 pl-[13px] hidden min-[920px]:inline">
-          INTERNET READING ROOM
+          THE INTERNET READING ROOM
         </span>
       </div>
 

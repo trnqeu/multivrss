@@ -40,9 +40,11 @@ export default function MarketingHero({ dict }: Props) {
             >
               {t.cta}
             </Link>
-            <span className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-black/30 uppercase">
-              {t.subCta}
-            </span>
+            {t.subCta && (
+              <span className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-black/30 uppercase">
+                {t.subCta}
+              </span>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { SUPPORTED_LANGS, DEFAULT_LANG } from "@/lib/i18n";
+import { DEFAULT_LANG } from "@/lib/i18n";
 
 const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
 

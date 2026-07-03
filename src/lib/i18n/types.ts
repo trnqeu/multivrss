@@ -28,7 +28,7 @@ export interface Dictionary {
     bodySuffix: string;
     bodyReclaim: string;
     cta: string;
-    subCta: string;
+    subCta?: string;
   };
   blog: {
     kicker: string;

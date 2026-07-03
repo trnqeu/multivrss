@@ -128,6 +128,48 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Major League Baseball news and updates.",
     category: "SPORT",
   },
+  {
+    name: "Yahoo Sports — MLB",
+    url: "https://sports.yahoo.com/mlb/news/rss/",
+    description: "Major League Baseball news from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — NFL",
+    url: "https://sports.yahoo.com/nfl/news/rss/",
+    description: "NFL news from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — Fantasy",
+    url: "https://sports.yahoo.com/fantasy/news/rss/",
+    description: "Fantasy sports news and advice from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — Soccer",
+    url: "https://sports.yahoo.com/soccer/news/rss/",
+    description: "Soccer news from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — Tennis",
+    url: "https://sports.yahoo.com/tennis/news/rss/",
+    description: "Tennis news from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — College Sports",
+    url: "https://sports.yahoo.com/college-sports/news/rss/",
+    description: "College sports news from Yahoo Sports.",
+    category: "SPORT",
+  },
+  {
+    name: "Yahoo Sports — NBA",
+    url: "https://sports.yahoo.com/nba/news/rss/",
+    description: "NBA news from Yahoo Sports.",
+    category: "SPORT",
+  },
   // DESIGN & CULTURE
   {
     name: "A List Apart",
@@ -157,6 +199,12 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     name: "The Guardian — Books",
     url: "https://www.theguardian.com/books/rss",
     description: "Book reviews, author interviews, and literary news from The Guardian.",
+    category: "CULTURE",
+  },
+  {
+    name: "Longreads",
+    url: "https://longreads.com/feed/",
+    description: "Curated long-form journalism, essays, and storytelling from around the web.",
     category: "CULTURE",
   },
   // SCIENCE
