@@ -16,9 +16,9 @@ export default function MarketingHero({ dict }: Props) {
     >
       <div className="grid grid-cols-1 min-[920px]:grid-cols-[1.2fr_1fr] gap-14 items-center max-w-[1200px] mx-auto">
         <div>
-          <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px]">
+          {/* <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px]">
             {"//"} {t.kicker}
-          </p>
+          </p> */}
           <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance">
             {t.headline1}
             <br />
@@ -30,7 +30,7 @@ export default function MarketingHero({ dict }: Props) {
             <b className="text-black font-bold">{t.bodyBold1}</b>
             {t.bodyMid}
             <b className="text-black font-bold">{t.bodyBold2}</b>
-            {t.bodySuffix}
+            {t.bodySuffix}<br></br>
             <b className="text-black font-bold">{t.bodyReclaim}</b>
           </p>
           <div className="flex items-center gap-5 flex-wrap">
@@ -48,8 +48,8 @@ export default function MarketingHero({ dict }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 max-[920px]:items-start">
-          <div className="w-full max-w-[380px]">
+        <div className="flex flex-col items-center justify-center gap-4 max-[920px]:items-start max-[920px]:mt-2">
+          <div className="w-full max-w-[380px] max-[920px]:max-w-[160px]">
             <Image
               src="/assets/multivrss-mark-tight.png"
               alt=""

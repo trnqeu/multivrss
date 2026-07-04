@@ -49,7 +49,7 @@ export default function MarketingNav({ lang, dict }: Props) {
           <Wordmark className="text-[19px] tracking-[0.1em]" />
         </Link>
         <span className="font-mono text-[10px] tracking-[0.12em] text-black/30 border-l border-black/12 pl-[13px] hidden min-[920px]:inline">
-          THE INTERNET READING ROOM
+          YOUR INTERNET READING ROOM
         </span>
       </div>
 

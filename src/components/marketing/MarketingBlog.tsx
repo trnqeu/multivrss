@@ -122,7 +122,7 @@ export default function MarketingBlog({ lang, dict }: Props) {
 
         <p className="mt-9 font-mono text-[10px] tracking-[0.12em] text-black/30 uppercase">
           MARKDOWN-FED ·{" "}
-          <b className="text-terracotta">/content/blog/{lang}/*.md</b> · STATIC BUILD
+          <b className="text-terracotta">{`/content/blog/${lang}/*.md`}</b> · STATIC BUILD
         </p>
       </div>
     </section>

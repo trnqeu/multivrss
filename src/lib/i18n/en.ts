@@ -12,7 +12,7 @@ export const en: Dictionary = {
     getStarted: "GET STARTED →",
   },
   hero: {
-    kicker: "YOUR INTERNET READING ROOM",
+    kicker: "",
     headline1: "Read the web.",
     headline2: "Skip the noise.",
     bodyIntro:
