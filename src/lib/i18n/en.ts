@@ -14,14 +14,14 @@ export const en: Dictionary = {
   hero: {
     kicker: "YOUR INTERNET READING ROOM",
     headline1: "Read the web.",
-    headline2: "Save what matters.",
+    headline2: "Skip the noise.",
     bodyIntro:
       "MultivRSS is your Internet Reading Room — a calm place to read the internet. Here you will find two things: ",
     bodyBold1: "updates",
     bodyMid: " and ",
-    bodyBold2: "bookmarks",
-    bodySuffix: ": the feeds you picked, the links you kept. ",
-    bodyReclaim: "Start reading and reclaim your attention.",
+    bodyBold2: "bookmarks. ",
+    bodySuffix: " The feeds you picked, the links you kept. ",
+    bodyReclaim: "Start reading. Reclaim your attention.",
     cta: "→ START HERE",
     subCta: "IT'S FREE!",
   },
@@ -50,6 +50,15 @@ export const en: Dictionary = {
     body: "MultivRSS is where you come to read the internet in peace — just your updates and your bookmarks, in an open format that's yours and built to last. The web was meant to be read, not scrolled.",
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
+  },
+  twoThings: {
+    kicker: "Everything you need · Nothing you don't",
+    updatesLabel: "01 · Updates",
+    updatesBody:
+      "New posts from every site you follow, gathered in one calm place — in the order they arrive.",
+    bookmarksLabel: "02 · Bookmarks",
+    bookmarksBody:
+      "The articles you saved to read later. Kept, ad-free, and always yours.",
   },
   footer: {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",

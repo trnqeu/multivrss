@@ -19,7 +19,7 @@ export default function MarketingHero({ dict }: Props) {
           <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px]">
             {"//"} {t.kicker}
           </p>
-          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] leading-[0.95] tracking-[-0.035em] mb-[34px] text-balance">
+          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance">
             {t.headline1}
             <br />
             <span className="text-terracotta font-extrabold px-[6px]">/</span>
@@ -48,19 +48,19 @@ export default function MarketingHero({ dict }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center justify-end max-[920px]:justify-start">
-          <div className="relative w-full max-w-[460px]">
-            <div className="font-mono text-[10px] font-bold tracking-[0.16em] text-black/30 mb-[6px]">
-              MARK_v2.1 · ICOSAHEDRON + WAVES ·{" "}
-              <b className="text-terracotta">STABLE</b>
-            </div>
+        <div className="flex flex-col items-center justify-center gap-4 max-[920px]:items-start">
+          <div className="w-full max-w-[380px]">
             <Image
-              src="/assets/multivrss-mark.png"
+              src="/assets/multivrss-mark-tight.png"
               alt=""
-              width={920}
-              height={704}
+              width={720}
+              height={756}
               className="w-full h-auto"
             />
+          </div>
+          <div className="font-mono text-[10px] font-bold tracking-[0.16em] text-black/30 text-center max-[920px]:text-left">
+            MARK_v2.1 · ICOSAHEDRON + WAVES ·{" "}
+            <b className="text-terracotta">STABLE</b>
           </div>
         </div>
       </div>
