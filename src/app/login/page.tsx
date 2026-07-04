@@ -35,10 +35,11 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
     const verified = searchParams.get("verified");
+    const callbackUrl = searchParams.get("callbackUrl") || "/u";
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        await signIn("credentials", { email, password, callbackUrl: "/u" });
+        await signIn("credentials", { email, password, callbackUrl });
     }
 
     return (
@@ -114,14 +115,14 @@ export default function LoginPage() {
 
                 <div className="flex flex-col gap-3">
                     <button
-                        onClick={() => signIn("github", { callbackUrl: "/u" })}
+                        onClick={() => signIn("github", { callbackUrl })}
                         className="flex items-center justify-center gap-3 border border-foreground/30 bg-transparent text-foreground/70 px-4 py-3 text-sm normal-case tracking-widest font-mono hover:bg-foreground/5 hover:text-foreground transition-colors cursor-pointer"
                     >
                         <GitHubIcon />
                         Sign in with GitHub
                     </button>
                     <button
-                        onClick={() => signIn("google", { callbackUrl: "/u" })}
+                        onClick={() => signIn("google", { callbackUrl })}
                         className="flex items-center justify-center gap-3 border border-foreground/30 bg-transparent text-foreground/70 px-4 py-3 text-sm normal-case tracking-widest font-mono hover:bg-foreground/5 hover:text-foreground transition-colors cursor-pointer"
                     >
                         <GoogleIcon />
