@@ -51,6 +51,15 @@ export const it: Dictionary = {
     cta: "→ CREA IL TUO ACCOUNT",
     secondaryCta: "LEGGI IL BLOG ↗",
   },
+  twoThings: {
+    kicker: "Tutto quello che ti serve · Niente di superfluo",
+    updatesLabel: "01 · Aggiornamenti",
+    updatesBody:
+      "I nuovi post di tutti i siti che segui, raccolti in un unico posto tranquillo — nell'ordine in cui arrivano.",
+    bookmarksLabel: "02 · Segnalibri",
+    bookmarksBody:
+      "Gli articoli che hai salvato per dopo. Conservati, senza pubblicità, e sempre tuoi.",
+  },
   footer: {
     tagline:
       "Un aggregatore RSS e lista di lettura in un'unica dashboard in formato aperto. Senza pubblicità, calmo, tuo.",
