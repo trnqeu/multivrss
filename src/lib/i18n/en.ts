@@ -3,7 +3,7 @@ import type { Dictionary } from "./types";
 export const en: Dictionary = {
   nav: {
     items: [
-      { label: "MANIFESTO", slug: "#manifesto", isAnchor: true },
+      { label: "BLOG", slug: "#blog", isAnchor: true },
       { label: "GUIDE", slug: "guide" },
       { label: "SOURCES", slug: "sources" },
       { label: "TIPS", slug: "tips" },
@@ -21,7 +21,7 @@ export const en: Dictionary = {
     bodyMid: " and ",
     bodyBold2: "bookmarks. ",
     bodySuffix: " The feeds you picked, the links you kept. ",
-    bodyReclaim: "Start reading. Reclaim your attention.",
+    bodyReclaim: "",
     cta: "→ START HERE",
     subCta: "IT'S FREE!",
   },

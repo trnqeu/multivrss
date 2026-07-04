@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -52,7 +53,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
-        
+        <InstallPrompt />
       </body>
     </html>
   );

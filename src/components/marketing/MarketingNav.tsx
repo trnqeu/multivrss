@@ -24,14 +24,6 @@ export default function MarketingNav({ lang, dict }: Props) {
     return pathname === `/${lang}/${item.slug}`;
   };
 
-  const switchLangHref = (target: Lang) => {
-    // Blog post slugs are translated independently per language and have no
-    // shared mapping, so a same-slug swap can 404. Fall back to the blog
-    // index on the target language instead.
-    if (/^\/(en|it)\/blog\/.+/.test(pathname)) return `/${target}#blog`;
-    return pathname.replace(/^\/(en|it)/, `/${target}`);
-  };
-
   return (
     <nav
       aria-label="Main navigation"
@@ -68,24 +60,6 @@ export default function MarketingNav({ lang, dict }: Props) {
       </div>
 
       <div className="flex items-center gap-[10px]">
-        {/* Language switcher */}
-        <div className="hidden min-[920px]:flex items-center gap-0 border border-black/20 font-mono text-[9.5px] font-extrabold tracking-[0.14em]">
-          {(["en", "it"] as const).map((l, i) => (
-            <Link
-              key={l}
-              href={switchLangHref(l)}
-              aria-label={`Switch to ${l === "en" ? "English" : "Italian"}`}
-              className={`px-[9px] py-[6px] uppercase transition-colors ${
-                lang === l
-                  ? "bg-black text-paper"
-                  : "text-black/40 hover:text-black"
-              } ${i === 0 ? "" : "border-l border-black/20"}`}
-            >
-              {l}
-            </Link>
-          ))}
-        </div>
-
         <Link
           href="/login"
           className="hidden min-[920px]:inline-flex border-2 border-black px-[15px] py-[10px] font-mono text-[10.5px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"

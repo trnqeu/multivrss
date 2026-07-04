@@ -3,7 +3,7 @@ import type { Dictionary } from "./types";
 export const it: Dictionary = {
   nav: {
     items: [
-      { label: "MANIFESTO", slug: "#manifesto", isAnchor: true },
+      { label: "BLOG", slug: "#blog", isAnchor: true },
       { label: "GUIDA", slug: "guide" },
       { label: "FONTI", slug: "sources" },
       { label: "SUGGERIMENTI", slug: "tips" },
@@ -13,15 +13,15 @@ export const it: Dictionary = {
   },
   hero: {
     kicker: "LA TUA STANZA DI LETTURA DIGITALE",
-    headline1: "Leggi.",
-    headline2: "Salva.",
+    headline1: "Read the web.",
+    headline2: "Skip the noise",
     bodyIntro:
-      "MultivRSS è la tua stanza di lettura per il web — un posto tranquillo dove leggere i tuoi contenuti preferiti. Qui troverai due cose: ",
+      "MultivRSS è la tua stanza di lettura per il web. Qui puoi gestire i tuoi ",
     bodyBold1: "aggiornamenti",
     bodyMid: " e ",
     bodyBold2: "segnalibri",
     bodySuffix: ": i feed che hai scelto, i link che hai salvato. ",
-    bodyReclaim: "Inizia e leggere e riprenditi la tua attenzione.",
+    bodyReclaim: "",
     cta: "→ INIZIA",
     subCta: "È GRATIS!",
   },

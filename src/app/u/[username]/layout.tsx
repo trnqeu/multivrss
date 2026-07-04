@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Sidebar from '@/components/Sidebar';
 import SidebarContainer from '@/components/SidebarContainer';
 import MobileShell from '@/components/MobileShell';
@@ -8,6 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AutoSync from '@/components/AutoSync';
 import SessionWatcher from '@/components/SessionWatcher';
+import ShareTargetWatcher from '@/components/ShareTargetWatcher';
 import { getCategories } from '@/app/actions';
 
 export default async function UserLayout({
@@ -32,6 +34,9 @@ export default async function UserLayout({
             <MobileActionsProvider categories={categories}>
                 <AutoSync />
                 <SessionWatcher />
+                <Suspense fallback={null}>
+                    <ShareTargetWatcher categories={categories} />
+                </Suspense>
                 <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
                     <SidebarContainer>
                         <Sidebar username={session.user.username} />
