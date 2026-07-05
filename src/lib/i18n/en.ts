@@ -16,7 +16,7 @@ export const en: Dictionary = {
     headline1: "Read the web.",
     headline2: "Skip the noise.",
     bodyIntro:
-      "MultivRSS is your Internet Reading Room — a calm place to read the internet. Here you will find two things: ",
+      "MultivRSS is your Internet Reading Room: a calm place to read the internet. Here you will find two things: ",
     bodyBold1: "updates",
     bodyMid: " and ",
     bodyBold2: "bookmarks. ",
@@ -27,9 +27,9 @@ export const en: Dictionary = {
   },
   blog: {
     kicker: "JOURNAL",
-    title: "Notes from the open web.",
+    title: "Thoughts from the MultivRSS.",
     subtitle:
-      "Guides, product notes and short field manuals — written in Markdown, shipped in open format.",
+      "Guides, product notes and short field manuals, written in Markdown, shipped in open format.",
     feedLabel: "Subscribe to feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
   },
@@ -37,7 +37,7 @@ export const en: Dictionary = {
     kicker: "CURATED SOURCES",
     title: "The feeds we actually read.",
     subtitle:
-      "A hand-picked shelf to start from — no sponsorships, no rankings. Add any one to your reader; you'll be asked to sign up first.",
+      "A hand-picked shelf to start from: no sponsorships, no rankings. Add any one to your reader; you'll be asked to sign up first.",
     seeAll: "SEE ALL SOURCES →",
     add: "ADD",
     footer: "PUBLIC SHELF · /sources · UPDATED WEEKLY · NO ACCOUNT NEEDED TO BROWSE",
@@ -47,7 +47,7 @@ export const en: Dictionary = {
     headlinePre: "Reclaim your ",
     headlineAccent: "attention",
     headlineSuffix: ".",
-    body: "MultivRSS is where you come to read the internet in peace — just your updates and your bookmarks, in an open format that's yours and built to last. The web was meant to be read, not scrolled.",
+    body: "MultivRSS is where you come to read the internet in peace: just your updates and your bookmarks, in an open format that's yours and built to last. The web was meant to be read, not scrolled.",
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
   },
@@ -55,7 +55,7 @@ export const en: Dictionary = {
     kicker: "Everything you need · Nothing you don't",
     updatesLabel: "01 · Updates",
     updatesBody:
-      "New posts from every site you follow, gathered in one calm place — in the order they arrive.",
+      "New posts from every site you follow, gathered in one calm place, in the order they arrive.",
     bookmarksLabel: "02 · Bookmarks",
     bookmarksBody:
       "The articles you saved to read later. Kept, ad-free, and always yours.",
@@ -80,7 +80,7 @@ export const en: Dictionary = {
   },
   meta: {
     home: {
-      title: "MultivRSS — Read the open web. Save what matters.",
+      title: "MultivRSS · Read the open web. Save what matters.",
       description:
         "Your Internet Reading Room. All your RSS feeds and bookmarks in one calm, ad-free, open-format dashboard.",
     },

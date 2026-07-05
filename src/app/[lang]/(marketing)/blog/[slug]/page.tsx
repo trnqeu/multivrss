@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPostBySlug(slug, lang);
   if (!post) return {};
   return {
-    title: `${post.title} — MultivRSS`,
+    title: `${post.title} · MultivRSS`,
     description: post.excerpt,
   };
 }

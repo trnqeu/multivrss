@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import AutoSync from '@/components/AutoSync';
 import SessionWatcher from '@/components/SessionWatcher';
 import ShareTargetWatcher from '@/components/ShareTargetWatcher';
-import { getCategories } from '@/app/actions';
+import { getCategories, getTags } from '@/app/actions';
 
 export default async function UserLayout({
     children,
@@ -28,6 +28,7 @@ export default async function UserLayout({
     }
 
     const categories = await getCategories();
+    const tags = await getTags();
 
     return (
         <MobileSidebarProvider>
@@ -35,7 +36,7 @@ export default async function UserLayout({
                 <AutoSync />
                 <SessionWatcher />
                 <Suspense fallback={null}>
-                    <ShareTargetWatcher categories={categories} />
+                    <ShareTargetWatcher categories={categories} tags={tags} />
                 </Suspense>
                 <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
                     <SidebarContainer>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Curated Sources — MultivRSS",
+  title: "Curated Sources · MultivRSS",
   description:
     "A hand-picked shelf of RSS feeds to start from. No sponsorships, no rankings. Public and free to browse.",
 };
@@ -93,7 +93,7 @@ export default function SourcesPage() {
           </h1>
           <div className="grid grid-cols-1 min-[920px]:grid-cols-[1.3fr_1fr] gap-12 items-end">
             <p className="text-[17px] leading-[1.6] text-black/55 m-0 max-w-[560px]">
-              These are the feeds we actually read at MultivRSS — hand-picked,
+              These are the feeds we actually read at MultivRSS: hand-picked,
               no sponsorships, no rankings. Public and free: add any of them to
               your reader in one click. New here? Adding takes you to a
               20-second sign-up.
@@ -154,7 +154,7 @@ export default function SourcesPage() {
           <em className="not-italic text-terracotta">shelf</em>.
         </h2>
         <p className="text-[15.5px] text-white/55 max-w-[520px] mx-auto mb-8 leading-[1.6]">
-          Create your reading room and import every source above in one move —
+          Create your reading room and import every source above in one move,
           then make it yours: add, remove, organize by category.
         </p>
         <Link

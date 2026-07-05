@@ -2,27 +2,32 @@
 
 import { useEffect, useState, useTransition, useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
-import { saveExternalLink, ActionState } from "@/app/actions";
+import AssignTagsModal from "./AssignTagsModal";
+import { saveExternalLink, setSavedLinkTags, SaveExternalLinkState, TagData } from "@/app/actions";
 import type { Category } from "@prisma/client";
 
 interface Props {
     categories: Category[];
+    tags: TagData[];
     url: string;
     title: string;
     onClose: () => void;
 }
 
-const initialState: ActionState = { success: false };
+const initialState: SaveExternalLinkState = { success: false };
 
-export default function ShareTargetModal({ categories, url, title, onClose }: Props) {
+export default function ShareTargetModal({ categories, tags, url, title, onClose }: Props) {
     const [showFeedModal, setShowFeedModal] = useState(false);
+    const [savedLinkId, setSavedLinkId] = useState<string | null>(null);
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, initialState);
     const [, startTransition] = useTransition();
 
     useEffect(() => {
-        if (saveState?.success) onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [saveState?.success]);
+        if (saveState?.success && saveState.link) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSavedLinkId(saveState.link.id);
+        }
+    }, [saveState]);
 
     function handleFollow() {
         setShowFeedModal(true);
@@ -42,6 +47,20 @@ export default function ShareTargetModal({ categories, url, title, onClose }: Pr
                 open
                 onClose={onClose}
                 initialUrl={url}
+            />
+        );
+    }
+
+    if (savedLinkId) {
+        return (
+            <AssignTagsModal
+                open
+                onClose={onClose}
+                itemId={savedLinkId}
+                initialTags={[]}
+                allTags={tags}
+                onSave={setSavedLinkTags}
+                onTagsApplied={onClose}
             />
         );
     }
