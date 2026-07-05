@@ -650,6 +650,7 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: now.getTime() }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
+        revalidatePath(`/u/${session.user.username}/saved`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to save item." };
@@ -671,6 +672,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: null }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
+        revalidatePath(`/u/${session.user.username}/saved`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to unsave item." };
@@ -1073,6 +1075,7 @@ export async function addTagToLink(savedLinkId: string, tagId: string): Promise<
     await prisma.savedLinkTag.create({
       data: { savedLinkId, tagId },
     });
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag added.' };
   } catch {
     return { success: false, message: 'Tag already assigned.' };
@@ -1087,6 +1090,7 @@ export async function removeTagFromLink(savedLinkId: string, tagId: string): Pro
     await prisma.savedLinkTag.delete({
       where: { savedLinkId_tagId: { savedLinkId, tagId } },
     });
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag removed.' };
   } catch {
     return { success: false, message: 'Failed to remove tag.' };
@@ -1113,6 +1117,8 @@ export async function addTagToFeedItem(feedItemId: string, tagId: string): Promi
     await prisma.feedItemTag.create({
       data: { feedItemId, tagId },
     });
+    updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag added.' };
   } catch {
     return { success: false, message: 'Tag already assigned.' };
@@ -1127,6 +1133,8 @@ export async function removeTagFromFeedItem(feedItemId: string, tagId: string): 
     await prisma.feedItemTag.delete({
       where: { feedItemId_tagId: { feedItemId, tagId } },
     });
+    updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag removed.' };
   } catch {
     return { success: false, message: 'Failed to remove tag.' };
@@ -1161,6 +1169,7 @@ export async function setSavedLinkTags(linkId: string, tagIds: string[]): Promis
     });
 
     updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true };
   } catch {
     return { success: false, message: 'Failed to update tags.' };
@@ -1198,6 +1207,7 @@ export async function setFeedItemTags(feedItemId: string, tagIds: string[]): Pro
     });
 
     updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true };
   } catch {
     return { success: false, message: 'Failed to update tags.' };
