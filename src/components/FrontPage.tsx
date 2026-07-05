@@ -285,7 +285,7 @@ function EmptyFrontPage() {
                 No recommendations yet
             </p>
             <p className="text-[11px] text-foreground/40 font-mono mt-2">
-                Read or save a few articles and come back — the front page will learn what you like.
+                Read or save a few articles and come back: the front page will learn what you like.
             </p>
         </div>
     );

@@ -295,9 +295,9 @@ Steps to make the repo public and let users run their own instance.
 - [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
 - [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance
   - **CRITICAL**
-    - [ ] **Focus indicator** — rimuovere `outline-none` globale su `button, input, select, textarea` (`src/app/globals.css:78`); definire `:focus-visible` personalizzato (outline terracotta 2px)
-    - [ ] **Form label** — tutti gli input usano solo `placeholder` come etichetta (login, register, forgot-password, reset-password, AddFeedForm, EditSourceForm, PageHeader, SaveLinkBar). Aggiungere `<label htmlFor>` con `sr-only` se hidden
-    - [ ] **Skip-to-content** — manca link "skip to main content" nel root layout (`src/app/layout.tsx`); aggiungere `href="#main-content"` + `id="main-content"` su `<main>`
+    - [x] **Focus indicator** — global `:focus-visible` outline (terracotta 2px, 2px offset) defined in `src/app/globals.css`; stray per-component overrides (`PageHeader`, `SuggestedPageClient`) now restore a visible ring instead of `outline-none`
+    - [x] **Form label** — all inputs now have an associated `<label htmlFor>` (`sr-only` where hidden), including `PageHeader` search fields, `ImportCsvForm` file input, and the `SuggestedPageClient` directory filter
+    - [x] **Skip-to-content** — `href="#main-content"` link in `src/app/layout.tsx`, matching `id="main-content"` on `<main>` across all top-level pages
   - **HIGH**
     - [ ] **Contrasto colore** — terracotta `#E2725B` su carta `#F6F3EC` = 3.89:1 (soglia 4.5:1); testo `/30`, `/40` scende a 2.1:1 (Sidebar, FeedItem, SearchBar, PageHeader, CollapsibleCategory). Scurire terracotta o non usare opacità sotto `/55` per testo informativo
     - [ ] **Messaggi errore non associati** — errori in AddFeedForm, EditSourceForm, login, register senza `aria-describedby` collegato all'input

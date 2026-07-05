@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Tips & Tricks — MultivRSS",
+  title: "Tips & Tricks · MultivRSS",
   description: "A field manual of RSS URL tricks to turn almost any site into a feed.",
 };
 
@@ -151,7 +151,7 @@ export default function TipsPage() {
       <header className="px-[34px] pt-[80px] pb-[44px] max-[920px]:px-[22px] max-[920px]:pt-14 max-[920px]:pb-8">
         <div className="max-w-[1200px] mx-auto">
           <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[22px]">
-            {"//"} FIELD MANUAL — 08 TRICKS
+            {"//"} FIELD MANUAL · 08 TRICKS
           </p>
           <div className="grid grid-cols-1 min-[920px]:grid-cols-[1.15fr_1fr] gap-12 items-end">
             <h1 className="normal-case font-black text-[clamp(40px,5vw,84px)] leading-[0.98] tracking-[-0.03em] m-0">
@@ -159,7 +159,7 @@ export default function TipsPage() {
             </h1>
             <p className="text-[16px] leading-[1.6] text-black/55 m-0 max-w-[480px]">
               A working list of URL tricks to turn almost any site into an RSS
-              feed — Google News searches, Substacks, subreddits, YouTube
+              feed: Google News searches, Substacks, subreddits, YouTube
               channels, GitHub releases. Paste any of these into the{" "}
               <span className="font-mono font-extrabold text-terracotta">
                 + SOURCE
@@ -222,7 +222,7 @@ export default function TipsPage() {
         </h2>
         <p className="text-[15.5px] text-white/55 max-w-[520px] mx-auto mb-8 leading-[1.6]">
           Collect every feed above into a single, calm, typography-first
-          reader. No thumbnails, no infinite scroll — just what&apos;s new.
+          reader. No thumbnails, no infinite scroll: just what&apos;s new.
         </p>
         <Link
           href="/register"

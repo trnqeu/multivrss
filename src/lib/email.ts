@@ -20,7 +20,7 @@ export async function sendVerificationEmail(email: string, token: string) {
     await resend.emails.send({
         from: 'MultivRSS <noreply@multivrss.com>',
         to: email,
-        subject: 'Verify your email — MultivRSS',
+        subject: 'Verify your email · MultivRSS',
         html: `
             <p>Thanks for signing up.</p>
             <p><a href="${verifyUrl}">Verify your email address</a></p>

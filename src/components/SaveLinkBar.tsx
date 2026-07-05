@@ -30,7 +30,7 @@ export default function SaveLinkBar({ onSaved }: SaveLinkBarProps) {
             </span>
             <label htmlFor="slb-url" className="sr-only">URL to save</label>
             <input id="slb-url" name="url" value={url} onChange={e => setUrl(e.target.value)} inputMode="url"
-                placeholder="https://…  — paste a link, press enter"
+                placeholder="https://…  paste a link, press enter"
                 className="flex-1 bg-transparent px-3.5 py-3 font-mono text-xs text-foreground placeholder:text-foreground/40" />
             <button type="submit" disabled={!valid || pending}
                 className="flex items-center gap-2 px-4 label-system text-[10px] font-extrabold transition-all
