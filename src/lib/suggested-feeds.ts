@@ -19,7 +19,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "TECH",
   },
   {
-    name: "Kagi News — Tech",
+    name: "Kagi News: Tech",
     url: "https://news.kagi.com/tech.xml",
     description: "Tech news curated by Kagi Search.",
     category: "TECH",
@@ -50,7 +50,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   },
   // NEWS
   {
-    name: "Wikipedia — Current Events",
+    name: "Wikipedia: Current Events",
     url: "https://www.to-rss.xyz/wikipedia/current_events/",
     description: "Wikipedia's daily current events portal as an RSS feed.",
     category: "NEWS",
@@ -62,13 +62,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "NEWS",
   },
   {
-    name: "NPR — World Story of the Day",
+    name: "NPR: World Story of the Day",
     url: "https://feeds.npr.org/1056/rss.xml",
     description: "NPR's daily featured world news story.",
     category: "NEWS",
   },
   {
-    name: "Kagi News — World",
+    name: "Kagi News: World",
     url: "https://news.kagi.com/world.xml",
     description: "World news curated by Kagi Search.",
     category: "NEWS",
@@ -111,7 +111,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   },
   // SPORT
   {
-    name: "Kagi News — Sports",
+    name: "Kagi News: Sports",
     url: "https://news.kagi.com/sports.xml",
     description: "Sports news curated by Kagi Search.",
     category: "SPORT",
@@ -129,43 +129,43 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — MLB",
+    name: "Yahoo Sports: MLB",
     url: "https://sports.yahoo.com/mlb/news/rss/",
     description: "Major League Baseball news from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — NFL",
+    name: "Yahoo Sports: NFL",
     url: "https://sports.yahoo.com/nfl/news/rss/",
     description: "NFL news from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — Fantasy",
+    name: "Yahoo Sports: Fantasy",
     url: "https://sports.yahoo.com/fantasy/news/rss/",
     description: "Fantasy sports news and advice from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — Soccer",
+    name: "Yahoo Sports: Soccer",
     url: "https://sports.yahoo.com/soccer/news/rss/",
     description: "Soccer news from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — Tennis",
+    name: "Yahoo Sports: Tennis",
     url: "https://sports.yahoo.com/tennis/news/rss/",
     description: "Tennis news from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — College Sports",
+    name: "Yahoo Sports: College Sports",
     url: "https://sports.yahoo.com/college-sports/news/rss/",
     description: "College sports news from Yahoo Sports.",
     category: "SPORT",
   },
   {
-    name: "Yahoo Sports — NBA",
+    name: "Yahoo Sports: NBA",
     url: "https://sports.yahoo.com/nba/news/rss/",
     description: "NBA news from Yahoo Sports.",
     category: "SPORT",
@@ -174,7 +174,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   {
     name: "A List Apart",
     url: "https://alistapart.com/main/feed/",
-    description: "For people who make websites — design, code, content.",
+    description: "For people who make websites: design, code, content.",
     category: "DESIGN",
   },
   {
@@ -196,7 +196,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "CULTURE",
   },
   {
-    name: "The Guardian — Books",
+    name: "The Guardian: Books",
     url: "https://www.theguardian.com/books/rss",
     description: "Book reviews, author interviews, and literary news from The Guardian.",
     category: "CULTURE",
@@ -215,7 +215,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "SCIENCE",
   },
   {
-    name: "Kagi News — Science",
+    name: "Kagi News: Science",
     url: "https://news.kagi.com/science.xml",
     description: "Science news curated by Kagi Search.",
     category: "SCIENCE",
@@ -261,17 +261,17 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   {
     name: "The Quietus",
     url: "https://thequietus.com/feed/",
-    description: "Independent music and culture criticism — reviews, features, and interviews.",
+    description: "Independent music and culture criticism: reviews, features, and interviews.",
     category: "MUSIC",
   },
   {
-    name: "Pitchfork — Album Reviews",
+    name: "Pitchfork: Album Reviews",
     url: "https://pitchfork.com/feed/feed-album-reviews/rss",
     description: "Album reviews from Pitchfork, the leading indie music publication.",
     category: "MUSIC",
   },
   {
-    name: "The Guardian — Music",
+    name: "The Guardian: Music",
     url: "https://www.theguardian.com/music/rss",
     description: "Music news, reviews, and features from The Guardian.",
     category: "MUSIC",
@@ -279,13 +279,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   {
     name: "The Fader",
     url: "https://www.thefader.com/feed.rss",
-    description: "Music, culture, and style — tastemaker coverage of emerging artists.",
+    description: "Music, culture, and style: tastemaker coverage of emerging artists.",
     category: "MUSIC",
   },
   {
     name: "Best Fit Music",
     url: "https://bestfitmusic.substack.com/feed",
-    description: "Indie music discovery — new releases, reviews, and artist spotlights.",
+    description: "Indie music discovery: new releases, reviews, and artist spotlights.",
     category: "MUSIC",
   },
   // ARTS & CULTURE
@@ -296,13 +296,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     category: "ARTS & CULTURE",
   },
   {
-    name: "Wikipedia — Photo of the Day",
+    name: "Wikipedia: Photo of the Day",
     url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=potd&feedformat=atom",
     description: "Wikipedia's daily featured photograph, curated by editors.",
     category: "ARTS & CULTURE",
   },
   {
-    name: "Wikipedia — On This Day",
+    name: "Wikipedia: On This Day",
     url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=onthisday&feedformat=atom",
     description: "Historical events and anniversaries featured by Wikipedia each day.",
     category: "ARTS & CULTURE",
@@ -317,7 +317,7 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   {
     name: "SMBC Comics",
     url: "https://www.smbc-comics.com/comic/rss",
-    description: "Saturday Morning Breakfast Cereal — nerdy, philosophical webcomics.",
+    description: "Saturday Morning Breakfast Cereal: nerdy, philosophical webcomics.",
     category: "HUMOR",
   },
   {
@@ -379,7 +379,7 @@ export const STARTER_PACKS: StarterPack[] = [
     feeds: [
       { name: 'Noema Magazine',      url: 'https://www.noemamag.com/?feed=noemarss',   category: 'SCIENCE' },
       { name: 'The Ezra Klein Show', url: 'https://feeds.simplecast.com/82FI35Px',     category: 'PODCAST' },
-      { name: 'Guardian — Books',    url: 'https://www.theguardian.com/books/rss',     category: 'CULTURE' },
+      { name: 'Guardian: Books',     url: 'https://www.theguardian.com/books/rss',     category: 'CULTURE' },
       { name: 'Lex Fridman Podcast', url: 'https://lexfridman.com/feed/podcast/',      category: 'PODCAST' },
     ],
   },

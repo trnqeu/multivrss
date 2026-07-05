@@ -27,9 +27,9 @@ export const it: Dictionary = {
   },
   blog: {
     kicker: "DIARIO",
-    title: "Note dal web aperto.",
+    title: "Pensieri dal MultivRSSo.",
     subtitle:
-      "Guide, note di prodotto e manuali brevi — scritti in Markdown, distribuiti in formato aperto.",
+      "Guide, note di prodotto e manuali brevi, scritti in Markdown, distribuiti in formato aperto.",
     feedLabel: "Iscriviti al feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
   },
@@ -37,7 +37,7 @@ export const it: Dictionary = {
     kicker: "FONTI CURATE",
     title: "I feed che leggiamo davvero.",
     subtitle:
-      "Una selezione curata da cui partire — nessun accordo commerciale, nessuna classifica. Aggiungi qualsiasi fonte al tuo lettore; ti verrà chiesto di registrarti.",
+      "Una selezione curata da cui partire: nessun accordo commerciale, nessuna classifica. Aggiungi qualsiasi fonte al tuo lettore; ti verrà chiesto di registrarti.",
     seeAll: "VEDI TUTTE LE FONTI →",
     add: "AGGIUNGI",
     footer: "SELEZIONE PUBBLICA · /sources · AGGIORNATA SETTIMANALMENTE · SENZA ACCOUNT",
@@ -47,7 +47,7 @@ export const it: Dictionary = {
     headlinePre: "Riprendi la tua ",
     headlineAccent: "attenzione",
     headlineSuffix: ".",
-    body: "MultivRSS è il posto dove vieni a leggere internet in pace — solo i tuoi aggiornamenti e i tuoi segnalibri, in un formato aperto che è tuo e fatto per durare. Il web era fatto per essere letto, non scorrere.",
+    body: "MultivRSS è il posto dove vieni a leggere internet in pace: solo i tuoi aggiornamenti e i tuoi segnalibri, in un formato aperto che è tuo e fatto per durare. Il web era fatto per essere letto, non scorrere.",
     cta: "→ CREA IL TUO ACCOUNT",
     secondaryCta: "LEGGI IL BLOG ↗",
   },
@@ -55,7 +55,7 @@ export const it: Dictionary = {
     kicker: "Tutto quello che ti serve · Niente di superfluo",
     updatesLabel: "01 · Aggiornamenti",
     updatesBody:
-      "I nuovi post di tutti i siti che segui, raccolti in un unico posto tranquillo — nell'ordine in cui arrivano.",
+      "I nuovi post di tutti i siti che segui, raccolti in un unico posto tranquillo, nell'ordine in cui arrivano.",
     bookmarksLabel: "02 · Segnalibri",
     bookmarksBody:
       "Gli articoli che hai salvato per dopo. Conservati, senza pubblicità, e sempre tuoi.",
@@ -81,7 +81,7 @@ export const it: Dictionary = {
   },
   meta: {
     home: {
-      title: "MultivRSS — Leggi il web aperto. Salva quello che conta.",
+      title: "MultivRSS · Leggi il web aperto. Salva quello che conta.",
       description:
         "La tua stanza di lettura su Internet. Tutti i tuoi feed RSS e segnalibri in un'unica dashboard calma, senza pubblicità e in formato aperto.",
     },
