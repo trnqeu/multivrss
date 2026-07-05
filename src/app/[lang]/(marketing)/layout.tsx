@@ -4,6 +4,7 @@ import { getDictionary, isValidLang } from "@/lib/i18n";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import SystemStrip from "@/components/marketing/SystemStrip";
+import { version } from "../../../../package.json";
 
 interface Props {
   children: React.ReactNode;
@@ -28,7 +29,7 @@ export default async function MarketingLayout({ children, params }: Props) {
 
   return (
     <div className="bg-paper text-black font-sans min-h-screen flex flex-col">
-      <SystemStrip lang={lang} />
+      <SystemStrip lang={lang} version={version} />
       <MarketingNav lang={lang} dict={dict} />
       <main id="main-content" className="flex-1">
         {children}
