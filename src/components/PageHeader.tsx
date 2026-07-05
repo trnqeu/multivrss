@@ -122,7 +122,9 @@ export default function PageHeader({ categories, username, email }: Props) {
                     </button>
                     <div className="flex-1 flex items-center h-8 px-3 border border-foreground/20">
                         <span className="text-terracotta text-[10px] font-bold shrink-0 select-none mr-2">Q</span>
+                        <label htmlFor="stream-search-mobile" className="sr-only">Filter the stream</label>
                         <input
+                            id="stream-search-mobile"
                             autoFocus
                             type="text"
                             value={inputValue}
@@ -141,7 +143,9 @@ export default function PageHeader({ categories, username, email }: Props) {
 
             <div className="hidden md:flex items-center min-w-[280px] h-8 px-3 border border-foreground/20">
                 <span className="text-terracotta text-[10px] font-bold shrink-0 select-none mr-2">Q</span>
+                <label htmlFor="stream-search-desktop" className="sr-only">Filter the stream</label>
                 <input
+                    id="stream-search-desktop"
                     ref={desktopInputRef}
                     type="text"
                     value={inputValue}

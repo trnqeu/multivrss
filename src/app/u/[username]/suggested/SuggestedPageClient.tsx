@@ -139,7 +139,7 @@ function FeedCard({
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value.toUpperCase())}
                   placeholder="NEW CATEGORY…"
-                  className="w-28 px-2 py-1 bg-transparent font-mono text-[10px] text-foreground placeholder:text-foreground/30 border-none focus-visible:outline-none"
+                  className="w-28 px-2 py-1 bg-transparent font-mono text-[10px] text-foreground placeholder:text-foreground/30 border-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta"
                 />
                 <button
                   type="button"
@@ -222,13 +222,15 @@ export default function SuggestedPageClient({
       {/* Directory header */}
       <header className="p-6 md:p-8 border-b-2 border-foreground">
         <div className="label-system font-mono text-[11px] text-terracotta mb-2">
-          {'// DIRECTORY — CURATED_SOURCES'}
+          {'// DIRECTORY · CURATED_SOURCES'}
         </div>
         <div className="flex items-center gap-3 max-w-md">
           <span className="text-terracotta text-[10px] font-bold shrink-0">
             Q
           </span>
+          <label htmlFor="suggested-directory-search" className="sr-only">Filter the directory</label>
           <input
+            id="suggested-directory-search"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
