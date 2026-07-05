@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MultivRSS — "Two things" in context</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--black:#000;--paper:#f6f3ec;--terra:#E2725B;--ink-2:rgba(0,0,0,.55);--ink-3:rgba(0,0,0,.3);--ink-line:rgba(0,0,0,.12);--ink-hair:rgba(0,0,0,.07);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--paper);color:var(--black);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .label{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;}
+
+  /* nav */
+  .nav{display:flex;align-items:center;justify-content:space-between;padding:24px 34px;border-bottom:2px solid var(--black);}
+  .brand{display:flex;align-items:center;gap:13px;}
+  .brand img{width:32px;height:32px;object-fit:contain;}
+  .word{font-size:19px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;}
+  .word .m{color:var(--black);}.word .r{color:var(--terra);}
+  .ver{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--ink-3);border-left:1px solid var(--ink-line);padding-left:13px;}
+  .menu{display:flex;gap:28px;}
+  .menu a{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;text-decoration:none;color:var(--black);}
+  .menu a.on{color:var(--terra);}
+
+  /* hero */
+  .hero{padding:80px 34px 78px;}
+  .hero-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:56px;align-items:center;max-width:1200px;margin:0 auto;}
+  .kicker{color:var(--terra);margin-bottom:26px;}
+  h1{font-weight:900;font-size:clamp(52px,6.4vw,92px);line-height:.95;letter-spacing:-.035em;margin:0 0 28px;}
+  h1 .slash{color:var(--terra);font-weight:800;padding:0 6px;}
+  .lede{font-size:18px;line-height:1.6;max-width:520px;color:var(--ink-2);font-weight:450;margin:0 0 36px;}
+  .lede b{color:var(--black);font-weight:700;}
+  .meta{display:flex;align-items:center;gap:20px;}
+  .btn-terra{background:var(--terra);color:var(--paper);padding:15px 22px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;border:2px solid var(--terra);cursor:pointer;}
+  .hero-art{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .hero-art img{width:100%;max-width:340px;height:auto;}
+  .stamp{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--ink-3);text-align:center;}
+  .stamp b{color:var(--terra);}
+
+  /* ===== TWO THINGS (option B) ===== */
+  .twothings{padding:96px 34px 100px;border-top:2px solid var(--black);text-align:center;}
+  .twothings .kick{color:var(--terra);margin-bottom:36px;}
+  .twothings .big{font-size:clamp(56px,9vw,120px);font-weight:900;letter-spacing:-.045em;line-height:.9;}
+  .twothings .big .plus{color:var(--terra);font-weight:800;padding:0 .12em;}
+  .twothings .row{display:flex;justify-content:center;gap:110px;margin-top:40px;flex-wrap:wrap;}
+  .twothings .row .col{max-width:300px;text-align:left;}
+  .twothings .row .l{color:var(--terra);margin-bottom:9px;}
+  .twothings .row p{font-size:14.5px;color:var(--ink-2);line-height:1.55;}
+
+  /* blog head */
+  .section{padding:88px 34px;border-top:2px solid var(--black);}
+  .wrap{max-width:1200px;margin:0 auto;}
+  .sec-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:800;letter-spacing:.22em;color:var(--terra);text-transform:uppercase;margin-bottom:16px;}
+  .blog-head{display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:20px;flex-wrap:wrap;}
+  .blog-head h2{font-size:clamp(34px,4.4vw,60px);font-weight:900;letter-spacing:-.025em;line-height:1;margin:0;}
+  .blog-head .sub{font-size:15px;color:var(--ink-2);line-height:1.55;max-width:440px;margin:14px 0 0;}
+
+  .flag{position:fixed;left:14px;bottom:14px;z-index:10;background:var(--black);color:var(--paper);
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;
+    padding:9px 13px;text-transform:uppercase;pointer-events:none;}
+  .flag b{color:var(--terra);}
+</style>
+</head>
+<body>
+
+  <div class="flag">Mock — sezione <b>&ldquo;Two things&rdquo;</b> nel flusso della home</div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="brand">
+      <img src="assets/multivrss-ico.png" alt="" />
+      <div class="word"><span class="m">multiv</span><span class="r">rss</span></div>
+      <div class="ver">THE INTERNET READING ROOM</div>
+    </div>
+    <div class="menu"><a href="#" class="on">MANIFESTO</a><a href="#">GUIDE</a><a href="#">SOURCES</a><a href="#">TIPS</a></div>
+    <div class="label" style="color:var(--ink-3)">SIGN IN · GET STARTED →</div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="label kicker">// THE CALM WAY TO KEEP UP</div>
+        <h1>Read the web.<br /><span class="slash">/</span>Skip the noise.</h1>
+        <p class="lede">Follow the sites, blogs and newsletters you love, and save the articles worth keeping — <b>all in one calm place.</b> No ads, no algorithm deciding what you see.</p>
+        <div class="meta"><button class="btn-terra">→ START FREE</button><span class="label" style="color:var(--ink-3)">FREE FOREVER · NO CARD</span></div>
+      </div>
+      <div class="hero-art">
+        <img src="assets/multivrss-mark-tight.png" alt="" />
+        <div class="stamp">MARK_v2.1 · ICOSAHEDRON + WAVES · <b>STABLE</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TWO THINGS · option B in context ===== -->
+  <section class="twothings">
+    <div class="label kick">// EVERYTHING YOU NEED · NOTHING YOU DON'T</div>
+    <div class="big">Updates<span class="plus">+</span>Bookmarks</div>
+    <div class="row">
+      <div class="col">
+        <div class="label l">01 · UPDATES</div>
+        <p>New posts from every site you follow, gathered in one calm place — in the order they arrive.</p>
+      </div>
+      <div class="col">
+        <div class="label l">02 · BOOKMARKS</div>
+        <p>The articles you saved to read later. Kept, ad-free, and always yours.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOG HEAD (next section, for context) -->
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-kicker">// JOURNAL</div>
+      <div class="blog-head">
+        <div>
+          <h2>Notes from the open web.</h2>
+          <p class="sub">Guides, product notes and short field manuals — written in Markdown, shipped in open format.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
