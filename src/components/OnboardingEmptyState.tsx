@@ -135,7 +135,7 @@ function IdleView({
         No signal yet.
       </h1>
       <p className="m-0 text-[13px] font-medium text-foreground/55 leading-relaxed max-w-[42ch]">
-        Feed the reader. Drop in a <strong className="text-foreground font-bold">starter pack</strong> and the stream comes alive — or wire up sources by hand.
+        Feed the reader. Drop in a <strong className="text-foreground font-bold">starter pack</strong> and the stream comes alive, or wire up sources by hand.
       </p>
       </div>
 
@@ -160,7 +160,7 @@ function IdleView({
         <FallbackPath
           icon={<DiscoverIcon />}
           title="Open the directory"
-          description="40+ curated sources, organised by topic — add them one by one."
+          description="40+ curated sources, organised by topic: add them one by one."
           href={`/u/${username}/suggested`}
         />
         <FallbackPath

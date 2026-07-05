@@ -13,12 +13,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return lang === "it"
     ? {
-        title: "Come funziona — MultivRSS",
+        title: "Come funziona · MultivRSS",
         description:
           "Tutto quello che fa MultivRSS, in otto piccole mosse. Uno screenshot e un soffio di testo per ogni passo.",
       }
     : {
-        title: "How it works — MultivRSS",
+        title: "How it works · MultivRSS",
         description:
           "Everything MultivRSS does, in eight small moves. One screenshot and one breath of text per step.",
       };
@@ -154,8 +154,8 @@ function CsvCard() {
       </div>
       <div className="px-5 py-6 font-mono text-[12.5px] leading-[2] flex flex-col gap-0">
         <div className="flex gap-3"><span className="text-terracotta">›</span><span><span className="text-white/55">open</span> <span className="text-[#f6f3ec] font-semibold">⚙ Settings</span></span></div>
-        <div className="flex gap-3"><span className="text-terracotta">›</span><span><span className="text-[#f6f3ec] font-semibold">Import CSV</span> <span className="text-white/55">— upload your list</span></span></div>
-        <div className="flex gap-3"><span className="text-terracotta">›</span><span><span className="text-[#f6f3ec] font-semibold">Export CSV</span> <span className="text-white/55">— download a backup</span></span></div>
+        <div className="flex gap-3"><span className="text-terracotta">›</span><span><span className="text-[#f6f3ec] font-semibold">Import CSV</span> <span className="text-white/55">· upload your list</span></span></div>
+        <div className="flex gap-3"><span className="text-terracotta">›</span><span><span className="text-[#f6f3ec] font-semibold">Export CSV</span> <span className="text-white/55">· download a backup</span></span></div>
       </div>
     </div>
   );
@@ -174,7 +174,7 @@ export default async function GuidePage({ params }: Props) {
       <header className="px-[34px] pt-[74px] pb-[30px] max-[960px]:px-[22px] max-[960px]:pt-12 max-[960px]:pb-6">
         <div className="max-w-[1200px] mx-auto">
           <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[22px]">
-            {isIt ? "// COME FUNZIONA — 8 COSE CHE PUOI FARE" : "// HOW IT WORKS — 08 THINGS YOU CAN DO"}
+            {isIt ? "// COME FUNZIONA · 8 COSE CHE PUOI FARE" : "// HOW IT WORKS · 08 THINGS YOU CAN DO"}
           </p>
           <div className="grid grid-cols-1 min-[960px]:grid-cols-[1.15fr_1fr] gap-12 items-end">
             <h1 className="normal-case font-black text-[clamp(38px,5vw,78px)] leading-[0.99] tracking-[-0.03em] m-0">
@@ -189,7 +189,7 @@ export default async function GuidePage({ params }: Props) {
               {isIt ? (
                 <>
                   Nessun manuale richiesto. Incolla un link, scegli qualche fonte, e hai
-                  una stanza di lettura tranquilla tutta tua. Ecco tutto quanto —{" "}
+                  una stanza di lettura tranquilla tutta tua. Ecco tutto quanto:{" "}
                   <strong className="text-black font-bold">
                     ogni passo è uno screenshot e un soffio di testo.
                   </strong>
@@ -197,7 +197,7 @@ export default async function GuidePage({ params }: Props) {
               ) : (
                 <>
                   No manual required. Paste a link, pick a few sources, and you have
-                  a calm reading room that&apos;s all yours. Here&apos;s the whole thing —{" "}
+                  a calm reading room that&apos;s all yours. Here&apos;s the whole thing:{" "}
                   <strong className="text-black font-bold">
                     each step is one screenshot and one breath of text.
                   </strong>
@@ -264,14 +264,14 @@ export default async function GuidePage({ params }: Props) {
             body={
               isIt ? (
                 <p className="m-0">
-                  Premi <b>+ Add</b> e incolla un link qualsiasi — un blog, una Substack, un
+                  Premi <b>+ Add</b> e incolla un link qualsiasi: un blog, una Substack, un
                   canale YouTube. MultivRSS ti chiede una cosa sola: <b>seguirlo come fonte</b> per
                   ricevere ogni nuovo post, oppure <b>salvare il link</b> per leggerlo una volta sola.
                   Niente gergo, niente indovinelli.
                 </p>
               ) : (
                 <p className="m-0">
-                  Hit <b>+ Add</b> and paste any link — a blog, a Substack, a YouTube channel.
+                  Hit <b>+ Add</b> and paste any link: a blog, a Substack, a YouTube channel.
                   MultivRSS asks one simple thing: <b>follow it as a source</b> to get every new
                   post, or <b>save the link</b> to read once. No jargon, no guessing.
                 </p>
@@ -297,13 +297,13 @@ export default async function GuidePage({ params }: Props) {
             body={
               isIt ? (
                 <p className="m-0">
-                  Ogni fonte vive in una categoria nella barra laterale — Cultura, Musica,
+                  Ogni fonte vive in una categoria nella barra laterale: Cultura, Musica,
                   Notizie, quello che vuoi. Il piccolo <b>+</b> accanto a una categoria aggiunge
                   una fonte direttamente lì dentro, e puoi rinominare o riordinare quando vuoi.
                 </p>
               ) : (
                 <p className="m-0">
-                  Every source lives in a category in the left sidebar — Culture, Music, News,
+                  Every source lives in a category in the left sidebar: Culture, Music, News,
                   whatever you like. The little <b>+</b> next to a category adds a source straight
                   into it, and you can rename or reorder anytime.
                 </p>
@@ -341,13 +341,13 @@ export default async function GuidePage({ params }: Props) {
             body={
               isIt ? (
                 <p className="m-0">
-                  La <b>Front Page</b> è la tua edizione personale — costruita da quello che
+                  La <b>Front Page</b> è la tua edizione personale, costruita da quello che
                   leggi e salvi davvero, raggruppata per categoria. Vuoi il flusso grezzo e
                   senza filtri? Passa a <b>River</b> per avere tutto in ordine, dal più recente.
                 </p>
               ) : (
                 <p className="m-0">
-                  The <b>Front Page</b> is your personal edition — assembled from what you actually
+                  The <b>Front Page</b> is your personal edition, assembled from what you actually
                   read and saved, grouped by category. Want the raw, unfiltered flow instead? Flip
                   to <b>River</b> for everything in order, newest first.
                 </p>
@@ -376,13 +376,13 @@ export default async function GuidePage({ params }: Props) {
               isIt ? (
                 <p className="m-0">
                   Tocca il segnalibro su qualsiasi elemento per metterlo in <b>Saved</b>. Poi premi{" "}
-                  <b>+ TAG</b> per archiviarlo sotto le tue etichette — scrivine una nuova o
+                  <b>+ TAG</b> per archiviarlo sotto le tue etichette: scrivine una nuova o
                   scegline una dall&apos;elenco. Il te del futuro lo ritroverà in un secondo.
                 </p>
               ) : (
                 <p className="m-0">
                   Tap the bookmark on any item to drop it in <b>Saved</b>. Then hit <b>+ TAG</b> to
-                  file it under your own labels — type a new one or pick from the directory.
+                  file it under your own labels: type a new one or pick from the directory.
                   Future-you will find it in seconds.
                 </p>
               )
@@ -566,10 +566,10 @@ export default async function GuidePage({ params }: Props) {
         <p className="text-[15.5px] text-white/55 max-w-[520px] mx-auto mb-8 leading-[1.6]">
           {isIt ? (
             <>Aggiungi qualche fonte, salva ciò che conta, e lascia che la Front Page faccia
-            il resto. Nessun algoritmo, nessun rumore — solo le novità dal web che hai scelto.</>
+            il resto. Nessun algoritmo, nessun rumore: solo le novità dal web che hai scelto.</>
           ) : (
             <>Add a few sources, save what matters, and let the Front Page do the rest. No
-            algorithm, no noise — just what&apos;s new from the web you chose.</>
+            algorithm, no noise: just what&apos;s new from the web you chose.</>
           )}
         </p>
         <Link
