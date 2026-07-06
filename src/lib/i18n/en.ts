@@ -32,6 +32,7 @@ export const en: Dictionary = {
       "Guides, product notes and short field manuals, written in Markdown, shipped in open format.",
     feedLabel: "Subscribe to feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
+    seeAll: "SEE ALL POSTS →",
   },
   sources: {
     kicker: "CURATED SOURCES",
