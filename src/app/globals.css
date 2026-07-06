@@ -14,6 +14,7 @@
   --scrollbar-thumb: #f6f3ec;
   --selection-fg: #f6f3ec;
   --selection-bg: #000000;
+  --tc-soft: rgba(226, 114, 91, .10);
 }
 
 .dark {
@@ -23,6 +24,7 @@
   --scrollbar-thumb: #000000;
   --selection-fg: #000000;
   --selection-bg: #FFFFFF;
+  --tc-soft: rgba(226, 114, 91, .15);
 }
 
 @theme inline {

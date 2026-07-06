@@ -14,11 +14,12 @@ type Props = {
     categories: Category[];
     username: string;
     email?: string | null;
+    tabs?: React.ReactNode;
 };
 
 const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 border-none appearance-none shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta";
 
-export default function PageHeader({ categories, username, email }: Props) {
+export default function PageHeader({ categories, username, email, tabs }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -139,10 +140,11 @@ export default function PageHeader({ categories, username, email }: Props) {
 
             {/* ── DESKTOP: always visible ── */}
 
-            <div className="hidden md:block flex-1" />
+            {tabs && <div className="hidden md:flex items-center">{tabs}</div>}
+            {!tabs && <div className="hidden md:block flex-1" />}
 
-            <div className="hidden md:flex items-center min-w-[280px] h-8 px-3 border border-foreground/20">
-                <span className="text-terracotta text-[10px] font-bold shrink-0 select-none mr-2">Q</span>
+            <div className="hidden md:flex items-center min-w-[220px] h-[30px] px-3 border border-foreground/25">
+                <span className="text-terracotta text-[10px] font-extrabold shrink-0 select-none mr-2">Q</span>
                 <label htmlFor="stream-search-desktop" className="sr-only">Filter the stream</label>
                 <input
                     id="stream-search-desktop"
@@ -156,6 +158,8 @@ export default function PageHeader({ categories, username, email }: Props) {
                 {inputValue && clearBtn}
             </div>
 
+            {tabs && <div className="hidden md:block flex-1" />}
+
             <div className="hidden md:block">
                 <AddPopover categories={categories} />
             </div>
@@ -163,7 +167,7 @@ export default function PageHeader({ categories, username, email }: Props) {
             <button
                 onClick={handleSync}
                 disabled={isSyncing}
-                className="hidden md:block bg-transparent border-none p-0 text-terracotta shrink-0 hover:bg-transparent normal-case tracking-widest disabled:opacity-40"
+                className="hidden md:block bg-transparent border-none p-0 font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] text-foreground/55 shrink-0 hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-40"
             >
                 {isSyncing ? '↻ SYNCING...' : '↻ SYNC'}
             </button>

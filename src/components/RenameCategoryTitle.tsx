@@ -10,9 +10,10 @@ interface Props {
     username: string;
     editing: boolean;
     onDone: () => void;
+    active?: boolean;
 }
 
-export default function RenameCategoryTitle({ categoryId, name, username, editing, onDone }: Props) {
+export default function RenameCategoryTitle({ categoryId, name, username, editing, onDone, active = false }: Props) {
     const [error, setError] = useState('');
 
     async function handleSubmit(value: string) {
@@ -56,8 +57,8 @@ export default function RenameCategoryTitle({ categoryId, name, username, editin
     return (
         <span className="inline-flex items-center gap-1 min-w-0">
             <MobileNavLink
-                href={`/u/${username}?cat=${encodeURIComponent(name)}`}
-                className="text-[13px] font-bold uppercase tracking-[0.18em] text-terracotta py-1 hover:text-terracotta/70 transition-colors truncate"
+                href={`/u/${username}?view=river&cat=${encodeURIComponent(name)}`}
+                className={`text-[10.5px] font-bold uppercase tracking-[.13em] py-1 truncate ${active ? 'text-terracotta' : 'text-foreground/55 group-hover/sbc:text-foreground'}`}
             >
                 {name}
             </MobileNavLink>
