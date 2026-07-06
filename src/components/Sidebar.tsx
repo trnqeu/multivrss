@@ -1,15 +1,10 @@
 import Image from 'next/image';
-import Wordmark from "@/components/Wordmark";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
-
-import { Rss } from '@/components/icons/Rss';
-import { Bookmark } from '@/components/icons/Bookmark';
-import { Discover } from '@/components/icons/Discover';
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
 
@@ -40,66 +35,66 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
     const savedCount = savedFeedCount + savedLinkCount;
 
     return (
-        <aside className="w-64 border-r-2 border-foreground flex flex-col bg-background h-full">
+        <aside className="w-[212px] shrink-0 border-r-2 border-foreground flex flex-col bg-background h-full">
             {/* Brand lockup */}
-            <div className="p-6 border-b-2 border-foreground">
-                <MobileNavLink href={`/u/${username}`} className="flex items-center gap-3.5 hover:opacity-80 transition-opacity">
+            <div className="flex items-center gap-[11px] p-[18px] border-b-2 border-foreground">
+                <MobileNavLink href={`/u/${username}`} className="flex items-center gap-[11px] hover:opacity-80 transition-opacity">
                     <SpinningWrapper>
                         <Image
                             src="/logo/multivrss-ico.png"
                             alt=""
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 object-contain shrink-0"
+                            width={28}
+                            height={28}
+                            className="w-7 h-7 object-contain shrink-0"
                             priority
                         />
                     </SpinningWrapper>
-                    <Wordmark className="text-lg tracking-[0.1em]" />
+                    <span className="font-mono text-sm font-extrabold uppercase tracking-[.16em] text-terracotta">
+                        multivrss
+                    </span>
                 </MobileNavLink>
                 <SyncBadge />
             </div>
 
-            <nav aria-label="Main navigation" className="flex-1 overflow-y-auto p-6 flex flex-col gap-8">
+            <nav aria-label="Main navigation" className="flex-1 overflow-y-auto p-[14px] pt-[18px] flex flex-col gap-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {/* Main Navigation */}
-                <div className="flex flex-col gap-4">
-                    <span className="label-system text-foreground">NAV_ROOT</span>
-                    <MobileNavLink
-                        href={`/u/${username}`}
-                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
-                    >
-                        <Rss className="text-foreground group-hover:text-background transition-colors" />
-                        All Feeds
-                    </MobileNavLink>
-                    <MobileNavLink
-                        href={`/u/${username}/saved`}
-                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
-                    >
-                        <Bookmark className="text-foreground group-hover:text-background transition-colors" size={12} />
-                        <span className="flex-1">Saved</span>
-                        <span className="label-system text-[10px] text-foreground/50 group-hover:text-background">
-                            {savedCount.toString().padStart(2, '0')}
-                        </span>
-                    </MobileNavLink>
-                    <MobileNavLink
-                        href={`/u/${username}/suggested`}
-                        className="group flex items-center gap-3 text-sm uppercase tracking-widest font-bold hover:text-background hover:bg-foreground transition-all pl-2 border-l-2 border-transparent hover:border-foreground"
-                    >
-                        <Discover className="text-foreground group-hover:text-background transition-colors" size={12} />
-                        <span className="flex-1">Suggested</span>
-                    </MobileNavLink>
-                </div>
+                <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground/35 px-1">NAV_ROOT</span>
+                <MobileNavLink
+                    href={`/u/${username}`}
+                    className="group flex items-center gap-[9px] font-mono text-[11px] font-bold uppercase tracking-[.1em] text-foreground hover:text-terracotta transition-colors px-1 py-[3px]"
+                >
+                    <span aria-hidden="true">◈</span> All Feeds
+                </MobileNavLink>
+                <MobileNavLink
+                    href={`/u/${username}/saved`}
+                    className="group flex items-center gap-[9px] font-mono text-[11px] font-bold uppercase tracking-[.1em] text-foreground hover:text-terracotta transition-colors px-1 py-[3px]"
+                >
+                    <span aria-hidden="true">▢</span>
+                    <span className="flex-1">Saved</span>
+                    <span className="font-mono text-[9px] text-foreground/35">
+                        {savedCount.toString().padStart(2, '0')}
+                    </span>
+                </MobileNavLink>
+                <MobileNavLink
+                    href={`/u/${username}/suggested`}
+                    className="group flex items-center gap-[9px] font-mono text-[11px] font-bold uppercase tracking-[.1em] text-foreground hover:text-terracotta transition-colors px-1 py-[3px]"
+                >
+                    <span aria-hidden="true">◷</span>
+                    <span className="flex-1">Suggested</span>
+                </MobileNavLink>
 
                 {/* Categories as Modules */}
+                <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground/35 px-1 mt-[10px]">CATEGORIES</span>
                 <SidebarCategories categories={categories} username={username} />
 
             </nav>
 
             {/* System Footer */}
-            <div className="p-8 border-t-2 border-foreground">
-                <div className="label-system text-[9px] text-foreground font-bold">
-                    Connection: [PROTECTED]
+            <div className="px-[18px] py-[13px] border-t-2 border-foreground">
+                <div className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground/35 leading-[1.7]">
+                    NODE · MULTIVRSS_ALPHA
                     <br />
-                    Node: MULTIVRSS_ALPHA
+                    Connection: [PROTECTED]
                 </div>
             </div>
         </aside>
