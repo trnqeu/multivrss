@@ -48,19 +48,29 @@ export default function MarketingHero({ dict }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 max-[920px]:items-start max-[920px]:mt-2">
-          <div className="w-full max-w-[380px] max-[920px]:max-w-[160px]">
+        <div className="w-full max-[920px]:mt-8">
+          <div className="border-2 border-black bg-black shadow-[14px_14px_0_rgba(0,0,0,0.12)]">
+            <div className="flex items-center gap-2 px-[14px] py-[11px] border-b-2 border-black bg-white">
+              <span
+                aria-hidden="true"
+                className="flex items-center gap-2"
+              >
+                <span className="w-[10px] h-[10px] rounded-full border-[1.5px] border-black" />
+                <span className="w-[10px] h-[10px] rounded-full border-[1.5px] border-terracotta bg-terracotta" />
+                <span className="w-[10px] h-[10px] rounded-full border-[1.5px] border-black" />
+              </span>
+              <span className="font-mono text-[11px] font-bold tracking-[0.1em] text-black/55">
+                multivrss — reading room
+              </span>
+            </div>
             <Image
-              src="/assets/multivrss-mark-tight.png"
-              alt=""
-              width={720}
-              height={756}
-              className="w-full h-auto"
+              src="/assets/hero-app-shot-dark.png"
+              alt="MultivRSS reading room"
+              width={1352}
+              height={615}
+              className="w-full h-auto block"
+              priority
             />
-          </div>
-          <div className="font-mono text-[10px] font-bold tracking-[0.16em] text-black/30 text-center max-[920px]:text-left">
-            MARK_v2.1 · ICOSAHEDRON + WAVES ·{" "}
-            <b className="text-terracotta">STABLE</b>
           </div>
         </div>
       </div>
