@@ -13,10 +13,10 @@ export const it: Dictionary = {
   },
   hero: {
     kicker: "LA TUA STANZA DI LETTURA DIGITALE",
-    headline1: "Read the web.",
-    headline2: "Skip the noise",
+    headline1: "Leggi il web.",
+    headline2: "Cancella il rumore",
     bodyIntro:
-      "MultivRSS è la tua stanza di lettura per il web. Qui puoi gestire i tuoi ",
+      "MultivRSS è la tua stanza di lettura digitale. Uno spazio tranquillo e minimale in cui i gestire i tuoi ",
     bodyBold1: "aggiornamenti",
     bodyMid: " e ",
     bodyBold2: "segnalibri",
