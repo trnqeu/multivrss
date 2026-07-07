@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { dayBucket } from '@/lib/utils';
 import { getCategories, markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
@@ -9,6 +9,10 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
+import TelemetryDropdown from './TelemetryDropdown';
+
+const READ_OPTS = ['ALL', 'UNREAD', 'READ'] as const;
+type ReadOpt = typeof READ_OPTS[number];
 
 type TagVM = { id: string; name: string };
 
@@ -48,10 +52,6 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
     const [readFilter, setReadFilter] = useState<string | undefined>(undefined);
     const router = useRouter();
     const [categories, setCategories] = useState<{ name: string }[]>([]);
-    const [catOpen, setCatOpen] = useState(false);
-    const [catDropdownPos, setCatDropdownPos] = useState({ top: 0, right: 0 });
-    const catButtonRef = useRef<HTMLButtonElement>(null);
-    const catDropdownRef = useRef<HTMLDivElement>(null);
     const [tagModalItem, setTagModalItem] = useState<string | null>(null);
     const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
 
@@ -59,29 +59,6 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
     useEffect(() => {
         void getCategories().then(result => setCategories(result.map(c => ({ name: c.name }))));
     }, []);
-
-    useEffect(() => {
-        if (!catOpen) return;
-        function onMouseDown(e: MouseEvent) {
-            if (
-                catButtonRef.current?.contains(e.target as Node) ||
-                catDropdownRef.current?.contains(e.target as Node)
-            ) return;
-            setCatOpen(false);
-        }
-        function onKeyDown(e: KeyboardEvent) {
-            if (e.key === 'Escape') {
-                setCatOpen(false);
-                catButtonRef.current?.focus();
-            }
-        }
-        document.addEventListener('mousedown', onMouseDown);
-        document.addEventListener('keydown', onKeyDown);
-        return () => {
-            document.removeEventListener('mousedown', onMouseDown);
-            document.removeEventListener('keydown', onKeyDown);
-        };
-    }, [catOpen]);
 
     useEffect(() => {
         let cancelled = false;
@@ -135,7 +112,6 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
             params.delete('source');
         }
         router.push(`?${params.toString()}`);
-        setCatOpen(false);
     }
 
 
@@ -161,101 +137,46 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
         }
     }
 
+    const readOptValue: ReadOpt = readFilter ? (readFilter.toUpperCase() as ReadOpt) : 'ALL';
+    const catOptions = ['ALL', ...categories.map(c => c.name)];
+
     return (
         <div>
             {/* Telemetry */}
             <div className="flex items-stretch border-b-2 border-foreground min-h-[2.5rem]">
                 <MobileCategorySheet />
-                <div className="flex-1 min-w-0 px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-foreground/50 flex items-center gap-4 overflow-x-auto">
-                <span className="whitespace-nowrap">
-                    {'INDEX: '}
-                    <span className="text-foreground">{`${hits.length} / ${baseFacets.total} ITEMS`}</span>
-                    <span className="mx-3">{'·'}</span>
-                    {'TIME: '}
-                    <span className="text-foreground">{`${timeMs} MS`}</span>
-                    <span className="mx-3">{'·'}</span>
-                    {'FILTER: '}
-                    <span className="inline whitespace-nowrap">
-                        {(['ALL', 'UNREAD', 'READ'] as const).map((f, i) => {
-                            const isActive = f === 'ALL' ? !readFilter : readFilter === f.toLowerCase();
-                            return (
-                                <span key={f}>
-                                    {i > 0 && <span className="mx-1 text-foreground/30">{'·'}</span>}
-                                    <button
-                                        onClick={() => setReadFilter(f === 'ALL' ? undefined : f.toLowerCase())}
-                                        className={`bg-transparent border-0 px-0 py-0 transition-colors cursor-pointer inline text-[10px] font-bold uppercase tracking-widest ${
-                                            isActive
-                                                ? 'text-foreground underline underline-offset-4 decoration-terracotta'
-                                                : 'text-foreground/30 hover:text-foreground/60'
-                                        }`}
-                                    >{f}</button>
-                                </span>
-                            );
-                        })}
+                <div className="flex-1 min-w-0 px-[18px] py-[9px] font-mono text-[9.5px] font-bold uppercase tracking-[.13em] text-foreground/45 flex items-center gap-[5px] flex-wrap">
+                    <span className="whitespace-nowrap">
+                        INDEX <b className="text-foreground font-extrabold">{hits.length} / {baseFacets.total}</b>
                     </span>
+                    <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+                    <span className="whitespace-nowrap">
+                        TIME <b className="text-foreground font-extrabold">{timeMs} MS</b>
+                    </span>
+                    <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
 
-                    <span className="hidden md:inline mx-3">{'·'}</span>
+                    <TelemetryDropdown<ReadOpt>
+                        label="FILTER"
+                        value={readOptValue}
+                        options={READ_OPTS}
+                        onChange={(next) => setReadFilter(next === 'ALL' ? undefined : next.toLowerCase())}
+                    />
 
-                    <span className="hidden md:inline-flex items-center">
-                    {'CAT: '}
-                        <button
-                            ref={catButtonRef}
-                            onClick={() => {
-                                if (!catOpen && catButtonRef.current) {
-                                    const rect = catButtonRef.current.getBoundingClientRect();
-                                    setCatDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
-                                }
-                                setCatOpen(o => !o);
-                            }}
-                            aria-haspopup="listbox"
-                            aria-expanded={catOpen}
-                            className={`inline-flex items-center gap-1 bg-transparent border-0 px-0 py-0 cursor-pointer text-[10px] font-bold uppercase tracking-widest ${
-                                cat !== 'ALL'
-                                    ? 'text-foreground underline underline-offset-4 decoration-terracotta'
-                                    : 'text-foreground/30 hover:text-foreground/60'
-                            }`}
-                        >
-                            {cat}
-                            <span className="text-[8px] text-foreground/45">{'▾'}</span>
-                        </button>
-                        {cat !== 'ALL' && (
-                            <button
-                                onClick={() => setCategory(null)}
-                                aria-label="Clear category filter"
-                                className="ml-2 bg-transparent border-0 p-0 text-terracotta text-[11px] leading-none cursor-pointer"
-                            >{'✕'}</button>
-                        )}
-                        {catOpen && (
-                            <div
-                                ref={catDropdownRef}
-                                role="listbox"
-                                style={{ top: catDropdownPos.top, right: catDropdownPos.right }}
-                                className="fixed z-50 w-[200px] bg-background border-2 border-foreground"
-                            >
-                                <button
-                                    onClick={() => setCategory(null)}
-                                    className={`flex w-full items-center justify-between px-3 py-2 border-b border-foreground/10 text-left ${cat === 'ALL' ? 'bg-terracotta text-background' : 'hover:bg-foreground/[0.04]'}`}
-                                >
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">ALL</span>
-                                </button>
-                                {categories.map(c => (
-                                    <button
-                                        key={c.name}
-                                        onClick={() => setCategory(c.name)}
-                                        className={`flex w-full items-center justify-between px-3 py-2 border-b border-foreground/10 last:border-b-0 text-left ${cat === c.name ? 'bg-terracotta text-background' : 'hover:bg-foreground/[0.04]'}`}
-                                    >
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">{c.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                    <span aria-hidden="true" className="hidden md:inline text-foreground/25 mx-1">·</span>
+
+                    <span className="hidden md:inline-flex">
+                        <TelemetryDropdown
+                            label="CATEGORY"
+                            value={cat}
+                            options={catOptions}
+                            onChange={(next) => setCategory(next === 'ALL' ? null : next)}
+                        />
                     </span>
 
                     {sourceIdParam && (
                         <>
-                            <span className="mx-3">{'·'}</span>
-                            {'SOURCE: '}
-                            <span className="text-foreground underline underline-offset-4 decoration-terracotta">ACTIVE</span>
+                            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+                            SOURCE <b className="text-foreground font-extrabold">ACTIVE</b>
                             <button
                                 onClick={() => {
                                     const params = new URLSearchParams(searchParams.toString());
@@ -263,97 +184,97 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
                                     router.push(`?${params.toString()}`);
                                 }}
                                 aria-label="Clear source filter"
-                                className="ml-2 bg-transparent border-0 p-0 text-terracotta text-[11px] leading-none cursor-pointer"
+                                className="ml-1.5 bg-transparent border-0 p-0 text-terracotta text-[11px] leading-none cursor-pointer"
                             >{'✕'}</button>
                         </>
                     )}
                     {query && (
                         <>
-                            <span className="mx-3">{'·'}</span>
-                            {'Q: '}
-                            <span className="text-foreground">{`"${query}"`}</span>
+                            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+                            Q <b className="text-foreground font-extrabold">&ldquo;{query}&rdquo;</b>
                         </>
                     )}
-                </span>
                 </div>
             </div>
 
-            {/* Results river */}
-            <section className="p-8 md:p-12">
+            {/* Results river — Ledger */}
+            <section className="px-2 md:px-5 py-1.5 pb-[90px]">
                 {loading && allHits.length === 0 ? (
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 px-3 py-6">
                         LOADING...
                     </p>
                 ) : !loading && allHits.length === 0 ? (
                     <EmptyStream variant="no-results" contextLabel={query} />
                 ) : (
-                    <div role="list" className="leading-[1.8] text-sm text-foreground font-medium">
+                    <div role="list">
                         {hits.map((item, index) => {
                             const currentDay = dayBucket(item.pubDate);
                             const prevDay    = index > 0 ? dayBucket(hits[index - 1].pubDate) : null;
-                            const nextDay    = index < hits.length - 1 ? dayBucket(hits[index + 1].pubDate) : null;
                             const isNewDay   = currentDay !== prevDay;
-                            const suppressSeparator = index === hits.length - 1 || currentDay !== nextDay;
+                            const dateLabel = item.pubDate
+                                ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                : '—';
 
                             return (
                                 <Fragment key={item.id}>
                                     {isNewDay && currentDay && (
-                                        <div className={`flex items-center gap-3 mb-[22px] ${index === 0 ? 'mt-4' : 'mt-8'}`}>
-                                            <span className="text-[9.5px] font-extrabold tracking-[0.32em] text-terracotta shrink-0">
+                                        <div className={`flex items-center gap-3 ${index === 0 ? 'mt-2' : 'mt-4'} mb-2`}>
+                                            <span className="font-mono text-[9px] font-extrabold tracking-[.28em] text-terracotta whitespace-nowrap">
                                                 — {currentDay}
                                             </span>
-                                            <span className="flex-1 h-px bg-terracotta/35" />
-                                            <span className="text-[9px] text-white/35">→</span>
+                                            <span aria-hidden="true" className="flex-1 h-px bg-terracotta/30" />
                                         </div>
                                     )}
-                                    <span role="listitem" className={`group/item transition-opacity ${item.read ? 'opacity-30' : 'opacity-100'}`}>
+                                    <div
+                                        role="listitem"
+                                        className={`group grid grid-cols-[16px_1fr_auto] md:grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${item.read ? 'opacity-[.42]' : ''}`}
+                                    >
                                         <button
                                             onClick={() => toggleRead(item)}
-                                            className="bg-transparent border-0 px-0 py-0 text-terracotta cursor-pointer select-none align-middle leading-[0] hover:opacity-80 transition-opacity text-[15px] mr-0.5"
+                                            className={`self-center leading-none text-[11px] bg-transparent border-0 p-0 cursor-pointer transition-colors ${item.read ? 'text-foreground/35' : 'text-terracotta'}`}
                                             title={item.read ? 'Mark as unread' : 'Mark as read'}
                                         >
                                             {item.read ? '\u25CF' : '\u25CB'}
                                         </button>
-                                        <a
-                                            href={item.link}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={() => {
-                                                if (!(item.read ?? false)) {
-                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                    markAsRead(item.id);
-                                                }
-                                            }}
-                                            className="hover:text-terracotta transition-colors"
-                                        >
-                                            {item.sourceTitle && (
-                                                <>
-                                                    <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
-                                                        {item.sourceTitle}
-                                                    </span>
-                                                    <span className="text-foreground/40 mx-2">{'·'}</span>
-                                                </>
-                                            )}
-                                            <span className="text-foreground/50 text-xs">
-                                                {item.pubDate
-                                                    ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                                    : '---'}
-                                            </span>
-                                            <span className="text-foreground/40 mx-2">{'·'}</span>
-                                            <Highlight text={item._formatted?.title ?? item.title} />
+
+                                        <span className="hidden md:block font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
+                                            {item.sourceTitle}
+                                        </span>
+
+                                        <span className="hidden md:block font-mono text-[9.5px] text-foreground/35 whitespace-nowrap">
+                                            {dateLabel}
+                                        </span>
+
+                                        <span className="min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+                                            <a
+                                                href={item.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={() => {
+                                                    if (!(item.read ?? false)) {
+                                                        setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                                        markAsRead(item.id);
+                                                    }
+                                                }}
+                                                className="font-serif font-semibold text-[15px] tracking-[-.005em] text-foreground group-hover:text-terracotta transition-colors no-underline"
+                                            >
+                                                <Highlight text={item._formatted?.title ?? item.title} />
+                                            </a>
                                             {(item._formatted?.content ?? item.content) && (
-                                                <>
-                                                    <span className="text-foreground/40 mx-2">{'—'}</span>
-                                                    <span className="text-foreground/50 text-sm font-normal">
-                                                        <Highlight
-                                                            text={item._formatted?.content ?? item.content ?? ''}
-                                                            markClass="underline decoration-terracotta"
-                                                        />
-                                                    </span>
-                                                </>
+                                                <span className="font-serif text-[14px] text-foreground/45 font-normal">
+                                                    {' — '}
+                                                    <Highlight
+                                                        text={item._formatted?.content ?? item.content ?? ''}
+                                                        markClass="underline decoration-terracotta"
+                                                    />
+                                                </span>
                                             )}
-                                        </a>
-                                        <span className="inline-flex items-center gap-1 ml-2 align-middle">
+                                            <span className="md:hidden ml-2 font-mono text-[9px] text-foreground/35 whitespace-nowrap">
+                                                {item.sourceTitle} · {dateLabel}
+                                            </span>
+                                        </span>
+
+                                        <span className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {(itemTags.get(item.id) ?? []).length > 0 && (
                                                 <span className="inline-flex gap-1">
                                                     {(itemTags.get(item.id) ?? []).map(tag => (
@@ -376,15 +297,12 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
                                             <button
                                                 type="button"
                                                 onClick={() => setTagModalItem(item.id)}
-                                                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/30 hover:text-foreground px-1 py-0.5 cursor-pointer leading-none transition-colors whitespace-nowrap"
+                                                className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
                                             >
-                                                + TAG
+                                                TAG
                                             </button>
                                         </span>
-                                        {!suppressSeparator && (
-                                            <span className="text-terracotta font-bold mx-3 select-none">{'// '}</span>
-                                        )}
-                                    </span>
+                                    </div>
                                 </Fragment>
                             );
                         })}

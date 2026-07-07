@@ -124,6 +124,9 @@ jobs:
                 | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
               if [ "$STATUS" = "ok" ]; then
                 echo "Health check passed (attempt $i)"
+                # Reclaim disk: drop unused local images older than 3 days
+                # (keeps the current release plus recent rollback targets)
+                docker image prune -af --filter "until=72h" || true
                 exit 0
               fi
               echo "Attempt $i/12 failed, retrying in 5s..."

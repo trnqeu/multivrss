@@ -7,11 +7,13 @@ interface Props {
     href: string;
     className?: string;
     children: React.ReactNode;
+    onNavigate?: () => void;
 }
 
-export default function FrontPageLink({ itemId, href, className, children }: Props) {
+export default function FrontPageLink({ itemId, href, className, children, onNavigate }: Props) {
     function handleClick() {
         markAsRead(itemId);
+        onNavigate?.();
     }
     return (
         <a

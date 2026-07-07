@@ -20,16 +20,16 @@ export default function FeedViewSwitch({ view }: Props) {
         <div
             role="tablist"
             aria-label="Feed view"
-            className="flex items-center border-b-2 border-foreground shrink-0 bg-background"
+            className="flex items-center border-[1.5px] border-foreground shrink-0"
         >
             <button
                 role="tab"
                 aria-selected={view === 'front'}
                 onClick={() => switchTo('front')}
-                className={`px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest border-r border-foreground/20 transition-colors ${
+                className={`px-3 py-[7px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] border-r-[1.5px] border-foreground transition-colors ${
                     view === 'front'
                         ? 'bg-foreground text-background'
-                        : 'bg-background text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+                        : 'bg-background text-foreground/35 hover:text-foreground'
                 }`}
             >
                 ▤ Front Page
@@ -38,19 +38,14 @@ export default function FeedViewSwitch({ view }: Props) {
                 role="tab"
                 aria-selected={view === 'river'}
                 onClick={() => switchTo('river')}
-                className={`px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                className={`px-3 py-[7px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] transition-colors ${
                     view === 'river'
                         ? 'bg-foreground text-background'
-                        : 'bg-background text-foreground/50 hover:text-foreground hover:bg-foreground/5'
+                        : 'bg-background text-foreground/35 hover:text-foreground'
                 }`}
             >
                 ≡ River
             </button>
-            {view === 'river' && (
-                <span className="ml-auto mr-5 text-[9px] font-bold uppercase tracking-widest text-terracotta hidden md:block">
-                    Curated for you →
-                </span>
-            )}
         </div>
     );
 }

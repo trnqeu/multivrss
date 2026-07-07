@@ -47,7 +47,13 @@ export default function MarketingBlog({ lang, dict }: Props) {
               {t.subtitle}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-[10px] text-right max-[560px]:items-start max-[560px]:text-left">
+          <div className="flex flex-col items-end gap-[14px] text-right max-[560px]:items-start max-[560px]:text-left">
+            <Link
+              href={`/${lang}/blog`}
+              className="font-mono text-[11px] font-extrabold tracking-[0.16em] uppercase border-b-2 border-black pb-1 whitespace-nowrap hover:text-terracotta hover:border-terracotta transition-colors"
+            >
+              {t.seeAll}
+            </Link>
             <a
               href="/blog/feed.xml"
               className="inline-flex items-center gap-[10px] border-2 border-black px-[15px] py-[11px] font-mono text-[11px] font-extrabold tracking-[0.14em] uppercase transition-colors hover:bg-terracotta hover:border-terracotta"

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { EventEmitter } from 'events';
 import { prisma } from '@/lib/prisma';
 import { meili } from '@/lib/meili';
 
@@ -25,9 +26,34 @@ vi.mock('@/lib/meili', () => ({
     },
 }));
 
-const mockParseURL = vi.fn();
+// syncFeed fetches the feed body over HTTP(S) itself (via safeFetchText, the
+// SSRF-guarded fetcher) and only hands the raw XML to rss-parser's
+// parseString() — so parseString is the seam to mock, and the network layer
+// (https.get) needs a fake transport so tests never hit the real network.
+const mockParseString = vi.fn();
 vi.mock('rss-parser', () => ({
-    default: function() { return { parseURL: mockParseURL }; },
+    default: function() { return { parseString: mockParseString }; },
+}));
+
+function fakeHttpsGet(_url: unknown, _options: unknown, callback: (res: EventEmitter & { statusCode: number; headers: Record<string, string>; setEncoding: () => void }) => void) {
+    const res = Object.assign(new EventEmitter(), {
+        statusCode: 200,
+        headers: { 'content-type': 'application/rss+xml' },
+        setEncoding: () => {},
+    });
+    const req = Object.assign(new EventEmitter(), { destroy: vi.fn() });
+    queueMicrotask(() => {
+        callback(res);
+        queueMicrotask(() => {
+            res.emit('data', '<rss version="2.0"><channel></channel></rss>');
+            res.emit('end');
+        });
+    });
+    return req;
+}
+
+vi.mock('https', () => ({
+    default: { get: vi.fn(fakeHttpsGet) },
 }));
 
 const mockedFindUnique = vi.mocked(prisma.feedSource.findUnique);
@@ -54,7 +80,7 @@ describe('syncFeed', () => {
         mockedFindUnique.mockResolvedValue(source);
         mockedFindMany.mockResolvedValue([]);
 
-        mockParseURL.mockResolvedValue({
+        mockParseString.mockResolvedValue({
             title: 'Example',
             items: [
                 { guid: 'ext_1', title: 'Post 1', link: 'https://example.com/1', contentSnippet: 'Content 1', isoDate: '2025-01-01T00:00:00Z' },
@@ -104,7 +130,7 @@ describe('syncFeed', () => {
         const existingItem = { id: 'item_1', externalId: 'ext_1', title: 'Post 1', content: 'Content 1', link: 'https://example.com/1', pubDate: new Date('2025-01-01T00:00:00Z'), sourceId: 'src_1' };
         mockedFindMany.mockResolvedValue([existingItem]);
 
-        mockParseURL.mockResolvedValue({
+        mockParseString.mockResolvedValue({
             title: 'Example',
             items: [
                 { guid: 'ext_1', title: 'Post 1', link: 'https://example.com/1', contentSnippet: 'Content 1' },
@@ -129,7 +155,7 @@ describe('syncFeed', () => {
         const existingItem = { id: 'item_1', externalId: 'ext_1', title: 'Old Title', content: 'Old Content', link: 'https://example.com/1', pubDate: new Date('2025-01-01T00:00:00Z'), sourceId: 'src_1' };
         mockedFindMany.mockResolvedValue([existingItem]);
 
-        mockParseURL.mockResolvedValue({
+        mockParseString.mockResolvedValue({
             title: 'Example',
             items: [
                 { guid: 'ext_1', title: 'New Title', link: 'https://example.com/1', contentSnippet: 'New Content' },
@@ -176,6 +202,6 @@ describe('syncFeed', () => {
         const { syncFeed } = await import('@/lib/rss');
         await syncFeed('src_1', prefetched);
 
-        expect(mockParseURL).not.toHaveBeenCalled();
+        expect(mockParseString).not.toHaveBeenCalled();
     });
 });

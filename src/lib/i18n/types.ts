@@ -36,6 +36,7 @@ export interface Dictionary {
     subtitle: string;
     feedLabel: string;
     feedHint: string;
+    seeAll: string;
   };
   sources: {
     kicker: string;
@@ -56,6 +57,8 @@ export interface Dictionary {
   };
   twoThings: {
     kicker: string;
+    headlineUpdates: string;
+    headlineBookmarks: string;
     updatesLabel: string;
     updatesBody: string;
     bookmarksLabel: string;

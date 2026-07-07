@@ -40,7 +40,7 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="max-w-[720px] mx-auto">
         {/* Back link */}
         <Link
-          href={`/${lang}#blog`}
+          href={`/${lang}/blog`}
           className="font-mono text-[10px] font-extrabold tracking-[0.16em] uppercase text-black/30 hover:text-terracotta transition-colors mb-10 inline-block"
         >
           ← JOURNAL

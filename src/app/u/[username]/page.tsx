@@ -35,8 +35,12 @@ export default async function Home({
 
     return (
         <>
-            <PageHeader categories={categories} username={session?.user.username ?? ''} email={session?.user.email} />
-            {sourceCount > 0 && <FeedViewSwitch view={view} />}
+            <PageHeader
+                categories={categories}
+                username={session?.user.username ?? ''}
+                email={session?.user.email}
+                tabs={sourceCount > 0 ? <FeedViewSwitch view={view} /> : undefined}
+            />
             <main id="main-content" className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden scroll-smooth bg-background">
                 {sourceCount === 0 ? (
                     <OnboardingEmptyState username={session?.user.username ?? ''} />

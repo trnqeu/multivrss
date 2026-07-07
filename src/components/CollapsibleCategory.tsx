@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import RenameFeedTitle from './RenameFeedTitle';
 import RenameCategoryTitle from './RenameCategoryTitle';
 import ThreeDotMenu from './ThreeDotMenu';
@@ -31,9 +32,11 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
     const [catEditing, setCatEditing] = useState(false);
     const [menuMode, setMenuMode] = useState<'main' | 'delete-pick'>('main');
     const [editSource, setEditSource] = useState<SourceData | null>(null);
+    const searchParams = useSearchParams();
 
     const otherCategories = allCategories.filter(c => c.id !== category.id);
     const sourceCount = category.sources.length;
+    const isActive = searchParams.get('view') === 'river' && searchParams.get('cat') === category.name;
 
     function handleDeleteCategory(moveToId?: string) {
         const label = moveToId
@@ -67,9 +70,11 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="group flex items-center justify-between border-b-2 border-terracotta pb-2 gap-2">
-                <div className="flex items-baseline gap-0.5 flex-1 min-w-0">
+        <div className="flex flex-col gap-1">
+            <div
+                className={`group/sbc flex items-center gap-2 px-1 py-[6px] border-t border-foreground/[0.08] transition-colors ${isActive ? 'bg-[var(--tc-soft)]' : 'hover:bg-[var(--tc-soft)]'}`}
+            >
+                <div className="flex items-center gap-1 flex-1 min-w-0">
                     <ThreeDotMenu items={getCategoryItems()} />
                     <RenameCategoryTitle
                         categoryId={category.id}
@@ -77,17 +82,24 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         username={username}
                         editing={catEditing}
                         onDone={() => setCatEditing(false)}
+                        active={isActive}
                     />
-                    <span className="font-mono text-[10px] font-bold text-foreground/40 tracking-wider shrink-0">
-                        {sourceCount.toString().padStart(2, '0')}
-                    </span>
                 </div>
+                <span className="font-mono text-[9px] text-foreground/25 shrink-0">
+                    {sourceCount.toString().padStart(2, '0')}
+                </span>
+                <span
+                    aria-hidden="true"
+                    className={`font-mono text-[11px] transition-opacity shrink-0 ${isActive ? 'opacity-100 text-terracotta' : 'opacity-0 group-hover/sbc:opacity-100 text-terracotta'}`}
+                >
+                    →
+                </span>
                 <button
                     type="button"
                     onClick={onToggle}
                     aria-expanded={isOpen}
                     aria-label={isOpen ? `Chiudi ${category.name}` : `Apri ${category.name}`}
-                    className="w-[22px] h-[22px] border-2 border-terracotta text-terracotta bg-background inline-flex items-center justify-center font-mono text-sm font-extrabold leading-none shrink-0 hover:bg-terracotta hover:text-background transition-colors"
+                    className="w-[18px] h-[18px] border border-foreground/25 text-foreground/45 bg-background inline-flex items-center justify-center font-mono text-xs font-extrabold leading-none shrink-0 hover:border-terracotta hover:text-terracotta transition-colors"
                 >
                     {isOpen ? '–' : '+'}
                 </button>

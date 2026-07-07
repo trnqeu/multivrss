@@ -9,6 +9,20 @@ export function dayBucket(date: Date | number | null): string {
     }).format(d).toUpperCase();
 }
 
+/** Formats a past date as a short relative label, e.g. "4M AGO", "3H AGO", "2D AGO". */
+export function timeAgo(date: Date | number | null): string {
+    if (date == null) return '—';
+    const d = date instanceof Date ? date : new Date(date);
+    const seconds = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+    if (seconds < 60) return 'JUST NOW';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}M AGO`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}H AGO`;
+    const days = Math.floor(hours / 24);
+    return `${days}D AGO`;
+}
+
 /** Converts a string to a URL-friendly slug. */
 export function slugify(text: string): string {
     return text
