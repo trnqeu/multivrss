@@ -2,6 +2,9 @@ import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { meili } from './meili';
 import dns from 'dns';
+import net from 'net';
+import http from 'http';
+import https from 'https';
 import { isPrivateIp, decodeHtmlEntities, stripHtml } from './utils';
 import { resolveYouTubeChannel, fetchYouTubeVideosAsFeed } from './youtube';
 
@@ -25,6 +28,104 @@ export async function validateFeedUrl(rawUrl: string): Promise<void> {
   if (isPrivateIp(address)) {
     throw new Error('URL resolves to a private or reserved IP address.');
   }
+}
+
+// ── SSRF guard for the actual network layer ──
+// validateFeedUrl() above is a fast, user-facing pre-check on the URL the
+// user typed. It is NOT sufficient on its own: a feed/page can 302-redirect
+// to a private/internal address after the check passes, and a malicious DNS
+// server can resolve the same hostname to a different (private) IP between
+// the check and the real connection (DNS rebinding). safeLookup() below is
+// wired into every outbound HTTP(S) request this module makes (including
+// every hop of a redirect chain, via rss-parser's requestOptions.lookup and
+// safeFetchText()) so the address actually connected to is always re-checked
+// at connect time, not just once up front.
+function safeLookup(
+  hostname: string,
+  options: dns.LookupOptions,
+  callback: (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void,
+): void {
+  dns.lookup(hostname, options, (err, address, family) => {
+    if (err) return callback(err, address, family);
+    const results = Array.isArray(address) ? address : [{ address, family }];
+    const blocked = results.find(r => isPrivateIp(r.address));
+    if (blocked) {
+      return callback(new Error(`Refusing to connect: "${hostname}" resolves to a private or reserved IP address.`), address, family);
+    }
+    callback(null, address, family);
+  });
+}
+
+const MAX_REDIRECTS = 5;
+const MAX_BODY_BYTES = 2_000_000;
+
+// ── SSRF-safe GET with manual, re-validated redirect following ──
+// Used anywhere we fetch arbitrary user-supplied URLs outside of rss-parser
+// (which gets the same guard via its requestOptions.lookup, see `parser` below).
+export async function safeFetchText(
+  targetUrl: string,
+  opts: { headers?: Record<string, string>; timeoutMs?: number } = {},
+): Promise<{ status: number; contentType: string; body: string }> {
+  let current = targetUrl;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const parsed = new URL(current);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      throw new Error('Only http and https URLs are allowed.');
+    }
+    // Node's http/https clients skip the custom `lookup` hook entirely when the
+    // host is already a literal IP (no DNS resolution needed) — so a redirect
+    // straight to e.g. http://169.254.169.254/... would otherwise sail through
+    // safeLookup untouched. Catch that case explicitly, on every hop.
+    const bareHost = parsed.hostname.replace(/^\[|\]$/g, '');
+    if (net.isIP(bareHost) && isPrivateIp(bareHost)) {
+      throw new Error(`Refusing to connect: "${bareHost}" is a private or reserved IP address.`);
+    }
+    const client = parsed.protocol === 'https:' ? https : http;
+
+    const result = await new Promise<{ redirectTo: string } | { status: number; contentType: string; body: string }>((resolve, reject) => {
+      const req = client.get(
+        current,
+        {
+          lookup: safeLookup,
+          timeout: opts.timeoutMs ?? 10_000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)', ...opts.headers },
+        },
+        (res) => {
+          const status = res.statusCode ?? 0;
+          if (status >= 300 && status < 400 && res.headers.location) {
+            res.resume();
+            return resolve({ redirectTo: new URL(res.headers.location, current).href });
+          }
+          if (status >= 300) {
+            res.resume();
+            return reject(new Error(`Request failed with status ${status}`));
+          }
+          let body = '';
+          let bytes = 0;
+          res.setEncoding('utf8');
+          res.on('data', (chunk: string) => {
+            bytes += Buffer.byteLength(chunk);
+            if (bytes > MAX_BODY_BYTES) {
+              req.destroy(new Error('Response too large'));
+              return;
+            }
+            body += chunk;
+          });
+          res.on('end', () => resolve({ status, contentType: res.headers['content-type'] ?? '', body }));
+        },
+      );
+      req.on('timeout', () => req.destroy(new Error('Request timed out')));
+      req.on('error', reject);
+    });
+
+    if ('redirectTo' in result) {
+      current = result.redirectTo;
+      continue;
+    }
+    return result;
+  }
+  throw new Error('Too many redirects');
 }
 
 const FEED_PATHS = ['/feed', '/rss', '/rss.xml', '/atom.xml', '/feed.xml', '/index.xml'];
@@ -51,14 +152,9 @@ function looksLikeDirectFeedUrl(rawUrl: string): boolean {
 export type DiscoveryResult = { url: string; feed: ParsedFeed };
 
 async function discoverFromHtmlAutolink(rawUrl: string): Promise<DiscoveryResult | null> {
-  const ac = new AbortController();
-  const id = setTimeout(() => ac.abort(), 10000);
   try {
-    const res = await fetch(rawUrl, {
-      signal: ac.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
-    });
-    const html = await res.text();
+    const res = await safeFetchText(rawUrl, { timeoutMs: 10000 });
+    const html = res.body;
 
     const candidates: string[] = [];
     const linkRe = /<link[^>]*>/gi;
@@ -81,7 +177,7 @@ async function discoverFromHtmlAutolink(rawUrl: string): Promise<DiscoveryResult
       const absoluteUrl = new URL(candidate, base).href;
       try {
         await validateFeedUrl(absoluteUrl);
-        const feed = await parser.parseURL(absoluteUrl);
+        const feed = await fetchAndParseFeed(absoluteUrl);
         return { url: absoluteUrl, feed };
       } catch {
         continue;
@@ -90,8 +186,6 @@ async function discoverFromHtmlAutolink(rawUrl: string): Promise<DiscoveryResult
     return null;
   } catch {
     return null;
-  } finally {
-    clearTimeout(id);
   }
 }
 
@@ -106,7 +200,7 @@ export async function discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> 
 async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
   // 1. Try the URL directly as a feed.
   try {
-    const feed = await parser.parseURL(rawUrl);
+    const feed = await fetchAndParseFeed(rawUrl);
     return { url: rawUrl, feed };
   } catch (err) {
     // If the URL already looks like a direct feed (e.g. ends in .xml), don't
@@ -122,7 +216,7 @@ async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
   if (youtubeInfo) {
     try {
       await validateFeedUrl(youtubeInfo.feedUrl);
-      const feed = await parser.parseURL(youtubeInfo.feedUrl);
+      const feed = await fetchAndParseFeed(youtubeInfo.feedUrl);
       return { url: youtubeInfo.feedUrl, feed };
     } catch {
       const fallback = await fetchYouTubeVideosAsFeed(youtubeInfo.channelId);
@@ -142,7 +236,7 @@ async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
     const feedUrl = `${base}${path}`;
     await validateFeedUrl(feedUrl);
     try {
-      const feed = await parser.parseURL(feedUrl);
+      const feed = await fetchAndParseFeed(feedUrl);
       return { url: feedUrl, feed };
     } catch {
       continue;
@@ -154,7 +248,7 @@ async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
     const feedUrl = `${base}${path}`;
     await validateFeedUrl(feedUrl);
     try {
-      const feed = await parser.parseURL(feedUrl);
+      const feed = await fetchAndParseFeed(feedUrl);
       return { url: feedUrl, feed };
     } catch {
       continue;
@@ -167,9 +261,26 @@ async function _discoverFeedUrl(rawUrl: string): Promise<DiscoveryResult> {
 const parser = new Parser({
   timeout: 10000,
   headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MultivRSS/1.0)' },
+  // Defense in depth only — actual fetching goes through fetchAndParseFeed()
+  // below, never parser.parseURL(), so this hook mostly guards against
+  // future code accidentally calling parseURL() directly.
+  requestOptions: { lookup: safeLookup },
 });
 
-export type ParsedFeed = Awaited<ReturnType<typeof parser.parseURL>>;
+export type ParsedFeed = Awaited<ReturnType<typeof parser.parseString>>;
+
+// Fetches a feed URL through the SSRF-safe safeFetchText() (which re-validates
+// every redirect hop, including literal-IP targets) and only hands the final,
+// already-fetched body to rss-parser for XML parsing — rss-parser's own
+// parseURL() must never be called on a raw user/feed-supplied URL, since its
+// built-in redirect-following has no SSRF guard at all.
+async function fetchAndParseFeed(feedUrl: string): Promise<ParsedFeed> {
+  const res = await safeFetchText(feedUrl, {
+    timeoutMs: 10000,
+    headers: { Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' },
+  });
+  return parser.parseString(res.body);
+}
 
 export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     // 1. Find source in the database (include category for Meili denormalization)
@@ -181,7 +292,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     if (!source) throw new Error('Source not found');
 
     // 2. Download RSS feed (skip if already fetched by the caller)
-    const feed = prefetchedFeed ?? await parser.parseURL(source.url);
+    const feed = prefetchedFeed ?? await fetchAndParseFeed(source.url);
 
     // 3. Save articles — batch insert new items, update changed ones
     const existingItems = await prisma.feedItem.findMany({

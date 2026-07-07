@@ -13,14 +13,14 @@ export const en: Dictionary = {
   },
   hero: {
     kicker: "",
-    headline1: "Read the web.",
-    headline2: "Skip the noise.",
+    headline1: "Read the web",
+    headline2: "Skip the noise",
     bodyIntro:
-      "MultivRSS is your Internet Reading Room: a calm place to read the internet. Here you will find two things: ",
+      "MultivRSS is your Internet Reading Room. A minimalist workspace designed for two things: ",
     bodyBold1: "updates",
     bodyMid: " and ",
     bodyBold2: "bookmarks. ",
-    bodySuffix: " The feeds you picked, the links you kept. ",
+    bodySuffix: " The feeds you pick, the links you keep. ",
     bodyReclaim: "",
     cta: "→ START HERE",
     subCta: "IT'S FREE!",
@@ -32,6 +32,7 @@ export const en: Dictionary = {
       "Guides, product notes and short field manuals, written in Markdown, shipped in open format.",
     feedLabel: "Subscribe to feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
+    seeAll: "SEE ALL POSTS →",
   },
   sources: {
     kicker: "CURATED SOURCES",
@@ -53,6 +54,8 @@ export const en: Dictionary = {
   },
   twoThings: {
     kicker: "Everything you need · Nothing you don't",
+    headlineUpdates: "Updates",
+    headlineBookmarks: "Bookmarks",
     updatesLabel: "01 · Updates",
     updatesBody:
       "New posts from every site you follow, gathered in one calm place, in the order they arrive.",

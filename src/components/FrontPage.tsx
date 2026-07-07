@@ -1,55 +1,21 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { Fragment, useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
 import { dismissFrontPageItem } from '@/app/actions';
+import { timeAgo } from '@/lib/utils';
 
 type TagVM = { id: string; name: string };
 
-// ── Reason component ──
-function Reason({ item }: { item: FrontPageItem }) {
-    const glyph = item.reasonType === 'source' ? '◆' : '✦';
-    const tooltip = item.reasonType === 'source' ? 'From a source you follow closely' : 'Similar to what you read & saved';
-    const affTip = item.reasonType === 'source'
-        ? `${item.affinity}% source affinity`
-        : `${item.affinity}% relevance`;
+const FORYOU_COUNT = 4;
 
-    return (
-        <span className="flex items-center gap-1.5 mt-1">
-            <span
-                className="text-terracotta text-[10px] shrink-0"
-                title={tooltip}
-                aria-label={tooltip}
-            >
-                {glyph}
-            </span>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/60 truncate">
-                {item.reason}
-            </span>
-            <span
-                className="flex items-center gap-1 shrink-0 ml-auto"
-                title={affTip}
-                aria-label={affTip}
-            >
-                <span className="relative w-[34px] h-[4px] bg-foreground/15 block">
-                    <span
-                        className="absolute inset-y-0 left-0 bg-terracotta"
-                        style={{ width: `${item.affinity}%` }}
-                    />
-                </span>
-                <span className="text-[9px] font-bold text-foreground/40">{item.affinity}</span>
-            </span>
-        </span>
-    );
-}
-
-// ── Category tag ──
+// ── Category tag — ribbon only ──
 function CatTag({ name }: { name: string }) {
     return (
-        <span className="text-[8.5px] font-extrabold uppercase tracking-[.16em] text-terracotta border border-terracotta/40 px-1.5 py-0.5 font-mono whitespace-nowrap">
+        <span className="text-[7.5px] font-extrabold uppercase tracking-[.14em] text-foreground/35 font-mono whitespace-nowrap">
             {name}
         </span>
     );
@@ -60,36 +26,25 @@ function PubDate({ ts }: { ts: number | null | undefined }) {
     if (!ts) return null;
     const d = new Date(ts);
     return (
-        <time
-            dateTime={d.toISOString()}
-            className="text-[9px] text-foreground/40 font-mono"
-        >
+        <time dateTime={d.toISOString()} className="text-foreground/35 font-mono">
             {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </time>
     );
 }
 
-
-// ── Strength meter — 3 ticks showing affinity ──
-function StrengthMeter({ affinity }: { affinity: number }) {
-    const ticks = Math.round((affinity / 100) * 3);
+// ── Reason — why a lead article was picked ──
+function Reason({ item }: { item: FrontPageItem }) {
+    const glyph = item.reasonType === 'source' ? '◆' : '✦';
+    const tooltip = item.reasonType === 'source' ? 'From a source you follow closely' : 'Similar to what you read & saved';
     return (
-        <span
-            className="inline-flex items-center gap-[2px] shrink-0"
-            title={`${affinity}% match`}
-            aria-label={`${affinity}% match`}
-        >
-            {[0, 1, 2].map(i => (
-                <span
-                    key={i}
-                    className={`w-[3px] h-2 ${i < ticks ? 'bg-terracotta' : 'bg-foreground/15'}`}
-                />
-            ))}
+        <span className="flex items-center gap-1.5">
+            <span className="text-terracotta text-[9px] shrink-0" title={tooltip} aria-label={tooltip}>{glyph}</span>
+            <span className="text-[8.5px] font-bold uppercase tracking-widest text-foreground/45 font-mono truncate">
+                {item.reason}
+            </span>
         </span>
     );
 }
-
-const FORYOU_COUNT = 4;
 
 // ── Dismiss button ──
 function DismissButton({ onClick }: { onClick: () => void }) {
@@ -99,44 +54,44 @@ function DismissButton({ onClick }: { onClick: () => void }) {
             onClick={onClick}
             aria-label="Dismiss article"
             title="Dismiss and replace"
-            className="bg-transparent border-0 p-0 cursor-pointer text-foreground/25 hover:text-foreground leading-none text-[14px] font-mono transition-colors"
+            className="bg-transparent border-0 p-0 cursor-pointer text-foreground/25 hover:text-foreground leading-none text-[13px] font-mono transition-colors"
         >
             ×
         </button>
     );
 }
 
-// ── FOR YOU card (strip) ──
-function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+// ── FOR YOU ribbon pick ──
+function RibbonPick({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+    const [opened, setOpened] = useState(false);
     return (
-        <article className="flex flex-col gap-1 p-3 bg-background min-w-0">
+        <div className={`group/rib flex flex-col gap-1 min-w-0 flex-1 transition-opacity ${opened ? 'opacity-40' : ''}`}>
             <CatTag name={item.categoryName} />
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
-                className="font-serif text-[15px] font-semibold leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
+                onNavigate={() => setOpened(true)}
+                className="font-serif text-[14.5px] font-semibold leading-[1.16] text-foreground group-hover/rib:text-terracotta transition-colors line-clamp-2 no-underline"
             >
                 {item.title}
             </FrontPageLink>
-            <div className="flex items-center gap-2 mt-auto pt-1">
-                <StrengthMeter affinity={item.affinity} />
-                <span className="text-[9px] font-bold uppercase tracking-[.14em] text-foreground/40 font-mono truncate">
-                    {item.sourceTitle}
+            <div className="flex items-center gap-2 mt-auto">
+                <span className="text-[7.5px] font-extrabold uppercase tracking-[.1em] text-foreground/35 font-mono truncate">
+                    {item.reason}
                 </span>
-                <div className="ml-auto shrink-0 flex items-center gap-2">
+                <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/rib:opacity-100 transition-opacity">
                     <FrontPageItemActions itemId={item.id} allTags={allTags} />
                     <DismissButton onClick={onDismiss} />
                 </div>
             </div>
-        </article>
+        </div>
     );
 }
 
-// ── FOR YOU strip — stateful ──
-function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
+// ── FOR YOU ribbon — stateful ──
+function ForYouRibbon({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
     const [pool, setPool] = useState(initialPool);
     const [, startTransition] = useTransition();
-
     const displayed = pool.slice(0, FORYOU_COUNT);
 
     function dismiss(item: FrontPageItem) {
@@ -149,131 +104,116 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
 
     if (displayed.length === 0) return null;
     return (
-        <section aria-label="For you" className="mt-4 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest font-mono">— For You</span>
-                <span className="flex-1 h-px bg-foreground/20" aria-hidden="true" />
-            </div>
-            <div
-                className="grid gap-px bg-foreground/15"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))' }}
-            >
-                {displayed.map(item => (
-                    <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
-                ))}
-            </div>
+        <section aria-label="For you" className="flex items-stretch gap-4 p-4 border-2 border-foreground mb-6">
+            <span className="font-mono text-[9.5px] font-extrabold uppercase tracking-[.2em] text-terracotta self-center shrink-0">
+                For You
+            </span>
+            {displayed.map((item, i) => (
+                <Fragment key={item.id}>
+                    {i > 0 && <span aria-hidden="true" className="w-px bg-foreground/[0.14] self-stretch" />}
+                    <RibbonPick item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                </Fragment>
+            ))}
         </section>
     );
 }
 
-// ── Category section — stateful ──
-function CategoryColumn({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
-    const [items, setItems] = useState(initialItems);
-    const [collapsed, setCollapsed] = useState(false);
-    const [, startTransition] = useTransition();
+// ── Section list row (non-lead article) ──
+function SectionRow({ item, allTags }: { item: FrontPageItem; allTags: TagVM[] }) {
+    const [opened, setOpened] = useState(false);
+    return (
+        <li className={`group/row py-2.5 border-b border-foreground/[0.08] transition-opacity ${opened ? 'opacity-40' : ''}`}>
+            <FrontPageLink
+                itemId={item.id}
+                href={item.link}
+                onNavigate={() => setOpened(true)}
+                className="block font-serif text-[14.5px] font-medium leading-[1.24] text-foreground group-hover/row:text-terracotta transition-colors no-underline mb-1.5"
+            >
+                {item.title}
+            </FrontPageLink>
+            <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-semibold tracking-[.08em] text-foreground/35">
+                <span className="text-terracotta font-extrabold tracking-[.1em]">{item.sourceTitle}</span>
+                <span aria-hidden="true">·</span>
+                <PubDate ts={item.pubDate} />
+                <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                    <FrontPageItemActions itemId={item.id} allTags={allTags} />
+                </div>
+            </div>
+        </li>
+    );
+}
 
-    function dismiss(item: FrontPageItem) {
-        const excludeIds = items.map(i => i.id);
-        setItems(prev => prev.filter(i => i.id !== item.id));
-        startTransition(async () => {
-            const res = await dismissFrontPageItem(item.id, category, excludeIds);
-            if (res.replacement) {
-                setItems(prev => [...prev, res.replacement!]);
-            }
-        });
-    }
-
-    if (items.length === 0) return null;
+// ── Section front — one per category ──
+function SectionCard({ category, items, totalCount, allTags }: { category: string; items: FrontPageItem[]; totalCount: number; allTags: TagVM[] }) {
     const [lead, ...rest] = items;
+    const [leadOpened, setLeadOpened] = useState(false);
 
     return (
-        <section aria-labelledby={`cat-${category}`} className="py-6 border-t border-foreground/15">
-            <div className="flex items-center gap-3 mb-4">
-                <button
-                    type="button"
-                    onClick={() => setCollapsed(v => !v)}
-                    aria-expanded={!collapsed}
-                    aria-controls={`cat-body-${category}`}
-                    className="text-[13px] font-extrabold uppercase tracking-[.22em] font-mono whitespace-nowrap text-left bg-transparent border-0 p-0 cursor-pointer text-foreground hover:text-terracotta transition-colors"
-                    id={`cat-${category}`}
-                >
-                    {collapsed ? '+' : '—'} {category}
-                </button>
-                <span className="flex-1 h-px bg-foreground/15" aria-hidden="true" />
-                {!collapsed && <span className="text-foreground/30 text-[11px] font-mono" aria-hidden="true">→</span>}
+        <section aria-labelledby={`sec-${category}`} className="bg-background px-5 pt-5 flex flex-col">
+            <div className="flex items-baseline justify-between pb-2.5 mb-3.5 border-b-2 border-foreground">
+                <h2 id={`sec-${category}`} className="font-mono text-[12.5px] font-extrabold uppercase tracking-[.18em] normal-case">
+                    {category}
+                </h2>
+                <span className="font-mono text-[10px] text-foreground/35">{totalCount.toString().padStart(2, '0')}</span>
             </div>
 
-            {!collapsed && (
-                <div id={`cat-body-${category}`}>
-                    <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-9 items-start">
-                        {lead && (
-                            <article className="flex flex-col gap-2 items-start">
-                                <Reason item={lead} />
-                                <FrontPageLink
-                                    itemId={lead.id}
-                                    href={lead.link}
-                                    className="font-serif text-[25px] font-semibold leading-[1.14] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors line-clamp-3 no-underline"
-                                >
-                                    {lead.title}
-                                </FrontPageLink>
-                                {lead.content && (
-                                    <p className="font-serif text-[14.5px] leading-relaxed text-foreground/50 font-normal max-w-[48ch] line-clamp-3">
-                                        {lead.content}
-                                    </p>
-                                )}
-                                <div className="flex items-center gap-2 mt-auto">
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
-                                        {lead.sourceTitle}
-                                    </span>
-                                    <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                                    <PubDate ts={lead.pubDate} />
-                                    <div className="ml-auto shrink-0 flex items-center gap-2">
-                                        <FrontPageItemActions itemId={lead.id} allTags={allTags} />
-                                        <DismissButton onClick={() => dismiss(lead)} />
-                                    </div>
-                                </div>
-                            </article>
-                        )}
-
-                        {rest.length > 0 && (
-                            <ul role="list" className="flex flex-col border-t border-foreground/15">
-                                {rest.map(item => (
-                                    <li key={item.id} className="py-3 border-b border-foreground/[0.08]">
-                                        <FrontPageLink
-                                            itemId={item.id}
-                                            href={item.link}
-                                            className="font-serif text-[16px] font-medium leading-snug text-foreground hover:text-terracotta transition-colors line-clamp-2 no-underline block mb-1.5"
-                                        >
-                                            {item.title}
-                                        </FrontPageLink>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-terracotta font-mono truncate">
-                                                {item.sourceTitle}
-                                            </span>
-                                            <span aria-hidden="true" className="text-foreground/20 text-[9px]">·</span>
-                                            <PubDate ts={item.pubDate} />
-                                            <div className="ml-auto shrink-0 flex items-center gap-2">
-                                                <FrontPageItemActions itemId={item.id} allTags={allTags} />
-                                                <DismissButton onClick={() => dismiss(item)} />
-                                            </div>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-
-                    <div className="mt-4 pt-2">
-                        <Link
-                            href={`?view=river&cat=${encodeURIComponent(category)}`}
-                            className="text-[9px] font-bold uppercase tracking-widest font-mono text-terracotta hover:text-foreground transition-colors"
-                        >
-                            See all →
-                        </Link>
+            <article className={`group/lead flex flex-col gap-1.5 mb-3.5 transition-opacity ${leadOpened ? 'opacity-40' : ''}`}>
+                <Reason item={lead} />
+                <FrontPageLink
+                    itemId={lead.id}
+                    href={lead.link}
+                    onNavigate={() => setLeadOpened(true)}
+                    className="font-serif text-[21px] font-semibold leading-[1.12] tracking-[-0.01em] text-foreground group-hover/lead:text-terracotta transition-colors line-clamp-3 no-underline"
+                >
+                    {lead.title}
+                </FrontPageLink>
+                {lead.content && (
+                    <p className="font-serif text-[13.5px] leading-[1.5] text-foreground/55 font-normal line-clamp-3">
+                        {lead.content}
+                    </p>
+                )}
+                <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-semibold tracking-[.08em] text-foreground/35 mt-0.5">
+                    <span className="text-terracotta font-extrabold tracking-[.1em]">{lead.sourceTitle}</span>
+                    <span aria-hidden="true">·</span>
+                    <PubDate ts={lead.pubDate} />
+                    <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/lead:opacity-100 transition-opacity">
+                        <FrontPageItemActions itemId={lead.id} allTags={allTags} />
                     </div>
                 </div>
+            </article>
+
+            {rest.length > 0 && (
+                <ul role="list" className="border-t border-foreground/[0.14]">
+                    {rest.map(item => <SectionRow key={item.id} item={item} allTags={allTags} />)}
+                </ul>
             )}
+
+            <Link
+                href={`?view=river&cat=${encodeURIComponent(category)}`}
+                className="group/all -mx-5 mt-3.5 px-5 py-[13px] bg-foreground text-background hover:bg-terracotta hover:text-white flex items-center justify-between font-mono text-[10px] font-extrabold uppercase tracking-[.16em] transition-colors no-underline"
+            >
+                <span>View all {totalCount} in {category}</span>
+                <span aria-hidden="true" className="text-[14px] transition-transform group-hover/all:translate-x-1">→</span>
+            </Link>
         </section>
+    );
+}
+
+// ── Telemetry stat bar ──
+function TelemetryStats({ stats }: { stats: FrontPageData['stats'] }) {
+    return (
+        <div className="px-[18px] py-[9px] border-b-2 border-foreground font-mono text-[9.5px] font-bold uppercase tracking-[.13em] text-foreground/45 flex items-center gap-1 flex-wrap">
+            <span>Curated from</span>
+            <b className="text-foreground font-extrabold">{stats.read} read</b>
+            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+            <b className="text-foreground font-extrabold">{stats.saved} saved</b>
+            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+            <span>Across</span>
+            <b className="text-foreground font-extrabold">{stats.categories} categories</b>
+            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
+            <span>Updated</span>
+            <b className="text-foreground font-extrabold">{timeAgo(stats.updatedAt)}</b>
+        </div>
     );
 }
 
@@ -293,26 +233,29 @@ function EmptyFrontPage() {
 
 // ── Main FrontPage component ──
 export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
-    const { forYouPool, sections } = data;
+    const { forYouPool, sections, stats } = data;
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
 
     return (
-        <div className="px-4 md:px-7 py-4 max-w-[1400px] mx-auto">
+        <div>
             <h1 className="sr-only">Front Page</h1>
-            {isEmpty ? (
-                <EmptyFrontPage />
-            ) : (
-                <>
-                    <ForYouStrip pool={forYouPool} allTags={allTags} />
-                    {sections.length > 0 && (
-                        <div className="flex flex-col">
-                            {sections.map(s => (
-                                <CategoryColumn key={s.category} category={s.category} items={s.items} allTags={allTags} />
-                            ))}
-                        </div>
-                    )}
-                </>
-            )}
+            <TelemetryStats stats={stats} />
+            <div className="px-4 md:px-[26px] py-[22px] pb-[90px] max-w-[1600px] mx-auto">
+                {isEmpty ? (
+                    <EmptyFrontPage />
+                ) : (
+                    <>
+                        <ForYouRibbon pool={forYouPool} allTags={allTags} />
+                        {sections.length > 0 && (
+                            <div className="grid grid-cols-1 min-[901px]:grid-cols-2 min-[1241px]:grid-cols-3 gap-x-10 gap-y-6">
+                                {sections.map(s => (
+                                    <SectionCard key={s.category} category={s.category} items={s.items} totalCount={s.totalCount} allTags={allTags} />
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 }

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { meili } from "@/lib/meili";
-import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
+import { syncFeed, validateFeedUrl, discoverFeedUrl, safeFetchText } from "@/lib/rss";
 import { DomainGate } from "@/lib/domain-gate";
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -650,6 +650,7 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: now.getTime() }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
+        revalidatePath(`/u/${session.user.username}/saved`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to save item." };
@@ -671,6 +672,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
         await meili.index('items').updateDocuments([{ id: itemId, savedAt: null }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
+        revalidatePath(`/u/${session.user.username}/saved`);
         return { success: true };
     } catch {
         return { success: false, message: "Failed to unsave item." };
@@ -744,18 +746,12 @@ export async function dismissFrontPageItem(
 async function resolvePageTitle(url: string): Promise<string | null> {
     try {
         await validateFeedUrl(url);
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 4000);
-        const res = await fetch(url, {
-            signal: ctrl.signal,
-            redirect: 'follow',
+        const res = await safeFetchText(url, {
+            timeoutMs: 4000,
             headers: { 'user-agent': 'multivrss-linkbot/1.0', accept: 'text/html' },
         });
-        clearTimeout(t);
-        if (!res.ok) return null;
-        const ct = res.headers.get('content-type') ?? '';
-        if (!ct.includes('text/html')) return null;
-        const html = (await res.text()).slice(0, 80_000);
+        if (!res.contentType.includes('text/html')) return null;
+        const html = res.body.slice(0, 80_000);
         const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1];
         const tt = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
         const raw = (og ?? tt ?? '').trim();
@@ -1073,6 +1069,7 @@ export async function addTagToLink(savedLinkId: string, tagId: string): Promise<
     await prisma.savedLinkTag.create({
       data: { savedLinkId, tagId },
     });
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag added.' };
   } catch {
     return { success: false, message: 'Tag already assigned.' };
@@ -1087,6 +1084,7 @@ export async function removeTagFromLink(savedLinkId: string, tagId: string): Pro
     await prisma.savedLinkTag.delete({
       where: { savedLinkId_tagId: { savedLinkId, tagId } },
     });
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag removed.' };
   } catch {
     return { success: false, message: 'Failed to remove tag.' };
@@ -1113,6 +1111,8 @@ export async function addTagToFeedItem(feedItemId: string, tagId: string): Promi
     await prisma.feedItemTag.create({
       data: { feedItemId, tagId },
     });
+    updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag added.' };
   } catch {
     return { success: false, message: 'Tag already assigned.' };
@@ -1127,6 +1127,8 @@ export async function removeTagFromFeedItem(feedItemId: string, tagId: string): 
     await prisma.feedItemTag.delete({
       where: { feedItemId_tagId: { feedItemId, tagId } },
     });
+    updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag removed.' };
   } catch {
     return { success: false, message: 'Failed to remove tag.' };
@@ -1161,6 +1163,7 @@ export async function setSavedLinkTags(linkId: string, tagIds: string[]): Promis
     });
 
     updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true };
   } catch {
     return { success: false, message: 'Failed to update tags.' };
@@ -1198,6 +1201,7 @@ export async function setFeedItemTags(feedItemId: string, tagIds: string[]): Pro
     });
 
     updateTag(`feed:${session.user.id}`);
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true };
   } catch {
     return { success: false, message: 'Failed to update tags.' };

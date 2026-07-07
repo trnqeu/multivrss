@@ -12,8 +12,8 @@ export type FrontPageItem = SearchHit & {
 
 export type FrontPage = {
     forYouPool: FrontPageItem[];
-    sections: { category: string; items: FrontPageItem[] }[];
-    stats: { read: number; saved: number; categories: number };
+    sections: { category: string; items: FrontPageItem[]; totalCount: number }[];
+    stats: { read: number; saved: number; categories: number; updatedAt: number | null };
 };
 
 const RECO_LOOKBACK_DAYS = 30;
@@ -27,7 +27,7 @@ async function getSourcesForUser(userId: string) {
     cacheTag(`sources:${userId}`);
     return prisma.feedSource.findMany({
         where: { category: { userId } },
-        select: { id: true, title: true, category: { select: { name: true } } },
+        select: { id: true, title: true, lastSync: true, category: { select: { name: true } } },
     });
 }
 
@@ -39,8 +39,13 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
-        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0 } };
+        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0, updatedAt: null } };
     }
+    const updatedAt = sources.reduce<number | null>((latest, s) => {
+        if (!s.lastSync) return latest;
+        const t = s.lastSync.getTime();
+        return latest === null || t > latest ? t : latest;
+    }, null);
 
     const sourceIds = sources.map(s => s.id);
     const sourceName = new Map(sources.map(s => [s.id, s.title ?? '']));
@@ -214,15 +219,26 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         }
     }
 
+    const categoryCounts = await prisma.feedItem.groupBy({
+        by: ['sourceId'],
+        where: { sourceId: { in: sourceIds } },
+        _count: { _all: true },
+    });
+    const catTotal = new Map<string, number>();
+    for (const row of categoryCounts) {
+        const cat = sourceCat.get(row.sourceId) ?? '—';
+        catTotal.set(cat, (catTotal.get(cat) ?? 0) + row._count._all);
+    }
+
     const sections = [...byCat.entries()]
-        .map(([category, items]) => ({ category, items }))
+        .map(([category, items]) => ({ category, items, totalCount: catTotal.get(category) ?? items.length }))
         .filter(s => s.items.length > 0)
         .sort((a, b) => b.items[0].affinity - a.items[0].affinity);
 
     return {
         forYouPool,
         sections,
-        stats: { read: readCount, saved: savedCount, categories: sections.length },
+        stats: { read: readCount, saved: savedCount, categories: sections.length, updatedAt },
     };
 }
 

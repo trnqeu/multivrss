@@ -16,10 +16,10 @@ export default function MarketingTwoThings({ dict }: Props) {
 
         <h2 className="font-black tracking-[-0.045em] leading-[0.9] text-[clamp(40px,7.5vw,96px)] m-0 flex flex-wrap justify-center items-baseline">
           <span>
-            Updates
+            {t.headlineUpdates}
             <span className="text-terracotta font-extrabold px-[0.12em]">+</span>
           </span>
-          <span>Bookmarks</span>
+          <span>{t.headlineBookmarks}</span>
         </h2>
 
         <div className="flex justify-center gap-[110px] mt-10 flex-wrap max-[920px]:gap-12">

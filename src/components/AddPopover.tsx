@@ -100,7 +100,7 @@ export default function AddPopover({ categories }: Props) {
                         ref={popoverRef}
                         role="dialog"
                         aria-label="Add a link"
-                        className="absolute right-0 top-full mt-2 w-[340px] border-2 border-black bg-white z-50"
+                        className="fixed left-4 right-4 top-16 md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-[340px] border-2 border-black bg-white z-50"
                     >
                         {/* Header */}
                         <div className="font-mono text-[9.5px] font-extrabold tracking-[0.16em] uppercase text-black/30 px-[13px] py-[10px] border-b border-black/12">
