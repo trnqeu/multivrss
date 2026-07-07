@@ -16,11 +16,11 @@ export const en: Dictionary = {
     headline1: "Read the web.",
     headline2: "Skip the noise.",
     bodyIntro:
-      "MultivRSS is your Internet Reading Room: a calm place to read the internet. Here you will find two things: ",
+      "MultivRSS is your Internet Reading Room. A minimalist workspace designed for two things: ",
     bodyBold1: "updates",
     bodyMid: " and ",
     bodyBold2: "bookmarks. ",
-    bodySuffix: " The feeds you picked, the links you kept. ",
+    bodySuffix: " The feeds you pick, the links you keep. ",
     bodyReclaim: "",
     cta: "→ START HERE",
     subCta: "IT'S FREE!",
