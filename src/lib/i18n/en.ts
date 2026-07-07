@@ -13,8 +13,8 @@ export const en: Dictionary = {
   },
   hero: {
     kicker: "",
-    headline1: "Read the web.",
-    headline2: "Skip the noise.",
+    headline1: "Read the web",
+    headline2: "Skip the noise",
     bodyIntro:
       "MultivRSS is your Internet Reading Room. A minimalist workspace designed for two things: ",
     bodyBold1: "updates",
@@ -54,6 +54,8 @@ export const en: Dictionary = {
   },
   twoThings: {
     kicker: "Everything you need · Nothing you don't",
+    headlineUpdates: "Updates",
+    headlineBookmarks: "Bookmarks",
     updatesLabel: "01 · Updates",
     updatesBody:
       "New posts from every site you follow, gathered in one calm place, in the order they arrive.",

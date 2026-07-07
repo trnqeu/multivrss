@@ -13,10 +13,10 @@ export const it: Dictionary = {
   },
   hero: {
     kicker: "LA TUA STANZA DI LETTURA DIGITALE",
-    headline1: "Leggi il web.",
-    headline2: "Cancella il rumore",
+    headline1: "I tuoi contenuti",
+    headline2: "E basta",
     bodyIntro:
-      "MultivRSS è la tua stanza di lettura digitale. Uno spazio tranquillo e minimale in cui i gestire i tuoi ",
+      "MultivRSS è un posto tranquillo in cui leggere il web, un aggregatore di contenuti minimale per gestire i tuoi ",
     bodyBold1: "aggiornamenti",
     bodyMid: " e ",
     bodyBold2: "segnalibri",
@@ -54,6 +54,8 @@ export const it: Dictionary = {
   },
   twoThings: {
     kicker: "Tutto quello che ti serve · Niente di superfluo",
+    headlineUpdates: "Aggiornamenti",
+    headlineBookmarks: "Segnalibri",
     updatesLabel: "01 · Aggiornamenti",
     updatesBody:
       "I nuovi post di tutti i siti che segui, raccolti in un unico posto tranquillo, nell'ordine in cui arrivano.",

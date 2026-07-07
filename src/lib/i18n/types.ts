@@ -57,6 +57,8 @@ export interface Dictionary {
   };
   twoThings: {
     kicker: string;
+    headlineUpdates: string;
+    headlineBookmarks: string;
     updatesLabel: string;
     updatesBody: string;
     bookmarksLabel: string;
