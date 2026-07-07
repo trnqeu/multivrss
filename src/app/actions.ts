@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { meili } from "@/lib/meili";
-import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
+import { syncFeed, validateFeedUrl, discoverFeedUrl, safeFetchText } from "@/lib/rss";
 import { DomainGate } from "@/lib/domain-gate";
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -746,18 +746,12 @@ export async function dismissFrontPageItem(
 async function resolvePageTitle(url: string): Promise<string | null> {
     try {
         await validateFeedUrl(url);
-        const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), 4000);
-        const res = await fetch(url, {
-            signal: ctrl.signal,
-            redirect: 'follow',
+        const res = await safeFetchText(url, {
+            timeoutMs: 4000,
             headers: { 'user-agent': 'multivrss-linkbot/1.0', accept: 'text/html' },
         });
-        clearTimeout(t);
-        if (!res.ok) return null;
-        const ct = res.headers.get('content-type') ?? '';
-        if (!ct.includes('text/html')) return null;
-        const html = (await res.text()).slice(0, 80_000);
+        if (!res.contentType.includes('text/html')) return null;
+        const html = res.body.slice(0, 80_000);
         const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1];
         const tt = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
         const raw = (og ?? tt ?? '').trim();
