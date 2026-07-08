@@ -55,6 +55,12 @@ export default async function BlogPostPage({ params }: Props) {
             {post.title}
           </h1>
           <div className="flex items-center gap-3 font-mono text-[10px] font-semibold tracking-[0.1em] text-black/30 uppercase">
+            {post.author && (
+              <>
+                <span>{post.author}</span>
+                <span className="text-black/12">·</span>
+              </>
+            )}
             <span>{post.date}</span>
             <span className="text-black/12">·</span>
             <span>{post.readTime}</span>

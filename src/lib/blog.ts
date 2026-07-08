@@ -15,6 +15,7 @@ export interface BlogPost {
   lang?: string;
   featured?: boolean;
   excerpt?: string;
+  author?: string;
   content: string;
 }
 
@@ -32,6 +33,7 @@ function parsePost(file: string, lang: Lang): BlogPost {
     lang: data.lang as string | undefined,
     featured: data.featured as boolean | undefined,
     excerpt: data.excerpt as string | undefined,
+    author: data.author as string | undefined,
     content,
   };
 }
