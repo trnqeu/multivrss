@@ -10,9 +10,13 @@ interface Props {
 
 export async function generateStaticParams() {
   const langs = ["en", "it"] as const;
-  return langs.flatMap((lang) =>
+  const params = langs.flatMap((lang) =>
     getAllPosts(lang).map((post) => ({ lang, slug: post.slug }))
   );
+  // Cache Components requires at least one static param for a dynamic route.
+  // When there are no published posts, fall back to a placeholder that
+  // resolves to notFound() below.
+  return params.length > 0 ? params : [{ lang: "en", slug: "__placeholder__" }];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
