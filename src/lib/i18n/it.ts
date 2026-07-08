@@ -12,15 +12,15 @@ export const it: Dictionary = {
     getStarted: "INIZIA →",
   },
   hero: {
-    kicker: "LA TUA STANZA DI LETTURA DIGITALE",
-    headline1: "I tuoi contenuti",
-    headline2: "E basta",
+    kicker: "I tuoi contenuti. E basta.",
+    headline1: "Aggiornamenti",
+    headline2: "Segnalibri",
     bodyIntro:
-      "MultivRSS è un posto tranquillo in cui leggere il web, un aggregatore di contenuti minimale per gestire i tuoi ",
-    bodyBold1: "aggiornamenti",
-    bodyMid: " e ",
-    bodyBold2: "segnalibri",
-    bodySuffix: ": i feed che hai scelto, i link che hai salvato. ",
+      "MultivRSS è un posto tranquillo in cui leggere il web, un aggregatore di contenuti minimale per gestire gli ",
+    bodyBold1: "aggiornamenti ",
+    bodyMid: "dei tuoi siti preferiti e ",
+    bodyBold2: "salvare i link ",
+    bodySuffix: "degli articoli più interessanti.",
     bodyReclaim: "",
     cta: "→ INIZIA",
     subCta: "È GRATIS!",
@@ -52,20 +52,9 @@ export const it: Dictionary = {
     cta: "→ CREA IL TUO ACCOUNT",
     secondaryCta: "LEGGI IL BLOG ↗",
   },
-  twoThings: {
-    kicker: "Tutto quello che ti serve · Niente di superfluo",
-    headlineUpdates: "Aggiornamenti",
-    headlineBookmarks: "Segnalibri",
-    updatesLabel: "01 · Aggiornamenti",
-    updatesBody:
-      "I nuovi post di tutti i siti che segui, raccolti in un unico posto tranquillo, nell'ordine in cui arrivano.",
-    bookmarksLabel: "02 · Segnalibri",
-    bookmarksBody:
-      "Gli articoli che hai salvato per dopo. Conservati, senza pubblicità, e sempre tuoi.",
-  },
   footer: {
     tagline:
-      "Un aggregatore RSS e lista di lettura in un'unica dashboard in formato aperto. Senza pubblicità, calmo, tuo.",
+      "Un aggregatore RSS e lista di lettura in un'unica dashboard semplice e minimale.",
     productLabel: "Prodotto",
     resourcesLabel: "Risorse",
     productLinks: [
@@ -84,9 +73,9 @@ export const it: Dictionary = {
   },
   meta: {
     home: {
-      title: "MultivRSS · Leggi il web aperto. Salva quello che conta.",
+      title: "MultivRSS · Leggi il web. Salva i tuoi contenuti.",
       description:
-        "La tua stanza di lettura su Internet. Tutti i tuoi feed RSS e segnalibri in un'unica dashboard calma, senza pubblicità e in formato aperto.",
+        "La tua stanza di lettura su Internet. Un aggregatore di feed RSS e segnalibri in un'unica dashboard calma e minimale.",
     },
   },
 };

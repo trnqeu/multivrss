@@ -55,15 +55,6 @@ export interface Dictionary {
     cta: string;
     secondaryCta: string;
   };
-  twoThings: {
-    kicker: string;
-    headlineUpdates: string;
-    headlineBookmarks: string;
-    updatesLabel: string;
-    updatesBody: string;
-    bookmarksLabel: string;
-    bookmarksBody: string;
-  };
   footer: {
     tagline: string;
     productLabel: string;
