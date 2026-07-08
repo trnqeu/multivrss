@@ -13,6 +13,7 @@ import { slugify, PASSWORD_REGEX } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { triggerRevalidate } from "@/lib/revalidate";
 import { headers } from "next/headers";
 import { STARTER_PACKS } from "@/lib/suggested-feeds";
 import type { FrontPageItem } from "@/lib/frontpage";
@@ -35,6 +36,64 @@ export async function getCategories() {
         where: { userId: session.user.id },
         orderBy: { name: 'asc' }
     });
+}
+
+// Finds a slug not already taken by another FeedSource, appending a numeric
+// suffix on collision. Pass excludeId when re-slugging a source that already
+// owns a (different) slug, so it doesn't collide with itself.
+async function uniqueFeedSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    let slug = baseSlug;
+    let counter = 1;
+    while (
+        await prisma.feedSource.findFirst({
+            where: { slug, ...(excludeId ? { id: { not: excludeId } } : {}) },
+            select: { id: true },
+        })
+    ) {
+        slug = `${baseSlug}_${counter}`;
+        counter++;
+    }
+    return slug;
+}
+
+// Runs feed discovery (a potentially slow remote fetch/crawl, up to 30s) and
+// the first sync in the background, after createFeedSource has already
+// returned. Until this finishes, the source sits with lastSync === null,
+// which the sidebar renders as a PENDING badge. Not awaited by the caller.
+async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl: string): Promise<void> {
+    let discovered: Awaited<ReturnType<typeof discoverFeedUrl>>;
+    try {
+        discovered = await discoverFeedUrl(rawUrl);
+    } catch (error) {
+        console.error(`Feed discovery failed for source ${sourceId}:`, error);
+        await prisma.feedSource.delete({ where: { id: sourceId } }).catch(() => {});
+        await triggerRevalidate(userId);
+        return;
+    }
+
+    const { url: feedUrl, feed } = discovered;
+    const title = feed.title || feedUrl;
+    const slug = await uniqueFeedSlug(slugify(title), sourceId);
+
+    try {
+        // Set the resolved url/title/slug before syncFeed runs — it reads
+        // source.title back out of the DB to denormalize into Meilisearch,
+        // so the update must land first.
+        await prisma.feedSource.update({
+            where: { id: sourceId },
+            data: { url: feedUrl, title, slug },
+        });
+    } catch (error) {
+        // Most likely the resolved feed URL collides with a source the user
+        // already has in this category (@@unique([categoryId, url])).
+        console.error(`Could not finalize source ${sourceId} after discovery:`, error);
+        await prisma.feedSource.delete({ where: { id: sourceId } }).catch(() => {});
+        await triggerRevalidate(userId);
+        return;
+    }
+
+    await syncFeed(sourceId, feed);
+    await triggerRevalidate(userId);
 }
 
 export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
@@ -90,33 +149,22 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             if (!ownedCategory) return { success: false, message: "Invalid category." };
         }
 
-        // 2. Discover feed URL (accepts base URLs like https://tante.cc/)
-        const { url: feedUrl, feed: feedMetadata } = await discoverFeedUrl(url);
-        const title = feedMetadata.title || feedUrl;
-        const baseSlug = slugify(title);
-
-        // Ensure slug uniqueness (simple suffix if needed)
-        let slug = baseSlug;
-        let counter = 1;
-        while (await prisma.feedSource.findUnique({ where: { slug } })) {
-            slug = `${baseSlug}_${counter}`;
-            counter++;
-        }
-
-        // 3. Database creation
+        // 2. Create the source immediately with a placeholder slug derived
+        // from the hostname. Feed discovery (fetching and possibly crawling
+        // the remote site) can take up to 30s, so it — and the first sync —
+        // run in the background instead of blocking this action; see
+        // discoverAndSyncNewSource() above.
+        const placeholderSlug = await uniqueFeedSlug(slugify(new URL(url).hostname));
         const source = await prisma.feedSource.create({
             data: {
-                url: feedUrl,
+                url,
                 categoryId: finalCategoryId,
-                title: title,
-                slug: slug
+                slug: placeholderSlug,
             }
         });
 
-        // 4. Ingestion — non-blocking; runs in background after the action returns.
-        // The next cron/manual sync will pick up any items if this fails.
-        syncFeed(source.id, feedMetadata).catch((err: unknown) => {
-            console.error(`Background sync failed for source ${source.id}:`, err);
+        discoverAndSyncNewSource(source.id, userId, url).catch((err: unknown) => {
+            console.error(`Background discovery failed for source ${source.id}:`, err);
         });
 
         updateTag(`feed:${userId}`);

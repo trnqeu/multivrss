@@ -117,7 +117,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                             ]} />
                             <RenameFeedTitle
                                 sourceId={source.id}
-                                title={source.title ?? ''}
+                                title={source.title ?? source.slug}
                                 username={username}
                                 editing={false}
                                 onDone={() => {}}
