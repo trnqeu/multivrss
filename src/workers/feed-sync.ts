@@ -2,6 +2,7 @@ import { Worker } from 'bullmq'
 import { connection, type FeedSyncJobData } from '@/lib/queue'
 import { syncFeed } from '@/lib/rss'
 import { DomainGate } from '@/lib/domain-gate'
+import { triggerRevalidate } from '@/lib/revalidate'
 
 const gate = new DomainGate(2)
 
@@ -10,17 +11,7 @@ const worker = new Worker<FeedSyncJobData>(
   async (job) => {
     const { sourceId, userId, url } = job.data
     await gate.run(url, () => syncFeed(sourceId))
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/internal/revalidate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-internal-secret': process.env.INTERNAL_SECRET ?? '',
-      },
-      body: JSON.stringify({ userId }),
-    })
-    if (!res.ok) {
-      console.error(`Revalidation failed for userId ${userId}: ${res.status}`)
-    }
+    await triggerRevalidate(userId)
   },
   {
     connection,

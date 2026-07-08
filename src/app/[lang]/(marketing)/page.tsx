@@ -3,7 +3,6 @@ import { redirect, notFound } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { getDictionary, isValidLang } from "@/lib/i18n";
 import MarketingHero from "@/components/marketing/MarketingHero";
-import MarketingTwoThings from "@/components/marketing/MarketingTwoThings";
 import MarketingBlog from "@/components/marketing/MarketingBlog";
 import MarketingSourcesPreview from "@/components/marketing/MarketingSourcesPreview";
 import MarketingClosing from "@/components/marketing/MarketingClosing";
@@ -24,7 +23,6 @@ export default async function MarketingPage({ params }: Props) {
   return (
     <>
       <MarketingHero dict={dict} />
-      <MarketingTwoThings dict={dict} />
       <MarketingBlog lang={lang} dict={dict} />
       <MarketingSourcesPreview lang={lang} dict={dict} />
       <MarketingClosing lang={lang} dict={dict} />

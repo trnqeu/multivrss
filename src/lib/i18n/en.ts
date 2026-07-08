@@ -12,15 +12,15 @@ export const en: Dictionary = {
     getStarted: "GET STARTED →",
   },
   hero: {
-    kicker: "",
-    headline1: "Read the web",
-    headline2: "Skip the noise",
+    kicker: "Read the web. Skip the noise.",
+    headline1: "Feeds",
+    headline2: "Bookmarks",
     bodyIntro:
-      "MultivRSS is your Internet Reading Room. A minimalist workspace designed for two things: ",
-    bodyBold1: "updates",
-    bodyMid: " and ",
-    bodyBold2: "bookmarks. ",
-    bodySuffix: " The feeds you pick, the links you keep. ",
+      "MultivRSS is your Internet Reading Room. A minimalist workspace designed to manage the ",
+    bodyBold1: "feeds you follow ",
+    bodyMid: " and the ",
+    bodyBold2: "links you save. ",
+    bodySuffix: "",
     bodyReclaim: "",
     cta: "→ START HERE",
     subCta: "IT'S FREE!",
@@ -52,17 +52,6 @@ export const en: Dictionary = {
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
   },
-  twoThings: {
-    kicker: "Everything you need · Nothing you don't",
-    headlineUpdates: "Updates",
-    headlineBookmarks: "Bookmarks",
-    updatesLabel: "01 · Updates",
-    updatesBody:
-      "New posts from every site you follow, gathered in one calm place, in the order they arrive.",
-    bookmarksLabel: "02 · Bookmarks",
-    bookmarksBody:
-      "The articles you saved to read later. Kept, ad-free, and always yours.",
-  },
   footer: {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",
     productLabel: "Product",
@@ -85,7 +74,7 @@ export const en: Dictionary = {
     home: {
       title: "MultivRSS · Read the open web. Save what matters.",
       description:
-        "Your Internet Reading Room. All your RSS feeds and bookmarks in one calm, ad-free, open-format dashboard.",
+        "Your Internet Reading Room. All your RSS feeds and bookmarks in one calm, minimal dashboard.",
     },
   },
 };

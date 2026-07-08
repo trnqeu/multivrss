@@ -12,20 +12,20 @@ export default function MarketingHero({ dict }: Props) {
   return (
     <section
       id="manifesto"
-      className="px-[34px] pt-[104px] pb-[96px] max-[920px]:px-[26px] max-[920px]:pt-16 max-[920px]:pb-16"
+      className="px-[34px] pt-[104px] pb-[96px] max-[920px]:px-[26px] max-[920px]:pt-16 max-[920px]:pb-16 [@media(max-height:800px)]:pt-[56px] [@media(max-height:800px)]:pb-[48px]"
     >
       <div className="grid grid-cols-1 min-[920px]:grid-cols-[1.2fr_1fr] gap-14 items-center max-w-[1200px] mx-auto">
         <div>
-          {/* <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px]">
+          <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px] [@media(max-height:800px)]:mb-[14px]">
             {"//"} {t.kicker}
-          </p> */}
-          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance">
+          </p>
+          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance [@media(max-height:800px)]:text-[clamp(40px,6vw,56px)] [@media(max-height:800px)]:mb-[24px]">
             {t.headline1}
             <br />
-            <span className="text-terracotta font-extrabold px-[6px]">/</span>
+            <span className="text-terracotta font-extrabold px-[6px]">&</span>
             {t.headline2}
           </h1>
-          <p className="text-[18px] leading-[1.6] max-w-[540px] text-black/55 font-medium mb-[40px]">
+          <p className="text-[18px] leading-[1.6] max-w-[540px] text-black/55 font-medium mb-[40px] [@media(max-height:800px)]:mb-[20px] [@media(max-height:800px)]:text-[16px] [@media(max-height:800px)]:leading-[1.45]">
             {t.bodyIntro}
             <b className="text-black font-bold">{t.bodyBold1}</b>
             {t.bodyMid}
