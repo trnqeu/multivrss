@@ -1,21 +1,20 @@
 'use client';
 
-import { Fragment, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
 import { dismissFrontPageItem } from '@/app/actions';
-import { timeAgo } from '@/lib/utils';
 
 type TagVM = { id: string; name: string };
 
 const FORYOU_COUNT = 4;
 
-// ── Category tag — ribbon only ──
+// ── Category tag — always terracotta ──
 function CatTag({ name }: { name: string }) {
     return (
-        <span className="text-[7.5px] font-extrabold uppercase tracking-[.14em] text-foreground/35 font-mono whitespace-nowrap">
+        <span className="text-[9px] font-extrabold uppercase tracking-[.16em] text-terracotta font-mono whitespace-nowrap">
             {name}
         </span>
     );
@@ -26,22 +25,21 @@ function PubDate({ ts }: { ts: number | null | undefined }) {
     if (!ts) return null;
     const d = new Date(ts);
     return (
-        <time dateTime={d.toISOString()} className="text-foreground/35 font-mono">
+        <time dateTime={d.toISOString()} className="text-[9.5px] font-semibold text-foreground/35 font-mono whitespace-nowrap">
             {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </time>
     );
 }
 
-// ── Reason — why a lead article was picked ──
-function Reason({ item }: { item: FrontPageItem }) {
-    const glyph = item.reasonType === 'source' ? '◆' : '✦';
-    const tooltip = item.reasonType === 'source' ? 'From a source you follow closely' : 'Similar to what you read & saved';
+// ── Source · date meta line ──
+function Meta({ item }: { item: FrontPageItem }) {
     return (
-        <span className="flex items-center gap-1.5">
-            <span className="text-terracotta text-[9px] shrink-0" title={tooltip} aria-label={tooltip}>{glyph}</span>
-            <span className="text-[8.5px] font-bold uppercase tracking-widest text-foreground/45 font-mono truncate">
-                {item.reason}
+        <span className="flex items-center gap-[7px] min-w-0 flex-1 font-mono">
+            <span className="text-[9.5px] font-bold uppercase tracking-[.1em] text-foreground/45 truncate">
+                {item.sourceTitle}
             </span>
+            <span aria-hidden="true" className="text-[9px] text-foreground/22">·</span>
+            <PubDate ts={item.pubDate} />
         </span>
     );
 }
@@ -54,42 +52,64 @@ function DismissButton({ onClick }: { onClick: () => void }) {
             onClick={onClick}
             aria-label="Dismiss article"
             title="Dismiss and replace"
-            className="bg-transparent border-0 p-0 cursor-pointer text-foreground/25 hover:text-foreground leading-none text-[13px] font-mono transition-colors"
+            className="bg-transparent border-0 p-0 cursor-pointer text-foreground/35 hover:text-terracotta leading-none text-[16px] font-mono transition-colors"
         >
             ×
         </button>
     );
 }
 
-// ── FOR YOU ribbon pick ──
-function RibbonPick({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+// ── Hover-reveal action cluster (save, tag, dismiss) ──
+function Actions({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+    return (
+        <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <FrontPageItemActions itemId={item.id} allTags={allTags} />
+            <DismissButton onClick={onDismiss} />
+        </div>
+    );
+}
+
+// ── Masthead — single-line dateline ──
+function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
+    return (
+        <div className="pt-[38px]">
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] font-semibold uppercase tracking-[.06em] text-foreground/45">
+                <span>{stats.dateLabel}</span>
+                <span aria-hidden="true" className="text-foreground/22">·</span>
+                <span>
+                    Curated from <b className="font-extrabold text-foreground/70">{stats.read} read</b>,{' '}
+                    <b className="font-extrabold text-foreground/70">{stats.saved} saved</b> across{' '}
+                    <b className="font-extrabold text-foreground/70">{stats.categories} categories</b>
+                </span>
+            </p>
+        </div>
+    );
+}
+
+// ── FOR YOU card ──
+function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     const [opened, setOpened] = useState(false);
     return (
-        <div className={`group/rib flex flex-col gap-1 min-w-0 flex-1 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+        <article className={`group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5 transition-opacity ${opened ? 'opacity-40' : ''}`}>
             <CatTag name={item.categoryName} />
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
                 onNavigate={() => setOpened(true)}
-                className="font-serif text-[14.5px] font-semibold leading-[1.16] text-foreground group-hover/rib:text-terracotta transition-colors line-clamp-2 no-underline"
+                className="font-serif text-[19px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors no-underline"
             >
                 {item.title}
             </FrontPageLink>
-            <div className="flex items-center gap-2 mt-auto">
-                <span className="text-[7.5px] font-extrabold uppercase tracking-[.1em] text-foreground/35 font-mono truncate">
-                    {item.reason}
-                </span>
-                <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/rib:opacity-100 transition-opacity">
-                    <FrontPageItemActions itemId={item.id} allTags={allTags} />
-                    <DismissButton onClick={onDismiss} />
-                </div>
+            <div className="flex items-center gap-2.5 mt-auto pt-1 min-h-[20px]">
+                <Meta item={item} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
             </div>
-        </div>
+        </article>
     );
 }
 
-// ── FOR YOU ribbon — stateful ──
-function ForYouRibbon({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
+// ── FOR YOU strip — stateful pool with dismiss/replace ──
+function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
     const [pool, setPool] = useState(initialPool);
     const [, startTransition] = useTransition();
     const displayed = pool.slice(0, FORYOU_COUNT);
@@ -104,123 +124,127 @@ function ForYouRibbon({ pool: initialPool, allTags }: { pool: FrontPageItem[]; a
 
     if (displayed.length === 0) return null;
     return (
-        <section aria-label="For you" className="flex items-stretch gap-4 p-4 border-2 border-foreground mb-6">
-            <span className="font-mono text-[9.5px] font-extrabold uppercase tracking-[.2em] text-terracotta self-center shrink-0">
-                For You
-            </span>
-            {displayed.map((item, i) => (
-                <Fragment key={item.id}>
-                    {i > 0 && <span aria-hidden="true" className="w-px bg-foreground/[0.14] self-stretch" />}
-                    <RibbonPick item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
-                </Fragment>
-            ))}
+        <section aria-label="For you" className="pt-[34px]">
+            <div className="flex items-center gap-4 mb-5">
+                <span className="font-mono text-[11px] font-extrabold uppercase tracking-[.24em] text-foreground whitespace-nowrap">
+                    For You
+                </span>
+                <span aria-hidden="true" className="flex-1 h-px bg-foreground/[0.14]" />
+            </div>
+            <div className="grid grid-cols-1 min-[761px]:grid-cols-2 min-[1181px]:grid-cols-4 gap-[30px]">
+                {displayed.map(item => (
+                    <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                ))}
+            </div>
         </section>
     );
 }
 
-// ── Section list row (non-lead article) ──
-function SectionRow({ item, allTags }: { item: FrontPageItem; allTags: TagVM[] }) {
+// ── Category section lead article ──
+function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     const [opened, setOpened] = useState(false);
     return (
-        <li className={`group/row py-2.5 border-b border-foreground/[0.08] transition-opacity ${opened ? 'opacity-40' : ''}`}>
+        <article className={`group flex flex-col items-start gap-[11px] min-w-0 transition-opacity ${opened ? 'opacity-40' : ''}`}>
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
                 onNavigate={() => setOpened(true)}
-                className="block font-serif text-[14.5px] font-medium leading-[1.24] text-foreground group-hover/row:text-terracotta transition-colors no-underline mb-1.5"
+                className="font-serif text-[27px] font-semibold leading-[1.14] tracking-[-0.015em] text-foreground hover:text-terracotta transition-colors no-underline"
             >
                 {item.title}
             </FrontPageLink>
-            <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-semibold tracking-[.08em] text-foreground/35">
-                <span className="text-terracotta font-extrabold tracking-[.1em]">{item.sourceTitle}</span>
-                <span aria-hidden="true">·</span>
-                <PubDate ts={item.pubDate} />
-                <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity">
-                    <FrontPageItemActions itemId={item.id} allTags={allTags} />
-                </div>
+            {item.content && (
+                <p className="font-serif text-[15px] leading-[1.55] text-foreground/55 font-normal max-w-[50ch]">
+                    {item.content}
+                </p>
+            )}
+            <div className="flex items-center gap-3 mt-0.5 w-full min-h-[20px]">
+                <Meta item={item} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
+            </div>
+        </article>
+    );
+}
+
+// ── Category section list row ──
+function Row({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+    const [opened, setOpened] = useState(false);
+    return (
+        <li className={`group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+            <FrontPageLink
+                itemId={item.id}
+                href={item.link}
+                onNavigate={() => setOpened(true)}
+                className="font-serif text-[17px] font-medium leading-[1.26] text-foreground hover:text-terracotta transition-colors no-underline"
+            >
+                {item.title}
+            </FrontPageLink>
+            <div className="flex items-center gap-3 min-h-[18px]">
+                <Meta item={item} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
             </div>
         </li>
     );
 }
 
-// ── Section front — one per category ──
-function SectionCard({ category, items, totalCount, allTags }: { category: string; items: FrontPageItem[]; totalCount: number; allTags: TagVM[] }) {
+// ── Category section — lead + list, "See all" footer ──
+function Section({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
+    const [items, setItems] = useState(initialItems);
+    const [, startTransition] = useTransition();
     const [lead, ...rest] = items;
-    const [leadOpened, setLeadOpened] = useState(false);
+
+    function dismiss(item: FrontPageItem) {
+        const excludeIds = items.map(i => i.id);
+        startTransition(async () => {
+            const { replacement } = await dismissFrontPageItem(item.id, category, excludeIds);
+            setItems(prev => {
+                const filtered = prev.filter(i => i.id !== item.id);
+                return replacement ? [...filtered, replacement] : filtered;
+            });
+        });
+    }
+
+    if (!lead) return null;
 
     return (
-        <section aria-labelledby={`sec-${category}`} className="bg-background px-5 pt-5 flex flex-col">
-            <div className="flex items-baseline justify-between pb-2.5 mb-3.5 border-b-2 border-foreground">
-                <h2 id={`sec-${category}`} className="font-mono text-[12.5px] font-extrabold uppercase tracking-[.18em] normal-case">
+        <section aria-labelledby={`sec-${category}`} className="py-[34px]">
+            <div className="flex items-center gap-4 mb-5">
+                <h2 id={`sec-${category}`} className="font-mono text-[13px] font-extrabold uppercase tracking-[.22em] text-terracotta whitespace-nowrap normal-case">
                     {category}
                 </h2>
-                <span className="font-mono text-[10px] text-foreground/35">{totalCount.toString().padStart(2, '0')}</span>
+                <span aria-hidden="true" className="flex-1 h-px bg-foreground/[0.14]" />
             </div>
 
-            <article className={`group/lead flex flex-col gap-1.5 mb-3.5 transition-opacity ${leadOpened ? 'opacity-40' : ''}`}>
-                <Reason item={lead} />
-                <FrontPageLink
-                    itemId={lead.id}
-                    href={lead.link}
-                    onNavigate={() => setLeadOpened(true)}
-                    className="font-serif text-[21px] font-semibold leading-[1.12] tracking-[-0.01em] text-foreground group-hover/lead:text-terracotta transition-colors line-clamp-3 no-underline"
-                >
-                    {lead.title}
-                </FrontPageLink>
-                {lead.content && (
-                    <p className="font-serif text-[13.5px] leading-[1.5] text-foreground/55 font-normal line-clamp-3">
-                        {lead.content}
-                    </p>
+            <div className="grid grid-cols-1 min-[1181px]:grid-cols-[1.45fr_1fr] gap-6 min-[1181px]:gap-12">
+                <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} />
+                {rest.length > 0 && (
+                    <ul role="list" className="flex flex-col border-t border-foreground/[0.14]">
+                        {rest.map(item => (
+                            <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                        ))}
+                    </ul>
                 )}
-                <div className="flex items-center gap-1.5 font-mono text-[8.5px] font-semibold tracking-[.08em] text-foreground/35 mt-0.5">
-                    <span className="text-terracotta font-extrabold tracking-[.1em]">{lead.sourceTitle}</span>
-                    <span aria-hidden="true">·</span>
-                    <PubDate ts={lead.pubDate} />
-                    <div className="ml-auto shrink-0 flex items-center gap-1.5 opacity-0 group-hover/lead:opacity-100 transition-opacity">
-                        <FrontPageItemActions itemId={lead.id} allTags={allTags} />
-                    </div>
-                </div>
-            </article>
+            </div>
 
-            {rest.length > 0 && (
-                <ul role="list" className="border-t border-foreground/[0.14]">
-                    {rest.map(item => <SectionRow key={item.id} item={item} allTags={allTags} />)}
-                </ul>
-            )}
-
-            <Link
-                href={`?view=river&cat=${encodeURIComponent(category)}`}
-                className="group/all -mx-5 mt-3.5 px-5 py-[13px] bg-foreground text-background hover:bg-terracotta hover:text-white flex items-center justify-between font-mono text-[10px] font-extrabold uppercase tracking-[.16em] transition-colors no-underline"
-            >
-                <span>View all {totalCount} in {category}</span>
-                <span aria-hidden="true" className="text-[14px] transition-transform group-hover/all:translate-x-1">→</span>
-            </Link>
+            <div className="flex justify-end mt-6">
+                <Link
+                    href={`?view=river&cat=${encodeURIComponent(category)}`}
+                    className="group/all inline-flex items-center gap-1.5 border border-foreground/22 rounded-[2px] px-[11px] py-[6px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta hover:border-terracotta transition-colors no-underline"
+                >
+                    <span>See all in {category}</span>
+                    <span aria-hidden="true" className="inline-block transition-transform duration-[160ms] group-hover/all:translate-x-[3px]">
+                        →
+                    </span>
+                </Link>
+            </div>
         </section>
-    );
-}
-
-// ── Telemetry stat bar ──
-function TelemetryStats({ stats }: { stats: FrontPageData['stats'] }) {
-    return (
-        <div className="px-[18px] py-[9px] border-b-2 border-foreground font-mono text-[9.5px] font-bold uppercase tracking-[.13em] text-foreground/45 flex items-center gap-1 flex-wrap">
-            <span>Curated from</span>
-            <b className="text-foreground font-extrabold">{stats.read} read</b>
-            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
-            <b className="text-foreground font-extrabold">{stats.saved} saved</b>
-            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
-            <span>Across</span>
-            <b className="text-foreground font-extrabold">{stats.categories} categories</b>
-            <span aria-hidden="true" className="text-foreground/25 mx-1">·</span>
-            <span>Updated</span>
-            <b className="text-foreground font-extrabold">{timeAgo(stats.updatedAt)}</b>
-        </div>
     );
 }
 
 // ── Empty state ──
 function EmptyFrontPage() {
     return (
-        <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+        <div role="status" className="flex flex-col items-center justify-center py-20 text-center px-6">
             <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono">
                 No recommendations yet
             </p>
@@ -237,25 +261,21 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
 
     return (
-        <div>
+        <div className="max-w-[1180px] mx-auto px-4 min-[761px]:px-7 min-[1181px]:px-10 pb-[100px]">
             <h1 className="sr-only">Front Page</h1>
-            <TelemetryStats stats={stats} />
-            <div className="px-4 md:px-[26px] py-[22px] pb-[90px] max-w-[1600px] mx-auto">
-                {isEmpty ? (
-                    <EmptyFrontPage />
-                ) : (
-                    <>
-                        <ForYouRibbon pool={forYouPool} allTags={allTags} />
-                        {sections.length > 0 && (
-                            <div className="grid grid-cols-1 min-[901px]:grid-cols-2 min-[1241px]:grid-cols-3 gap-x-10 gap-y-6">
-                                {sections.map(s => (
-                                    <SectionCard key={s.category} category={s.category} items={s.items} totalCount={s.totalCount} allTags={allTags} />
-                                ))}
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
+            {isEmpty ? (
+                <EmptyFrontPage />
+            ) : (
+                <>
+                    <Masthead stats={stats} />
+                    <ForYouStrip pool={forYouPool} allTags={allTags} />
+                    <div className="mt-[18px] flex flex-col">
+                        {sections.map(s => (
+                            <Section key={s.category} category={s.category} items={s.items} allTags={allTags} />
+                        ))}
+                    </div>
+                </>
+            )}
         </div>
     );
 }
