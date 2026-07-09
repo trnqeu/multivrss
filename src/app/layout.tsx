@@ -22,10 +22,13 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "MultivRSS",
   description: "A future-proof RSS aggregator",
-  icons: [
-    { rel: "icon", url: "/favicon.ico", sizes: "any" },
-    { rel: "icon", url: "/icon.png", type: "image/png", sizes: "32x32" },
-  ],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "64x64" },
+    ],
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

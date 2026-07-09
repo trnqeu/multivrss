@@ -19,7 +19,7 @@ export default function MarketingHero({ dict }: Props) {
           <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[30px] [@media(max-height:800px)]:mb-[14px]">
             {"//"} {t.kicker}
           </p>
-          <h1 className="normal-case font-black text-[clamp(52px,7vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance [@media(max-height:800px)]:text-[clamp(40px,6vw,56px)] [@media(max-height:800px)]:mb-[24px]">
+          <h1 className="normal-case font-black text-[clamp(34px,11vw,116px)] min-[920px]:text-[clamp(52px,calc(7vw_-_9px),84px)] leading-[0.95] tracking-[-0.035em] mb-[48px] text-balance break-words [@media(max-height:800px)]:text-[clamp(40px,6vw,56px)] [@media(max-height:800px)]:mb-[24px]">
             {t.headline1}
             <br />
             <span className="text-terracotta font-extrabold px-[6px]">&</span>
