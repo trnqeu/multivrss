@@ -13,7 +13,7 @@ export type FrontPageItem = SearchHit & {
 export type FrontPage = {
     forYouPool: FrontPageItem[];
     sections: { category: string; items: FrontPageItem[]; totalCount: number }[];
-    stats: { read: number; saved: number; categories: number; updatedAt: number | null };
+    stats: { read: number; saved: number; categories: number; updatedAt: number | null; dateLabel: string };
 };
 
 const RECO_LOOKBACK_DAYS = 30;
@@ -34,12 +34,14 @@ async function getSourcesForUser(userId: string) {
 export async function getFrontPage(userId: string): Promise<FrontPage> {
     'use cache';
     cacheLife('days');
-    const dateKey = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const dateKey = now.toISOString().split('T')[0];
     cacheTag(`frontpage:${userId}:${dateKey}`);
+    const dateLabel = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
-        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0, updatedAt: null } };
+        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0, updatedAt: null, dateLabel } };
     }
     const updatedAt = sources.reduce<number | null>((latest, s) => {
         if (!s.lastSync) return latest;
@@ -238,7 +240,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     return {
         forYouPool,
         sections,
-        stats: { read: readCount, saved: savedCount, categories: sections.length, updatedAt },
+        stats: { read: readCount, saved: savedCount, categories: sections.length, updatedAt, dateLabel },
     };
 }
 
