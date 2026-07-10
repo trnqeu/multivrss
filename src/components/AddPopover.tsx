@@ -87,7 +87,7 @@ export default function AddPopover({ categories }: Props) {
                     onClick={() => setOpen(v => !v)}
                     aria-expanded={open}
                     aria-haspopup="dialog"
-                    className="flex items-center gap-[7px] bg-black text-[#f6f3ec] font-mono text-[11px] font-extrabold tracking-[0.12em] uppercase px-[13px] py-[9px] hover:opacity-90 transition-opacity"
+                    className="flex items-center gap-[7px] bg-background text-foreground border-2 border-foreground font-mono text-[11px] font-extrabold tracking-[0.12em] uppercase px-[13px] py-[9px] hover:bg-foreground hover:text-background transition-colors"
                 >
                     <span className="text-terracotta">+</span>
                     <span>ADD</span>
