@@ -45,11 +45,14 @@ export default async function Home({
                 {sourceCount === 0 ? (
                     <OnboardingEmptyState username={session?.user.username ?? ''} />
                 ) : view === 'river' ? (
-                    <SearchBar allTags={await prisma.tag.findMany({
-                        where: { userId },
-                        select: { id: true, name: true },
-                        orderBy: { name: 'asc' },
-                    })} />
+                    <SearchBar
+                        username={session?.user.username ?? ''}
+                        allTags={await prisma.tag.findMany({
+                            where: { userId },
+                            select: { id: true, name: true },
+                            orderBy: { name: 'asc' },
+                        })}
+                    />
                 ) : (
                     <FrontPage
                         data={await getFrontPage(userId)}

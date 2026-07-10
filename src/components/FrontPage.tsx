@@ -59,10 +59,10 @@ function DismissButton({ onClick }: { onClick: () => void }) {
     );
 }
 
-// ── Hover-reveal action cluster (save, tag, dismiss) ──
+// ── Action cluster (save, tag, dismiss) — always visible on mobile, hover-reveal on desktop ──
 function Actions({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     return (
-        <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
             <FrontPageItemActions itemId={item.id} allTags={allTags} />
             <DismissButton onClick={onDismiss} />
         </div>
