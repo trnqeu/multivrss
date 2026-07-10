@@ -1087,7 +1087,6 @@ export async function renameTag(tagId: string, name: string): Promise<ActionStat
       where: { id: tagId, userId: session.user.id },
       data: { name: trimmed },
     });
-    updateTag(`sidebar:${session.user.id}`);
     return { success: true, message: 'Tag renamed.' };
   } catch {
     return { success: false, message: 'Tag not found or name already taken.' };
@@ -1102,7 +1101,6 @@ export async function deleteTag(tagId: string): Promise<ActionState> {
     await prisma.tag.delete({
       where: { id: tagId, userId: session.user.id },
     });
-    updateTag(`sidebar:${session.user.id}`);
     return { success: true, message: 'Tag deleted.' };
   } catch {
     return { success: false, message: 'Tag not found.' };

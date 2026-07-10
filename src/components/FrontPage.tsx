@@ -59,13 +59,29 @@ function DismissButton({ onClick }: { onClick: () => void }) {
     );
 }
 
-// ── Hover-reveal action cluster (save, tag, dismiss) ──
+// ── Action cluster (save, tag, dismiss) — always visible on mobile, hover-reveal on desktop ──
 function Actions({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     return (
-        <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
             <FrontPageItemActions itemId={item.id} allTags={allTags} />
             <DismissButton onClick={onDismiss} />
         </div>
+    );
+}
+
+// ── Collapse toggle — disclosure button placed beside a section title ──
+function CollapseToggle({ collapsed, onToggle, label, controlsId }: { collapsed: boolean; onToggle: () => void; label: string; controlsId: string }) {
+    return (
+        <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={!collapsed}
+            aria-controls={controlsId}
+            aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
+            className="shrink-0 bg-transparent border-0 p-0 normal-case tracking-normal font-mono text-[13px] font-extrabold text-foreground/45 hover:text-terracotta transition-colors leading-none w-4 text-center"
+        >
+            {collapsed ? '+' : '_'}
+        </button>
     );
 }
 
@@ -111,6 +127,7 @@ function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags
 // ── FOR YOU strip — stateful pool with dismiss/replace ──
 function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
     const [pool, setPool] = useState(initialPool);
+    const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
     const displayed = pool.slice(0, FORYOU_COUNT);
 
@@ -123,15 +140,25 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
     }
 
     if (displayed.length === 0) return null;
+    const bodyId = 'foryou-body';
     return (
         <section aria-label="For you" className="pt-[34px]">
-            <div className="flex items-center gap-4 mb-5">
+            <div className="flex items-center gap-3 mb-5">
+                <CollapseToggle
+                    collapsed={collapsed}
+                    onToggle={() => setCollapsed(c => !c)}
+                    label="For You"
+                    controlsId={bodyId}
+                />
                 <span className="font-mono text-[11px] font-extrabold uppercase tracking-[.24em] text-foreground whitespace-nowrap">
                     For You
                 </span>
-                <span aria-hidden="true" className="flex-1 h-px bg-foreground/[0.14]" />
             </div>
-            <div className="grid grid-cols-1 min-[761px]:grid-cols-2 min-[1181px]:grid-cols-4 gap-[30px]">
+            <div
+                id={bodyId}
+                hidden={collapsed}
+                className="grid grid-cols-1 min-[761px]:grid-cols-2 min-[1181px]:grid-cols-4 gap-[30px]"
+            >
                 {displayed.map(item => (
                     <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
                 ))}
@@ -154,7 +181,7 @@ function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagV
                 {item.title}
             </FrontPageLink>
             {item.content && (
-                <p className="font-serif text-[15px] leading-[1.55] text-foreground/55 font-normal max-w-[50ch]">
+                <p className="font-serif text-[15px] leading-[1.55] text-foreground/55 font-normal max-w-[50ch] line-clamp-3">
                     {item.content}
                 </p>
             )}
@@ -190,6 +217,7 @@ function Row({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM
 // ── Category section — lead + list, "See all" footer ──
 function Section({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
     const [items, setItems] = useState(initialItems);
+    const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
     const [lead, ...rest] = items;
 
@@ -205,37 +233,43 @@ function Section({ category, items: initialItems, allTags }: { category: string;
     }
 
     if (!lead) return null;
+    const bodyId = `sec-${category}-body`;
 
     return (
         <section aria-labelledby={`sec-${category}`} className="py-[34px]">
-            <div className="flex items-center gap-4 mb-5">
+            <div className="flex items-center gap-3 mb-5">
+                <CollapseToggle
+                    collapsed={collapsed}
+                    onToggle={() => setCollapsed(c => !c)}
+                    label={category}
+                    controlsId={bodyId}
+                />
                 <h2 id={`sec-${category}`} className="font-mono text-[13px] font-extrabold uppercase tracking-[.22em] text-terracotta whitespace-nowrap normal-case">
                     {category}
                 </h2>
-                <span aria-hidden="true" className="flex-1 h-px bg-foreground/[0.14]" />
             </div>
 
-            <div className="grid grid-cols-1 min-[1181px]:grid-cols-[1.45fr_1fr] gap-6 min-[1181px]:gap-12">
-                <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} />
-                {rest.length > 0 && (
-                    <ul role="list" className="flex flex-col border-t border-foreground/[0.14]">
-                        {rest.map(item => (
-                            <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
-                        ))}
-                    </ul>
-                )}
-            </div>
+            <div id={bodyId} hidden={collapsed}>
+                <ul role="list" className="flex flex-col border-t border-foreground/[0.14]">
+                    <li className={`py-[18px] ${rest.length > 0 ? 'border-b border-foreground/[0.09]' : ''}`}>
+                        <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} />
+                    </li>
+                    {rest.map(item => (
+                        <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                    ))}
+                </ul>
 
-            <div className="flex justify-end mt-6">
-                <Link
-                    href={`?view=river&cat=${encodeURIComponent(category)}`}
-                    className="group/all inline-flex items-center gap-1.5 border border-foreground/22 rounded-[2px] px-[11px] py-[6px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta hover:border-terracotta transition-colors no-underline"
-                >
-                    <span>See all in {category}</span>
-                    <span aria-hidden="true" className="inline-block transition-transform duration-[160ms] group-hover/all:translate-x-[3px]">
-                        →
-                    </span>
-                </Link>
+                <div className="flex justify-start mt-6">
+                    <Link
+                        href={`?view=river&cat=${encodeURIComponent(category)}`}
+                        className="group/all inline-flex items-center gap-1.5 border border-terracotta rounded-[2px] px-[11px] py-[6px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-terracotta hover:opacity-70 transition-opacity no-underline"
+                    >
+                        <span>See all in {category}</span>
+                        <span aria-hidden="true" className="inline-block transition-transform duration-[160ms] group-hover/all:translate-x-[3px]">
+                            →
+                        </span>
+                    </Link>
+                </div>
             </div>
         </section>
     );

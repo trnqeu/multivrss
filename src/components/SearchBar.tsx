@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { dayBucket } from '@/lib/utils';
 import { getCategories, markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
@@ -36,7 +37,7 @@ function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text
     );
 }
 
-export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
+export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[]; username: string }) {
     const searchParams = useSearchParams();
 
     const query = searchParams.get('q') ?? '';
@@ -144,6 +145,13 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
         <div>
             {/* Telemetry */}
             <div className="flex items-stretch border-b-2 border-foreground min-h-[2.5rem]">
+                <Link
+                    href={`/u/${username}`}
+                    aria-label="Back to Front Page"
+                    className="md:hidden shrink-0 flex items-center px-3 border-r-2 border-foreground font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta"
+                >
+                    ▤ Front
+                </Link>
                 <MobileCategorySheet />
                 <div className="flex-1 min-w-0 px-[18px] py-[9px] font-mono text-[9.5px] font-bold uppercase tracking-[.13em] text-foreground/45 flex items-center gap-[5px] flex-wrap">
                     <span className="whitespace-nowrap">
@@ -198,7 +206,7 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
             </div>
 
             {/* Results river — Ledger */}
-            <section className="px-2 md:px-5 py-1.5 pb-[90px]">
+            <section className="px-2 md:px-5 py-1.5 pb-[90px] md:max-w-[880px]">
                 {loading && allHits.length === 0 ? (
                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 px-3 py-6">
                         LOADING...
@@ -214,6 +222,48 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
                             const dateLabel = item.pubDate
                                 ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                                 : '—';
+                            const preview = item._formatted?.content ?? item.content;
+                            const tags = itemTags.get(item.id) ?? [];
+
+                            const readToggle = (
+                                <button
+                                    onClick={() => toggleRead(item)}
+                                    className={`self-center leading-none text-[11px] bg-transparent border-0 p-0 cursor-pointer transition-colors ${item.read ? 'text-foreground/35' : 'text-terracotta'}`}
+                                    title={item.read ? 'Mark as unread' : 'Mark as read'}
+                                >
+                                    {item.read ? '\u25CF' : '\u25CB'}
+                                </button>
+                            );
+                            const actions = (
+                                <>
+                                    {tags.length > 0 && (
+                                        <span className="inline-flex gap-1">
+                                            {tags.map(tag => (
+                                                <span key={tag.id} className="font-mono text-[9px] uppercase border border-current text-terracotta px-1 py-0.5 leading-none">
+                                                    #{tag.name}
+                                                </span>
+                                            ))}
+                                        </span>
+                                    )}
+                                    <button
+                                        onClick={() => toggleSave(item)}
+                                        title={item.savedAt ? 'Remove from saved' : 'Save'}
+                                        className="bg-transparent border-0 px-0 py-0 cursor-pointer"
+                                    >
+                                        <Bookmark
+                                            filled={!!item.savedAt}
+                                            className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+                                        />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTagModalItem(item.id)}
+                                        className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
+                                    >
+                                        TAG
+                                    </button>
+                                </>
+                            );
 
                             return (
                                 <Fragment key={item.id}>
@@ -225,23 +275,58 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
                                             <span aria-hidden="true" className="flex-1 h-px bg-terracotta/30" />
                                         </div>
                                     )}
+
+                                    {/* Mobile row — stacked: meta+actions / title / preview */}
                                     <div
                                         role="listitem"
-                                        className={`group grid grid-cols-[16px_1fr_auto] md:grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${item.read ? 'opacity-[.42]' : ''}`}
+                                        className={`md:hidden flex flex-col gap-1 py-2.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] ${item.read ? 'opacity-[.42]' : ''}`}
                                     >
-                                        <button
-                                            onClick={() => toggleRead(item)}
-                                            className={`self-center leading-none text-[11px] bg-transparent border-0 p-0 cursor-pointer transition-colors ${item.read ? 'text-foreground/35' : 'text-terracotta'}`}
-                                            title={item.read ? 'Mark as unread' : 'Mark as read'}
+                                        <div className="flex items-center gap-2">
+                                            {readToggle}
+                                            <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta truncate">
+                                                {item.sourceTitle}
+                                            </span>
+                                            <span aria-hidden="true" className="text-foreground/25">·</span>
+                                            <span className="font-mono text-[9px] text-foreground/35 whitespace-nowrap">
+                                                {dateLabel}
+                                            </span>
+                                            <span className="ml-auto shrink-0 inline-flex items-center gap-2">
+                                                {actions}
+                                            </span>
+                                        </div>
+                                        <a
+                                            href={item.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={() => {
+                                                if (!(item.read ?? false)) {
+                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                                    markAsRead(item.id);
+                                                }
+                                            }}
+                                            className="font-serif font-semibold text-[15px] leading-snug tracking-[-.005em] text-foreground hover:text-terracotta transition-colors no-underline"
                                         >
-                                            {item.read ? '\u25CF' : '\u25CB'}
-                                        </button>
+                                            <Highlight text={item._formatted?.title ?? item.title} />
+                                        </a>
+                                        {preview && (
+                                            <span className="font-serif text-[13px] leading-snug text-foreground/45 font-normal line-clamp-2">
+                                                <Highlight text={preview} markClass="underline decoration-terracotta" />
+                                            </span>
+                                        )}
+                                    </div>
 
-                                        <span className="hidden md:block font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
+                                    {/* Desktop row — single-line grid */}
+                                    <div
+                                        role="listitem"
+                                        className={`hidden md:grid group grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${item.read ? 'opacity-[.42]' : ''}`}
+                                    >
+                                        {readToggle}
+
+                                        <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
                                             {item.sourceTitle}
                                         </span>
 
-                                        <span className="hidden md:block font-mono text-[9.5px] text-foreground/35 whitespace-nowrap">
+                                        <span className="font-mono text-[9.5px] text-foreground/35 whitespace-nowrap">
                                             {dateLabel}
                                         </span>
 
@@ -260,47 +345,16 @@ export default function SearchBar({ allTags = [] }: { allTags?: TagVM[] }) {
                                             >
                                                 <Highlight text={item._formatted?.title ?? item.title} />
                                             </a>
-                                            {(item._formatted?.content ?? item.content) && (
+                                            {preview && (
                                                 <span className="font-serif text-[14px] text-foreground/45 font-normal">
                                                     {' — '}
-                                                    <Highlight
-                                                        text={item._formatted?.content ?? item.content ?? ''}
-                                                        markClass="underline decoration-terracotta"
-                                                    />
+                                                    <Highlight text={preview} markClass="underline decoration-terracotta" />
                                                 </span>
                                             )}
-                                            <span className="md:hidden ml-2 font-mono text-[9px] text-foreground/35 whitespace-nowrap">
-                                                {item.sourceTitle} · {dateLabel}
-                                            </span>
                                         </span>
 
-                                        <span className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {(itemTags.get(item.id) ?? []).length > 0 && (
-                                                <span className="inline-flex gap-1">
-                                                    {(itemTags.get(item.id) ?? []).map(tag => (
-                                                        <span key={tag.id} className="font-mono text-[9px] uppercase border border-current text-terracotta px-1 py-0.5 leading-none">
-                                                            #{tag.name}
-                                                        </span>
-                                                    ))}
-                                                </span>
-                                            )}
-                                            <button
-                                                onClick={() => toggleSave(item)}
-                                                title={item.savedAt ? 'Remove from saved' : 'Save'}
-                                                className="bg-transparent border-0 px-0 py-0 cursor-pointer"
-                                            >
-                                                <Bookmark
-                                                    filled={!!item.savedAt}
-                                                    className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
-                                                />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setTagModalItem(item.id)}
-                                                className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
-                                            >
-                                                TAG
-                                            </button>
+                                        <span className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                                            {actions}
                                         </span>
                                     </div>
                                 </Fragment>

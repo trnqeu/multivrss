@@ -32,6 +32,7 @@ export default function MobileCategorySheet() {
         const params = new URLSearchParams(searchParams.toString());
         if (!next || next === 'ALL') {
             params.delete('cat');
+            params.delete('source');
             params.delete('view'); // back to default (Front Page)
         } else {
             params.set('cat', next);
