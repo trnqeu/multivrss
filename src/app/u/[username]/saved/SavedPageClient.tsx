@@ -7,7 +7,8 @@ import SaveLinkBar from '@/components/SaveLinkBar';
 import SavedView from './SavedView';
 import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
-import { deleteSavedLink, unsaveFeedItem, removeTagFromLink, removeTagFromFeedItem } from '@/app/actions';
+import { deleteSavedLink, unsaveFeedItem, removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions';
+import SavedTagPill from '@/components/SavedTagPill';
 
 interface SavedPageClientProps {
     username: string;
@@ -19,7 +20,7 @@ interface SavedPageClientProps {
 export default function SavedPageClient({ username, initialArticles, initialLinks, initialTags }: SavedPageClientProps) {
     const [articles, setArticles] = useState(initialArticles);
     const [links, setLinks] = useState(initialLinks);
-    const [tags] = useState(initialTags);
+    const [tags, setTags] = useState(initialTags);
     const searchParams = useSearchParams();
     const activeTag = searchParams.get('tag');
 
@@ -75,6 +76,22 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await removeTagFromLink(linkId, tagId);
     }, []);
 
+    const handleRenameTag = useCallback(async (tagId: string, newName: string) => {
+        const trimmed = newName.trim();
+        if (!trimmed) return;
+        setTags(prev => prev.map(t => t.id === tagId ? { ...t, name: trimmed } : t));
+        setArticles(prev => prev.map(a => ({ ...a, tags: a.tags.map(t => t.id === tagId ? { ...t, name: trimmed } : t) })));
+        setLinks(prev => prev.map(l => ({ ...l, tags: l.tags.map(t => t.id === tagId ? { ...t, name: trimmed } : t) })));
+        await renameTag(tagId, trimmed);
+    }, []);
+
+    const handleDeleteTag = useCallback(async (tagId: string) => {
+        setTags(prev => prev.filter(t => t.id !== tagId));
+        setArticles(prev => prev.map(a => ({ ...a, tags: a.tags.filter(t => t.id !== tagId) })));
+        setLinks(prev => prev.map(l => ({ ...l, tags: l.tags.filter(t => t.id !== tagId) })));
+        await deleteTag(tagId);
+    }, []);
+
     const total = filteredArticles.length + filteredLinks.length;
 
     return (
@@ -102,13 +119,13 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 {tags.length > 0 && !activeTag && (
                     <div className="flex flex-wrap gap-1.5">
                         {tags.map(tag => (
-                            <Link
+                            <SavedTagPill
                                 key={tag.id}
-                                href={`/u/${username}/saved?tag=${encodeURIComponent(tag.name)}`}
-                                className="text-[10px] uppercase tracking-widest px-2 py-1 border border-foreground/40 hover:bg-foreground hover:text-background transition-colors"
-                            >
-                                {tag.name}
-                            </Link>
+                                tag={tag}
+                                username={username}
+                                onRename={handleRenameTag}
+                                onDelete={handleDeleteTag}
+                            />
                         ))}
                     </div>
                 )}
