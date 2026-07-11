@@ -297,6 +297,15 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
     return (
         <div className="max-w-[1180px] mx-auto px-4 min-[761px]:px-7 min-[1181px]:px-10 pb-[100px]">
             <h1 className="sr-only">Front Page</h1>
+            <div className="md:hidden flex justify-end pt-3">
+                <Link
+                    href="?view=river"
+                    aria-label="Switch to River view"
+                    className="inline-flex items-center gap-1 font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta border-[1.5px] border-foreground px-3 py-[6px]"
+                >
+                    ≡ River
+                </Link>
+            </div>
             {isEmpty ? (
                 <EmptyFrontPage />
             ) : (
