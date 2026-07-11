@@ -71,6 +71,7 @@ export default function ImportCsvForm() {
             <form
                 action={formAction}
                 onSubmit={() => setShowOverlay(true)}
+                encType="multipart/form-data"
                 className="flex flex-col gap-1.5"
             >
                 <label htmlFor="import-csv-file" className="sr-only">Choose CSV file to import</label>
