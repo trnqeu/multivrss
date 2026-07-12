@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { createFeedSource } from "@/app/actions";
+import { createFeedSource } from "@/app/actions/feeds";
 import type { SuggestedCategory, SuggestedFeed } from "@/lib/suggested-feeds";
 import type { Category } from "@prisma/client";
 

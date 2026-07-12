@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import MobileNavLink from './MobileNavLink';
-import { renameFeedSource } from '@/app/actions';
+import { renameFeedSource } from '@/app/actions/feeds';
 
 interface Props {
     sourceId: string;

@@ -1,4 +1,4 @@
-import { getCategories } from "@/app/actions";
+import { getCategories } from "@/app/actions/categories";
 import { connection } from 'next/server';
 import SearchBar from "@/components/SearchBar";
 import PageHeader from "@/components/PageHeader";

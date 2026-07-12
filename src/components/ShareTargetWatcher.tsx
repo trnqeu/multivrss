@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import ShareTargetModal from "./ShareTargetModal";
 import type { Category } from "@prisma/client";
-import type { TagData } from "@/app/actions";
+import type { TagData } from "@/app/actions/tags";
 
 interface Props {
     categories: Category[];

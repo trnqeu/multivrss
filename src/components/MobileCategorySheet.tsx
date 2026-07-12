@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCategories } from '@/app/actions';
+import { getCategories } from '@/app/actions/categories';
 
 export default function MobileCategorySheet() {
     const router = useRouter();

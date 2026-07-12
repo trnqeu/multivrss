@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import MobileNavLink from './MobileNavLink';
-import { renameCategory } from '@/app/actions';
+import { renameCategory } from '@/app/actions/categories';
 
 interface Props {
     categoryId: string;

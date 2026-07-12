@@ -3,7 +3,8 @@
 import { useEffect, useState, useTransition, useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
 import AssignTagsModal from "./AssignTagsModal";
-import { saveExternalLink, setSavedLinkTags, SaveExternalLinkState, TagData } from "@/app/actions";
+import { saveExternalLink, type SaveExternalLinkState } from "@/app/actions/saved-links";
+import { setSavedLinkTags, type TagData } from "@/app/actions/tags";
 import type { Category } from "@prisma/client";
 
 interface Props {

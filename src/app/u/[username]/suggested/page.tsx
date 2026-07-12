@@ -1,7 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getCategories } from "@/app/actions";
+import { getCategories } from "@/app/actions/categories";
 import { notFound } from "next/navigation";
 import { getSuggestedByCategory } from "@/lib/suggested-feeds";
 import SuggestedPageClient from "./SuggestedPageClient";

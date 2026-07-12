@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Wordmark from "@/components/Wordmark";
 import { STARTER_PACKS, type StarterPack } from '@/lib/suggested-feeds';
-import { addStarterPack, undoStarterPack } from '@/app/actions';
+import { addStarterPack, undoStarterPack } from '@/app/actions/starter-packs';
 
 type View = 'idle' | 'working' | 'done';
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState, useEffect, useRef, useCallback } from "react";
-import { createFeedSource, ActionState } from "@/app/actions";
+import { createFeedSource } from "@/app/actions/feeds";
+import type { ActionState } from "@/app/actions/types";
 import type { Category } from "@prisma/client";
 
 interface Props {

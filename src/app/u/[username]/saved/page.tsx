@@ -1,7 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getCategories } from "@/app/actions";
+import { getCategories } from "@/app/actions/categories";
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';

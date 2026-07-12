@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
-import { dismissFrontPageItem } from '@/app/actions';
+import { dismissFrontPageItem } from '@/app/actions/feed-items';
 
 type TagVM = { id: string; name: string };
 
