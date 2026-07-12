@@ -4,7 +4,7 @@ import { useState, useCallback, Fragment } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { dayBucket } from '@/lib/utils';
 import AssignTagsModal from '@/components/AssignTagsModal';
-import { setFeedItemTags, setSavedLinkTags } from '@/app/actions';
+import { setFeedItemTags, setSavedLinkTags } from '@/app/actions/tags';
 import EmptyStream from '@/components/EmptyStream';
 
 export interface TagVM {

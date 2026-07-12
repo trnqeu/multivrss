@@ -7,7 +7,8 @@ import RenameCategoryTitle from './RenameCategoryTitle';
 import RowActionIcons from './RowActionIcons';
 import InlineDeleteConfirm from './InlineDeleteConfirm';
 import EditSourceForm from './EditSourceForm';
-import { deleteCategory, deleteFeedSource } from '@/app/actions';
+import { deleteCategory } from '@/app/actions/categories';
+import { deleteFeedSource } from '@/app/actions/feeds';
 
 type SourceData = {
     id: string;

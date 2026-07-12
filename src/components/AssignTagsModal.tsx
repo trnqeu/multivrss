@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { setFeedItemTags, createTag } from '@/app/actions';
+import { setFeedItemTags, createTag } from '@/app/actions/tags';
 
 interface TagVM {
     id: string;

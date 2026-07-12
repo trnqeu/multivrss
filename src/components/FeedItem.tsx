@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions';
+import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
 import { useState, useCallback } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';

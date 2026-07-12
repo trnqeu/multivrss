@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useSync } from './SyncProvider';
-import { syncAllFeeds } from '@/app/actions';
+import { syncAllFeeds } from '@/app/actions/feeds';
 
 const COOLDOWN_MS = 5 * 60 * 1000;
 

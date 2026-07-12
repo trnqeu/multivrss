@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
-import { resetPassword, ActionState } from "@/app/actions";
+import { resetPassword } from "@/app/actions/auth";
+import type { ActionState } from "@/app/actions/types";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import { saveFeedItem, unsaveFeedItem } from '@/app/actions';
+import { saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
 

@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { syncAllFeeds } from '@/app/actions';
+import { syncAllFeeds } from '@/app/actions/feeds';
 import AddPopover from './AddPopover';
 import { useSync } from './SyncProvider';
 import ThemeToggle from './ThemeToggle';

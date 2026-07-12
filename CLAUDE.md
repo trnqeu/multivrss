@@ -89,7 +89,17 @@ src/app/
     search/route.ts       Meilisearch proxy
     health/route.ts       Health check for deploy pipeline
     openapi/route.ts      OpenAPI schema
-  actions.ts              All Server Actions (mutations, sync, auth, password)
+  actions/                Server Actions, split by domain (each file has its own 'use server')
+    types.ts              Shared ActionState type
+    shared.ts              frontpageTag() cache-tag helper
+    auth.ts                 Register, verify email, password reset
+    categories.ts           Category CRUD
+    feeds.ts                Feed source CRUD, discovery, sync
+    feed-items.ts           Read/unread, save/unsave, front-page dismiss
+    saved-links.ts          External link saving, page title resolution
+    csv.ts                  Feed import/export
+    tags.ts                 Tag CRUD, tag assignment to links/items
+    starter-packs.ts        Onboarding starter pack add/undo
 
 src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)

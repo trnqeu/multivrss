@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState, useEffect, useRef, useCallback } from "react";
-import { updateFeedSource, ActionState } from "@/app/actions";
+import { updateFeedSource } from "@/app/actions/feeds";
+import type { ActionState } from "@/app/actions/types";
 
 interface Props {
     source: {

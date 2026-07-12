@@ -7,7 +7,9 @@ import SaveLinkBar from '@/components/SaveLinkBar';
 import SavedView from './SavedView';
 import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
-import { deleteSavedLink, unsaveFeedItem, removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions';
+import { deleteSavedLink } from '@/app/actions/saved-links';
+import { unsaveFeedItem } from '@/app/actions/feed-items';
+import { removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions/tags';
 import SavedTagPill from '@/components/SavedTagPill';
 
 interface SavedPageClientProps {
