@@ -1,6 +1,6 @@
 'use client';
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { saveExternalLink } from '@/app/actions';
+import { saveExternalLink } from '@/app/actions/saved-links';
 import { Bookmark } from '@/components/icons/Bookmark';
 
 interface SaveLinkBarProps {

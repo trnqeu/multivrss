@@ -105,7 +105,7 @@ describe('markAsRead / markAsUnread', () => {
     it('returns unauthorized without session', async () => {
         mockedSession.mockResolvedValue(null);
 
-        const { markAsRead, markAsUnread } = await import('@/app/actions');
+        const { markAsRead, markAsUnread } = await import('@/app/actions/feed-items');
 
         const readResult = await markAsRead('item_1');
         expect(readResult).toEqual({ success: false, message: 'Unauthorized' });
@@ -124,7 +124,7 @@ describe('markAsRead / markAsUnread', () => {
         const updateDocuments = vi.fn().mockResolvedValue({});
         mockedMeiliIndex.mockReturnValue({ updateDocuments } as any);
 
-        const { markAsRead } = await import('@/app/actions');
+        const { markAsRead } = await import('@/app/actions/feed-items');
         const result = await markAsRead('item_1');
 
         expect(result).toEqual({ success: true, message: 'Marked as read.' });
@@ -145,7 +145,7 @@ describe('markAsRead / markAsUnread', () => {
         const updateDocuments = vi.fn().mockResolvedValue({});
         mockedMeiliIndex.mockReturnValue({ updateDocuments } as any);
 
-        const { markAsUnread } = await import('@/app/actions');
+        const { markAsUnread } = await import('@/app/actions/feed-items');
         const result = await markAsUnread('item_1');
 
         expect(result).toEqual({ success: true, message: 'Marked as unread.' });
@@ -163,7 +163,7 @@ describe('markAsRead / markAsUnread', () => {
         });
         mockedPrisma.feedItem.update.mockRejectedValue(new Error('Record not found'));
 
-        const { markAsRead } = await import('@/app/actions');
+        const { markAsRead } = await import('@/app/actions/feed-items');
         const result = await markAsRead('item_1');
 
         expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
@@ -181,7 +181,7 @@ describe('syncAllFeeds', () => {
     it('returns unauthorized without session', async () => {
         mockedSession.mockResolvedValue(null);
 
-        const { syncAllFeeds } = await import('@/app/actions');
+        const { syncAllFeeds } = await import('@/app/actions/feeds');
         const result = await syncAllFeeds();
 
         expect(result).toEqual({ success: false, message: 'Unauthorized' });
@@ -194,7 +194,7 @@ describe('syncAllFeeds', () => {
         });
         mockedPrisma.feedSource.findMany.mockResolvedValue([]);
 
-        const { syncAllFeeds } = await import('@/app/actions');
+        const { syncAllFeeds } = await import('@/app/actions/feeds');
         const result = await syncAllFeeds();
 
         expect(result).toEqual({ success: true, message: 'All feeds are up to date.' });
@@ -219,7 +219,7 @@ describe('syncAllFeeds', () => {
         const staleFeeds = Array.from({ length: 3 }, (_, i) => ({ id: `src_${i}`, url: 'https://example.com/feed' }));
         mockedPrisma.feedSource.findMany.mockResolvedValue(staleFeeds);
 
-        const { syncAllFeeds } = await import('@/app/actions');
+        const { syncAllFeeds } = await import('@/app/actions/feeds');
         const result = await syncAllFeeds();
 
         expect(result.success).toBe(true);
@@ -249,7 +249,7 @@ describe('updateFeedSource', () => {
     it('returns unauthorized without session', async () => {
         mockedSession.mockResolvedValue(null);
 
-        const { updateFeedSource } = await import('@/app/actions');
+        const { updateFeedSource } = await import('@/app/actions/feeds');
         const result = await updateFeedSource(null, makeFormData());
 
         expect(result).toEqual({ success: false, message: 'Unauthorized' });
@@ -264,7 +264,7 @@ describe('updateFeedSource', () => {
         mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'cat_1', name: 'TECH' } as any);
         mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
-        const { updateFeedSource } = await import('@/app/actions');
+        const { updateFeedSource } = await import('@/app/actions/feeds');
         const result = await updateFeedSource(null, makeFormData());
 
         expect(result).toEqual({ success: true, message: 'Source updated.' });
@@ -284,7 +284,7 @@ describe('updateFeedSource', () => {
         mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'new_cat_id', name: 'NEWS' } as any);
         mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
-        const { updateFeedSource } = await import('@/app/actions');
+        const { updateFeedSource } = await import('@/app/actions/feeds');
         const result = await updateFeedSource(null, makeFormData({ newCategoryName: 'NEWS', categoryId: '' }));
 
         expect(result).toEqual({ success: true, message: 'Source updated.' });
@@ -305,7 +305,7 @@ describe('updateFeedSource', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
 
-        const { updateFeedSource } = await import('@/app/actions');
+        const { updateFeedSource } = await import('@/app/actions/feeds');
 
         const noSourceId = await updateFeedSource(null, makeFormData({ sourceId: '' }));
         expect(noSourceId).toEqual({ success: false, message: 'Source ID is required.' });
@@ -329,7 +329,7 @@ describe('renameCategory', () => {
     it('returns unauthorized without session', async () => {
         mockedSession.mockResolvedValue(null);
 
-        const { renameCategory } = await import('@/app/actions');
+        const { renameCategory } = await import('@/app/actions/categories');
         const result = await renameCategory('cat_1', 'NEW NAME');
 
         expect(result).toEqual({ success: false, message: 'Unauthorized' });
@@ -341,7 +341,7 @@ describe('renameCategory', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
 
-        const { renameCategory } = await import('@/app/actions');
+        const { renameCategory } = await import('@/app/actions/categories');
         const result = await renameCategory('cat_1', '  ');
 
         expect(result).toEqual({ success: false, message: 'Name cannot be empty.' });
@@ -362,7 +362,7 @@ describe('renameCategory', () => {
 
         mockedPrisma.$transaction.mockImplementation(async (cb: any) => cb(tx));
 
-        const { renameCategory } = await import('@/app/actions');
+        const { renameCategory } = await import('@/app/actions/categories');
         const result = await renameCategory('cat_1', 'tech');
 
         expect(result).toEqual({ success: true });
@@ -396,7 +396,7 @@ describe('renameCategory', () => {
 
         mockedPrisma.$transaction.mockImplementation(async (cb: any) => cb(tx));
 
-        const { renameCategory } = await import('@/app/actions');
+        const { renameCategory } = await import('@/app/actions/categories');
         const result = await renameCategory('cat_1', 'tech');
 
         expect(result.success).toBe(false);
@@ -416,7 +416,7 @@ describe('renameCategory', () => {
 
         mockedPrisma.$transaction.mockImplementation(async (cb: any) => cb(tx));
 
-        const { renameCategory } = await import('@/app/actions');
+        const { renameCategory } = await import('@/app/actions/categories');
         const result = await renameCategory('cat_1', 'new name');
 
         expect(result).toEqual({ success: true });
@@ -444,14 +444,14 @@ describe('resendVerificationEmail', () => {
     });
 
     it('returns error when email is missing', async () => {
-        const { resendVerificationEmail } = await import('@/app/actions');
+        const { resendVerificationEmail } = await import('@/app/actions/auth');
         const result = await resendVerificationEmail(null, makeFormData(''));
         expect(result).toEqual({ success: false, message: 'Email is required.' });
     });
 
     it('returns generic success when rate limited without hitting DB', async () => {
         mockedCheckRateLimit.mockReturnValue(false);
-        const { resendVerificationEmail } = await import('@/app/actions');
+        const { resendVerificationEmail } = await import('@/app/actions/auth');
         const result = await resendVerificationEmail(null, makeFormData());
         expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
         expect(mockedPrisma.user.findUnique).not.toHaveBeenCalled();
@@ -459,7 +459,7 @@ describe('resendVerificationEmail', () => {
 
     it('returns generic success for unknown email without sending', async () => {
         mockedPrisma.user.findUnique.mockResolvedValue(null);
-        const { resendVerificationEmail } = await import('@/app/actions');
+        const { resendVerificationEmail } = await import('@/app/actions/auth');
         const result = await resendVerificationEmail(null, makeFormData());
         expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
         expect(mockedSendVerificationEmail).not.toHaveBeenCalled();
@@ -467,7 +467,7 @@ describe('resendVerificationEmail', () => {
 
     it('returns generic success for already-verified user without sending', async () => {
         mockedPrisma.user.findUnique.mockResolvedValue({ id: 'user_1', emailVerified: new Date() } as any);
-        const { resendVerificationEmail } = await import('@/app/actions');
+        const { resendVerificationEmail } = await import('@/app/actions/auth');
         const result = await resendVerificationEmail(null, makeFormData());
         expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });
         expect(mockedSendVerificationEmail).not.toHaveBeenCalled();
@@ -478,7 +478,7 @@ describe('resendVerificationEmail', () => {
         mockedPrisma.emailVerificationToken.deleteMany.mockResolvedValue({ count: 1 } as any);
         mockedPrisma.emailVerificationToken.create.mockResolvedValue({} as any);
 
-        const { resendVerificationEmail } = await import('@/app/actions');
+        const { resendVerificationEmail } = await import('@/app/actions/auth');
         const result = await resendVerificationEmail(null, makeFormData());
 
         expect(result).toEqual({ success: true, message: GENERIC_MESSAGE });

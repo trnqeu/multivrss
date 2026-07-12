@@ -48,10 +48,14 @@ GEMINI.md
 AGENTS.md
 notes.md
 CICD.md
+MARKETING_PLAN.md
+EDITORIAL.md
 
 # agent configuration
 .agent-skills/
+.agents/
 .claude
+.context/
 
 # design mockups and experiments
 .codex
@@ -68,5 +72,6 @@ public/C _ NEWSPAPER _ Paper_ ink_ no dark mode.png
 public/_ RACCOMANDATO _ PlusMinus _ Click-to-edit.html
 public/multivrss/design_handoff_add_affordance/
 public/multivrss/design_handoff_category_telemetry/
+public/design-handoffs/
 
 /src/generated/prisma

@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import { requestPasswordReset, ActionState } from "@/app/actions";
+import { requestPasswordReset } from "@/app/actions/auth";
+import type { ActionState } from "@/app/actions/types";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {

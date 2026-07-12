@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback, useTransition } from "react";
 import { useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
-import { saveExternalLink } from "@/app/actions";
+import { saveExternalLink } from "@/app/actions/saved-links";
 import { Bookmark } from "./icons/Bookmark";
 import type { Category } from "@prisma/client";
 

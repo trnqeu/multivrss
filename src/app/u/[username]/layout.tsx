@@ -10,7 +10,8 @@ import { redirect } from "next/navigation";
 import AutoSync from '@/components/AutoSync';
 import SessionWatcher from '@/components/SessionWatcher';
 import ShareTargetWatcher from '@/components/ShareTargetWatcher';
-import { getCategories, getTags } from '@/app/actions';
+import { getCategories } from '@/app/actions/categories';
+import { getTags } from '@/app/actions/tags';
 
 export default async function UserLayout({
     children,

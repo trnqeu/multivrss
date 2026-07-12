@@ -1,5 +1,6 @@
-import { getCategories } from "@/app/actions";
+import { getCategories } from "@/app/actions/categories";
 import { connection } from 'next/server';
+import { cookies } from 'next/headers';
 import SearchBar from "@/components/SearchBar";
 import PageHeader from "@/components/PageHeader";
 import FeedViewSwitch from "@/components/FeedViewSwitch";
@@ -23,10 +24,12 @@ export default async function Home({
     // A category or source filter implies the user wants the River — default there
     // unless they explicitly switched to Front Page with ?view=front
     const hasFilter = !!(params.cat || params.source);
+    const cookieStore = await cookies();
+    const defaultView: 'front' | 'river' = cookieStore.get('default-view')?.value === 'river' ? 'river' : 'front';
     const view: 'front' | 'river' =
         params.view === 'front' ? 'front'
         : params.view === 'river' || hasFilter ? 'river'
-        : 'front';
+        : defaultView;
     const userId = session?.user.id ?? '';
 
     const sourceCount = await prisma.feedSource.count({
