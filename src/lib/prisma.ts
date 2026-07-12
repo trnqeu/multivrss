@@ -6,7 +6,6 @@ import 'dotenv/config'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
-// Creiamo un pool di connessioni usando la nostra URL
 const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 

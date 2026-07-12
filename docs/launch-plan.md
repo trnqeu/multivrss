@@ -4,12 +4,12 @@ Step-by-step checklist to go live on `multivrss.com`.
 
 ## Blockers — must be done before launch
 
-| Item | File / location |
-|------|----------------|
-| Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy) | Nginx config |
-| SSRF guard for `resolvePageTitle` | `src/app/actions.ts` |
-| Password reset token via POST body (not URL param) | `src/app/actions.ts` |
-| Nginx rate limiting on login / auth / API endpoints | Nginx config |
+| Item | File / location | Status |
+|------|----------------|--------|
+| Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy) | `next.config.ts` | done |
+| SSRF guard for `resolvePageTitle` | `src/app/actions.ts` | done |
+| Password reset token via POST body (not URL param) | `src/app/reset-password/page.tsx` | done |
+| Nginx rate limiting on login / auth / API endpoints | Nginx config | todo |
 
 Nice-to-have before launch (non-blocking):
 
@@ -20,7 +20,7 @@ Nice-to-have before launch (non-blocking):
 
 ## Phase 0 — Security fixes
 
-Resolve all four blockers above. See [deploy-strategy.md](./deploy-strategy.md) for context on Nginx config patterns.
+Remaining item: Nginx rate limiting. See [deploy-strategy.md](./deploy-strategy.md) for context on Nginx config patterns.
 
 ---
 
@@ -226,9 +226,9 @@ Add to server crontab (`crontab -e`):
 | Staging pipeline end-to-end | done |
 | `docker-compose.prod.yml` | done |
 | GitHub `production` environment | done |
-| Security headers (Nginx) | **todo** |
-| SSRF guard (`resolvePageTitle`) | **todo** |
-| Password reset token in POST body | **todo** |
+| Security headers (`next.config.ts`) | done |
+| SSRF guard (`resolvePageTitle`) | done |
+| Password reset token in POST body | done |
 | Nginx rate limiting | **todo** |
 | DNS + SSL | **todo** |
 | `.env.production` on server | **todo** |
