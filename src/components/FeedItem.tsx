@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions';
+import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
 import { useState, useCallback } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
@@ -46,12 +46,12 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
         setTags(newTags);
     }, []);
     return (
-    <span role="listitem" className={`group/item ${isRead ? 'opacity-30' : ''}`}>
+    <span role="listitem" className="group/item">
         <a
             href={item.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-terracotta transition-colors"
+            className={`hover:text-terracotta transition-colors ${isRead ? 'opacity-30' : ''}`}
             onClick={handleClick}
         >
             {!isRead && (

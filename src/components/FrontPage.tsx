@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
-import { dismissFrontPageItem } from '@/app/actions';
+import { dismissFrontPageItem } from '@/app/actions/feed-items';
 
 type TagVM = { id: string; name: string };
 
@@ -106,13 +106,13 @@ function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
 function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     const [opened, setOpened] = useState(false);
     return (
-        <article className={`group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+        <article className="group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5">
             <CatTag name={item.categoryName} />
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
                 onNavigate={() => setOpened(true)}
-                className="font-serif text-[19px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors no-underline"
+                className={`font-serif text-[19px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
             </FrontPageLink>
@@ -171,17 +171,17 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
 function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     const [opened, setOpened] = useState(false);
     return (
-        <article className={`group flex flex-col items-start gap-[11px] min-w-0 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+        <article className="group flex flex-col items-start gap-[11px] min-w-0">
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
                 onNavigate={() => setOpened(true)}
-                className="font-serif text-[27px] font-semibold leading-[1.14] tracking-[-0.015em] text-foreground hover:text-terracotta transition-colors no-underline"
+                className={`font-serif text-[27px] font-semibold leading-[1.14] tracking-[-0.015em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
             </FrontPageLink>
             {item.content && (
-                <p className="font-serif text-[15px] leading-[1.55] text-foreground/55 font-normal max-w-[50ch] line-clamp-3">
+                <p className={`font-serif text-[15px] leading-[1.55] text-foreground/55 font-normal max-w-[50ch] line-clamp-3 transition-opacity ${opened ? 'opacity-40' : ''}`}>
                     {item.content}
                 </p>
             )}
@@ -197,12 +197,12 @@ function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagV
 function Row({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
     const [opened, setOpened] = useState(false);
     return (
-        <li className={`group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+        <li className="group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0">
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
                 onNavigate={() => setOpened(true)}
-                className="font-serif text-[17px] font-medium leading-[1.26] text-foreground hover:text-terracotta transition-colors no-underline"
+                className={`font-serif text-[17px] font-medium leading-[1.26] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
             </FrontPageLink>

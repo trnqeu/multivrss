@@ -1,6 +1,6 @@
 'use client'
 
-import { resendVerificationEmail } from "@/app/actions";
+import { resendVerificationEmail } from "@/app/actions/auth";
 import { useActionState } from "react";
 import Link from "next/link";
 

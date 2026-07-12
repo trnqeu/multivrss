@@ -238,9 +238,10 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 
 #### Phase 3 — Feed sync refactor (critical for scale)
 
-- [x] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; cron enqueues jobs, workers execute them
+- [x] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; the stale-feed scan enqueues jobs, workers execute them
 - [x] **Separate worker process** — run BullMQ workers outside the Next.js process so sync load does not affect web response times (`npm run worker`)
 - [x] **TTL-aware scheduling** — read `<ttl>` or `Cache-Control` from feed response; skip re-sync until declared expiry
+- [x] **Self-scheduled stale-feed scan** — worker process registers a BullMQ repeatable job (`upsertJobScheduler`, every 5 min) on startup instead of depending on an external host cron hitting `/api/cron/sync`; that route now only wraps the same scan logic (`src/lib/feed-sync-scheduler.ts`) as a manual/backup trigger
 - [ ] **BullBoard dashboard** — mount BullMQ dashboard (admin-only route) for queue monitoring and manual job retry
 
 #### Phase 4 — Evaluate Go worker (after measuring)

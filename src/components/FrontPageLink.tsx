@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead } from '@/app/actions';
+import { markAsRead } from '@/app/actions/feed-items';
 
 interface Props {
     itemId: string;

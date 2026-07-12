@@ -66,19 +66,40 @@ npx ts-node --project tsconfig.test.json tests/test-meili.ts
 
 ```
 src/app/
-  (marketing)/            Public marketing site at /
+  [lang]/(marketing)/     Localized public marketing site (en/it) at /[lang]
+    page.tsx              Landing page
+    blog/, guide/, sources/, tips/   Marketing content pages
   u/[username]/           Private dashboard shell (layout.tsx enforces auth + username match)
     page.tsx              Feed list (all feeds)
     category/[slug]/      Category-filtered feed
     source/[slug]/        Source-filtered feed
     saved/                Reading list (saved links)
     suggested/            Suggested feeds directory
-  login|register|forgot-password|reset-password/
+  login|register|forgot-password|reset-password|verify-email/
+  share-target/           PWA share-target endpoint (share links into the app)
+  docs/route.ts           Scalar API reference UI, served from /api/openapi
   api/
     auth/[...nextauth]/   NextAuth handler
+    categories/route.ts   Category CRUD
+    feeds/sources/route.ts  Feed source CRUD
+    saved/route.ts, saved/[id]/tags/route.ts   Saved links + tagging
     cron/sync/route.ts    Bearer-token cron (CRON_SECRET), syncs stale feeds
+    cron/reconcile/route.ts  Bearer-token cron, reconciliation pass
+    internal/revalidate/route.ts  Internal-secret-gated cache revalidation
     search/route.ts       Meilisearch proxy
-  actions.ts              All Server Actions (mutations, sync, auth, password)
+    health/route.ts       Health check for deploy pipeline
+    openapi/route.ts      OpenAPI schema
+  actions/                Server Actions, split by domain (each file has its own 'use server')
+    types.ts              Shared ActionState type
+    shared.ts              frontpageTag() cache-tag helper
+    auth.ts                 Register, verify email, password reset
+    categories.ts           Category CRUD
+    feeds.ts                Feed source CRUD, discovery, sync
+    feed-items.ts           Read/unread, save/unsave, front-page dismiss
+    saved-links.ts          External link saving, page title resolution
+    csv.ts                  Feed import/export
+    tags.ts                 Tag CRUD, tag assignment to links/items
+    starter-packs.ts        Onboarding starter pack add/undo
 
 src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)
@@ -87,10 +108,19 @@ src/lib/
   meili.ts                Meilisearch singleton, index config, SearchHit type
   search.ts               searchFeedItemsForUser() with "use cache" + cacheTag
   email.ts                Password reset via Resend
-  utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX
+  utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
   rate-limit.ts           In-memory rate limiter for login/password reset
+  i18n/                   Dictionary-based i18n (en/it) for marketing routes
+  blog.ts                 Markdown blog post loader
+  frontpage.ts            Landing page data (stats, featured content)
+  suggested-feeds.ts      Suggested feeds directory data
+  youtube.ts              YouTube feed source support
+  queue.ts, redis.ts      Background job queue (Redis-backed)
+  revalidate.ts           Shared cache revalidation helpers
+  cors.ts                 CORS handling for the extension/share-target origin
 
+src/workers/feed-sync.ts  Background worker process for feed syncing
 src/proxy.ts              Request proxy (Next.js 16 convention — not middleware.ts)
 tests/unit/               Vitest unit tests
 ```
@@ -210,14 +240,12 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 ## Known Gotchas
 
-- `AGENTS.md`, `notes.md`, `GEMINI.md` are in `.gitignore` — they exist only locally, never committed.
+- `AGENTS.md`, `notes.md`, `GEMINI.md`, `MARKETING_PLAN.md` are in `.gitignore` — they exist only locally, never committed.
 - No `opencode.json` in the repo.
-- `PASSWORD_REGEX` is duplicated in `src/lib/utils.ts` and `src/app/actions.ts`.
-- `src/lib/prisma.ts` has verbose query logging enabled — gate behind `NODE_ENV` before production.
-- `FeedList` renders items inside a `<p>` — be careful with semantics/accessibility changes.
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - No `.env.example` — check local `.env` for required vars.
 - Untracked `.codex` path exists — do not delete or modify.
+- `content/blog` (read by `src/lib/blog.ts`) does not exist on disk yet — the `/blog` route currently renders empty until posts are added.
 
 ## Docker
 
@@ -248,8 +276,13 @@ GITHUB_SECRET=<oauth-client-secret>
 GOOGLE_ID=<oauth-client-id>
 GOOGLE_SECRET=<oauth-client-secret>
 CRON_SECRET=<secret>
+INTERNAL_SECRET=<secret>      # gates /api/internal/revalidate (src/lib/revalidate.ts)
 RESEND_API_KEY=<key>          # email transport (src/lib/email.ts)
 STAGING_PASSWORD=<password>   # optional; enables Basic Auth in proxy.ts
+EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
+REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)
+REDIS_PORT=6379
+YOUTUBE_API_KEY=<key>         # optional; YouTube channels as feed sources (src/lib/youtube.ts)
 ```
 
 ## Dependency Docs (chub)

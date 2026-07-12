@@ -3,8 +3,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { useActionState } from 'react';
 import { signOut } from 'next-auth/react';
-import { exportFeedsCsv, importFeedsCsv } from '@/app/actions';
-import type { ActionState } from '@/app/actions';
+import { exportFeedsCsv, importFeedsCsv } from '@/app/actions/csv';
+import type { ActionState } from '@/app/actions/types';
 
 const initialState: ActionState = { success: false };
 

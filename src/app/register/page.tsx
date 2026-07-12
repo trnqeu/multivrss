@@ -1,6 +1,6 @@
 'use client'
 
-import { registerUser } from "@/app/actions";
+import { registerUser } from "@/app/actions/auth";
 import { useActionState, useState } from "react";
 
 

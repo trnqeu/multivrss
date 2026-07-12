@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getCategories } from "@/app/actions";
+import { getCategories } from "@/app/actions/categories";
 
 
 interface CategoryPageProps {
