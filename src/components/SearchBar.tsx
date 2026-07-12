@@ -206,7 +206,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
             </div>
 
             {/* Results river — Ledger */}
-            <section className="px-2 md:px-5 py-1.5 pb-[90px] md:max-w-[880px]">
+            <section className="px-2 md:px-5 py-1.5 pb-[90px]">
                 {loading && allHits.length === 0 ? (
                     <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 px-3 py-6">
                         LOADING...
@@ -315,7 +315,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                         )}
                                     </div>
 
-                                    {/* Desktop row — single-line grid */}
+                                    {/* Desktop row — wraps to more lines when title/preview don't fit */}
                                     <div
                                         role="listitem"
                                         className={`hidden md:grid group grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${item.read ? 'opacity-[.42]' : ''}`}
@@ -330,7 +330,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             {dateLabel}
                                         </span>
 
-                                        <span className="min-w-0 overflow-hidden whitespace-nowrap text-ellipsis">
+                                        <span className="min-w-0">
                                             <a
                                                 href={item.link}
                                                 target="_blank"
