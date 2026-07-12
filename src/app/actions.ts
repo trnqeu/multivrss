@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import bcrypt from "bcrypt";
-import { slugify, PASSWORD_REGEX } from "@/lib/utils";
+import { slugify, PASSWORD_REGEX, decodeHtmlEntities } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -804,9 +804,7 @@ async function resolvePageTitle(url: string): Promise<string | null> {
         const tt = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
         const raw = (og ?? tt ?? '').trim();
         if (!raw) return null;
-        const decoded = raw.replace(/&amp;/g, '&').replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-        return decoded.slice(0, 300);
+        return decodeHtmlEntities(raw).slice(0, 300);
     } catch {
         return null;
     }
