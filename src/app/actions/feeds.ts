@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 import { triggerRevalidate } from "@/lib/revalidate";
+import { getFrontPage } from "@/lib/frontpage";
 import type { ActionState } from "./types";
 import { frontpageTag } from "./shared";
 
@@ -360,6 +361,9 @@ export async function syncAllFeeds(): Promise<ActionState> {
     updateTag(`feed:${session.user.id}`);
     updateTag(`sidebar:${session.user.id}`);
     updateTag(frontpageTag(session.user.id));
+    // Recompute now instead of waiting for the next page load, so the
+    // freshly-synced items are already reflected when the user navigates.
+    await getFrontPage(session.user.id);
     const username = session.user.username;
     revalidatePath(`/u/${username}`, 'layout');
 
