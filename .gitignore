@@ -49,10 +49,13 @@ AGENTS.md
 notes.md
 CICD.md
 MARKETING_PLAN.md
+EDITORIAL.md
 
 # agent configuration
 .agent-skills/
+.agents/
 .claude
+.context/
 
 # design mockups and experiments
 .codex
