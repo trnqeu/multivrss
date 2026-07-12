@@ -102,7 +102,7 @@ export default function PageHeader({ categories, username, email, tabs }: Props)
                     <button
                         onClick={handleSync}
                         disabled={isSyncing}
-                        aria-label="Sync feeds"
+                        aria-label="Update feeds"
                         className="bg-transparent border-none p-0 text-terracotta text-lg leading-none disabled:opacity-40"
                     >
                         ↻
@@ -169,7 +169,7 @@ export default function PageHeader({ categories, username, email, tabs }: Props)
                 disabled={isSyncing}
                 className="hidden md:block bg-transparent border-none p-0 font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] text-foreground/55 shrink-0 hover:bg-transparent hover:text-foreground transition-colors disabled:opacity-40"
             >
-                {isSyncing ? '↻ SYNCING...' : '↻ SYNC'}
+                {isSyncing ? '↻ UPDATING...' : '↻ UPDATE'}
             </button>
 
             <div className="hidden md:flex items-center gap-3 ml-3">

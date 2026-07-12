@@ -11,7 +11,10 @@ export const connection = {
   port: Number(process.env.REDIS_PORT ?? 6379),
 }
 
-const globalForQueue = global as unknown as { feedSyncQueue: Queue<FeedSyncJobData> }
+const globalForQueue = global as unknown as {
+  feedSyncQueue: Queue<FeedSyncJobData>
+  feedScanQueue: Queue<Record<string, never>>
+}
 
 export const feedSyncQueue =
   globalForQueue.feedSyncQueue ??
@@ -25,4 +28,19 @@ export const feedSyncQueue =
     },
   })
 
-if (process.env.NODE_ENV !== 'production') globalForQueue.feedSyncQueue = feedSyncQueue
+// Drives the repeating scan that finds stale feed sources and enqueues
+// `feedSyncQueue` jobs for them. See src/lib/feed-sync-scheduler.ts.
+export const feedScanQueue =
+  globalForQueue.feedScanQueue ??
+  new Queue<Record<string, never>>('feed-scan', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: 10,
+      removeOnFail: 50,
+    },
+  })
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForQueue.feedSyncQueue = feedSyncQueue
+  globalForQueue.feedScanQueue = feedScanQueue
+}
