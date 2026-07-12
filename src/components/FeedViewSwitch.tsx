@@ -11,6 +11,7 @@ export default function FeedViewSwitch({ view }: Props) {
     const searchParams = useSearchParams();
 
     function switchTo(next: 'front' | 'river') {
+        document.cookie = `default-view=${next}; path=/; max-age=31536000; samesite=lax`;
         const params = new URLSearchParams(searchParams.toString());
         params.set('view', next);
         router.replace('?' + params.toString(), { scroll: false });
