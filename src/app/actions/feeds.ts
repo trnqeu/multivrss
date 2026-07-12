@@ -363,7 +363,12 @@ export async function syncAllFeeds(): Promise<ActionState> {
     updateTag(frontpageTag(session.user.id));
     // Recompute now instead of waiting for the next page load, so the
     // freshly-synced items are already reflected when the user navigates.
-    await getFrontPage(session.user.id);
+    // Best-effort: a slow/broken recommendation engine must not fail the sync.
+    try {
+        await getFrontPage(session.user.id);
+    } catch (err) {
+        console.error('Front page warm-up failed:', err);
+    }
     const username = session.user.username;
     revalidatePath(`/u/${username}`, 'layout');
 
