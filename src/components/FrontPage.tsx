@@ -295,30 +295,32 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
 
     return (
-        <div className="max-w-[1180px] mx-auto px-4 min-[761px]:px-7 min-[1181px]:px-10 pb-[100px]">
-            <h1 className="sr-only">Front Page</h1>
-            <div className="md:hidden flex justify-end pt-3">
+        <>
+            <div className="md:hidden flex items-stretch border-b-2 border-foreground min-h-[2.5rem]">
                 <Link
                     href="?view=river"
                     aria-label="Switch to River view"
-                    className="inline-flex items-center gap-1 font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta border-[1.5px] border-foreground px-3 py-[6px]"
+                    className="shrink-0 flex items-center px-3 font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/55 hover:text-terracotta"
                 >
                     ≡ River
                 </Link>
             </div>
-            {isEmpty ? (
-                <EmptyFrontPage />
-            ) : (
-                <>
-                    <Masthead stats={stats} />
-                    <ForYouStrip pool={forYouPool} allTags={allTags} />
-                    <div className="mt-[18px] flex flex-col">
-                        {sections.map(s => (
-                            <Section key={s.category} category={s.category} items={s.items} allTags={allTags} />
-                        ))}
-                    </div>
-                </>
-            )}
-        </div>
+            <div className="max-w-[1180px] mx-auto px-4 min-[761px]:px-7 min-[1181px]:px-10 pb-[100px]">
+                <h1 className="sr-only">Front Page</h1>
+                {isEmpty ? (
+                    <EmptyFrontPage />
+                ) : (
+                    <>
+                        <Masthead stats={stats} />
+                        <ForYouStrip pool={forYouPool} allTags={allTags} />
+                        <div className="mt-[18px] flex flex-col">
+                            {sections.map(s => (
+                                <Section key={s.category} category={s.category} items={s.items} allTags={allTags} />
+                            ))}
+                        </div>
+                    </>
+                )}
+            </div>
+        </>
     );
 }
