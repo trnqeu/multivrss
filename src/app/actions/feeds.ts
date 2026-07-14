@@ -36,7 +36,7 @@ async function uniqueFeedSlug(baseSlug: string, excludeId?: string): Promise<str
 // the first sync in the background, after createFeedSource has already
 // returned. Until this finishes, the source sits with lastSync === null,
 // which the sidebar renders as a PENDING badge. Not awaited by the caller.
-async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl: string): Promise<void> {
+async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl: string, customTitle?: string): Promise<void> {
     let discovered: Awaited<ReturnType<typeof discoverFeedUrl>>;
     try {
         discovered = await discoverFeedUrl(rawUrl);
@@ -48,7 +48,7 @@ async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl
     }
 
     const { url: feedUrl, feed } = discovered;
-    const title = feed.title || feedUrl;
+    const title = customTitle || feed.title || feedUrl;
     const slug = await uniqueFeedSlug(slugify(title), sourceId);
 
     try {
@@ -78,6 +78,7 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     const userId = session.user.id;
     const username = session.user.username;
     const url = formData.get("url") as string;
+    const customTitle = (formData.get("customTitle") as string)?.trim() || undefined;
     const categoryId = formData.get("categoryId") as string;
     const newCategoryName = formData.get("newCategoryName") as string;
 
@@ -130,16 +131,17 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
         // the remote site) can take up to 30s, so it — and the first sync —
         // run in the background instead of blocking this action; see
         // discoverAndSyncNewSource() above.
-        const placeholderSlug = await uniqueFeedSlug(slugify(new URL(url).hostname));
+        const placeholderSlug = await uniqueFeedSlug(slugify(customTitle || new URL(url).hostname));
         const source = await prisma.feedSource.create({
             data: {
                 url,
                 categoryId: finalCategoryId,
                 slug: placeholderSlug,
+                title: customTitle,
             }
         });
 
-        discoverAndSyncNewSource(source.id, userId, url).catch((err: unknown) => {
+        discoverAndSyncNewSource(source.id, userId, url, customTitle).catch((err: unknown) => {
             console.error(`Background discovery failed for source ${source.id}:`, err);
         });
 
