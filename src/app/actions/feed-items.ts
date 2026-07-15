@@ -94,6 +94,31 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
     }
 }
 
+// Stamps items as shown so getFrontPage()'s selection queries exclude them
+// from future days — keeps the "shown" write out of the cached data-fetch path.
+async function stampFrontPageShown(itemIds: string[], userId: string) {
+    if (itemIds.length === 0) return;
+    const now = new Date();
+    await prisma.feedItem.updateMany({
+        where: { id: { in: itemIds }, source: { category: { userId } } },
+        data: { frontPageShownAt: now },
+    });
+    await meili.index('items').updateDocuments(
+        itemIds.map(id => ({ id, frontPageShownAt: now.getTime() }))
+    );
+}
+
+export async function markFrontPageShown(itemIds: string[]): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    try {
+        await stampFrontPageShown(itemIds, session.user.id);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to update front page state." };
+    }
+}
+
 export async function dismissFrontPageItem(
     itemId: string,
     categoryName: string,
@@ -136,6 +161,7 @@ export async function dismissFrontPageItem(
 
         const pick = candidates[Math.floor(Math.random() * candidates.length)];
         const sourceTitle = sources.find(s => s.id === pick.sourceId)?.title ?? '';
+        await stampFrontPageShown([pick.id], session.user.id);
 
         const replacement: FrontPageItem = {
             id: pick.id,

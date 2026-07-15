@@ -84,7 +84,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     const freshBySource = await Promise.all(
         topSources.map(([sid]) =>
             prisma.feedItem.findMany({
-                where: { sourceId: sid, read: false, savedAt: null, pubDate: { gte: new Date(since) } },
+                where: { sourceId: sid, read: false, savedAt: null, frontPageShownAt: null, pubDate: { gte: new Date(since) } },
                 orderBy: { pubDate: 'desc' }, take: 2,
                 select: { id: true, title: true, link: true, content: true, pubDate: true },
             })
@@ -122,7 +122,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
                     indexUid: 'items',
                     q: seed.title,
                     limit: 4,
-                    filter: [`(${ownershipFilter})`, 'read = false', 'savedAt IS NULL'],
+                    filter: [`(${ownershipFilter})`, 'read = false', 'savedAt IS NULL', 'frontPageShownAt IS NULL'],
                     showRankingScore: true,
                     attributesToRetrieve: ['id', 'link', 'title', 'content', 'pubDate', 'sourceTitle', 'categoryName'],
                 })),
@@ -192,6 +192,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
                         sourceId: { in: sids },
                         read: false,
                         savedAt: null,
+                        frontPageShownAt: null,
                         id: { notIn: [...shownIds] },
                     },
                     take: needed * 4,
@@ -232,10 +233,15 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         catTotal.set(cat, (catTotal.get(cat) ?? 0) + row._count._all);
     }
 
+    const maxAffinityByCat = new Map([...byCat.entries()].map(([category, items]) => [category, Math.max(...items.map(i => i.affinity))]));
     const sections = [...byCat.entries()]
-        .map(([category, items]) => ({ category, items, totalCount: catTotal.get(category) ?? items.length }))
+        .map(([category, items]) => ({
+            category,
+            items: [...items].sort((a, b) => (b.pubDate ?? 0) - (a.pubDate ?? 0)),
+            totalCount: catTotal.get(category) ?? items.length,
+        }))
         .filter(s => s.items.length > 0)
-        .sort((a, b) => b.items[0].affinity - a.items[0].affinity);
+        .sort((a, b) => (maxAffinityByCat.get(b.category) ?? 0) - (maxAffinityByCat.get(a.category) ?? 0));
 
     return {
         forYouPool,
