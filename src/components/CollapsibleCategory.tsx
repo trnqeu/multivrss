@@ -95,6 +95,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         <button
                             type="button"
                             onClick={onToggle}
+                            onMouseDown={(e) => e.preventDefault()}
                             aria-expanded={isOpen}
                             aria-label={isOpen ? `Close ${category.name}` : `Open ${category.name}`}
                             className="w-[18px] h-[18px] border border-foreground/25 text-foreground/45 bg-background inline-flex items-center justify-center font-mono text-xs font-extrabold leading-none shrink-0 hover:border-terracotta hover:text-terracotta transition-colors"
