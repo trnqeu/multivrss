@@ -308,6 +308,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
     const toUpdate: Array<{
         id: string; externalId: string; title: string; content: string;
         link: string; pubDate: Date | null; sourceId: string; savedAt: Date | null;
+        frontPageShownAt: Date | null;
     }> = [];
 
     for (const item of feed.items) {
@@ -328,6 +329,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 id: existing.id, externalId, title, content,
                 link: item.link || '', pubDate: existing.pubDate,
                 sourceId: source.id, savedAt: existing.savedAt,
+                frontPageShownAt: existing.frontPageShownAt,
             });
         }
     }
@@ -366,6 +368,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
                 categoryName: source.category.name,
                 read: false,
                 savedAt: item.savedAt ? (item.savedAt instanceof Date ? item.savedAt.getTime() : item.savedAt) : null,
+                frontPageShownAt: item.frontPageShownAt ? (item.frontPageShownAt instanceof Date ? item.frontPageShownAt.getTime() : item.frontPageShownAt) : null,
             })),
             { primaryKey: 'id' }
         ).catch((error: unknown) => {
@@ -373,12 +376,14 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         });
     }
 
-    // 5. Update the last sync date of the source
+    // 5. Update the last sync date of the source. Title is intentionally
+    // not touched here — it's set once when the source is created/discovered
+    // and must not be clobbered by the feed's own title on later syncs,
+    // otherwise manual renames and custom names would keep reverting.
     await prisma.feedSource.update({
         where: { id: sourceId },
         data: {
             lastSync: new Date(),
-            ...(feed.title ? { title: feed.title } : {}),
             ...(feed.ttl ? { ttlMinutes: parseInt(feed.ttl, 10) || null } : {}),
         },
     });

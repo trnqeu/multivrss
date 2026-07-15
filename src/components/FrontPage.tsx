@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
-import { dismissFrontPageItem } from '@/app/actions/feed-items';
+import { dismissFrontPageItem, markFrontPageShown } from '@/app/actions/feed-items';
 
 type TagVM = { id: string; name: string };
 
@@ -293,6 +293,14 @@ function EmptyFrontPage() {
 export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
     const { forYouPool, sections, stats } = data;
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
+
+    const stamped = useRef(false);
+    useEffect(() => {
+        if (stamped.current) return;
+        stamped.current = true;
+        const ids = [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id);
+        if (ids.length > 0) void markFrontPageShown(ids);
+    }, [forYouPool, sections]);
 
     return (
         <>
