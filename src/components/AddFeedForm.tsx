@@ -19,6 +19,7 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
     const [state, formAction, isPending] = useActionState(createFeedSource, initialState);
 
     const [url, setUrl] = useState(initialUrl ?? "");
+    const [customTitle, setCustomTitle] = useState("");
     const [pickedCategoryId, setPickedCategoryId] = useState("");
     const [creatingNew, setCreatingNew] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
@@ -29,6 +30,7 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
 
     const resetForm = useCallback(() => {
         setUrl("");
+        setCustomTitle("");
         setPickedCategoryId("");
         setCreatingNew(false);
         setNewCategoryName("");
@@ -100,7 +102,7 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-20 px-4"
             style={{ backgroundColor: "rgba(0,0,0,0.70)" }}
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
@@ -166,10 +168,29 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
                         )}
                     </div>
 
-                    {/* Field 2 — Category (merged picker + create) */}
+                    {/* Field 2 — Feed name (optional override) */}
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="aff-title" className="label-system font-mono text-[10px] uppercase tracking-widest">
+                            <span className="text-terracotta">02</span>
+                            <span className="text-foreground">&nbsp;&nbsp;FEED NAME (OPTIONAL)</span>
+                        </label>
+                        <input
+                            id="aff-title"
+                            name="customTitle"
+                            type="text"
+                            value={customTitle}
+                            onChange={e => setCustomTitle(e.target.value)}
+                            placeholder="Leave blank to use the feed's own title"
+                            maxLength={200}
+                            disabled={isPending}
+                            className="w-full px-4 py-3 bg-transparent font-mono text-[13px] text-foreground placeholder:text-white/25 border-2 border-foreground transition-colors"
+                        />
+                    </div>
+
+                    {/* Field 3 — Category (merged picker + create) */}
                     <div className="flex flex-col gap-2">
                         <div className="label-system font-mono text-[10px] uppercase tracking-widest">
-                            <span className="text-terracotta">02</span>
+                            <span className="text-terracotta">03</span>
                             <span className="text-foreground">&nbsp;&nbsp;CATEGORY</span>
                         </div>
 

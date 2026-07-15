@@ -10,7 +10,14 @@ export default function MobileNavLink({ href, children, className }: {
 }) {
   const { setOpen } = useMobileSidebar();
   return (
-    <Link href={href} className={className} onClick={() => setOpen(false)}>
+    <Link
+      href={href}
+      className={className}
+      onClick={(e) => {
+        setOpen(false);
+        e.currentTarget.blur();
+      }}
+    >
       {children}
     </Link>
   );

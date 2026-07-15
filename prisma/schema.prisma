@@ -96,6 +96,7 @@ model FeedItem {
   pubDate    DateTime?
   read       Boolean    @default(false)
   savedAt    DateTime?
+  frontPageShownAt DateTime?
   sourceId   String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
