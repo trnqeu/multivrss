@@ -102,7 +102,7 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto py-20 px-4"
             style={{ backgroundColor: "rgba(0,0,0,0.70)" }}
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
