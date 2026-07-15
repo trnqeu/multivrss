@@ -55,7 +55,7 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
             <button
                 type="button"
                 onClick={() => router.push(`/u/${username}/saved?tag=${encodeURIComponent(tag.name)}`)}
-                className="text-[10px] uppercase tracking-widest px-2 py-1 bg-transparent border-0 hover:bg-foreground hover:text-background transition-colors"
+                className="text-[10px] uppercase tracking-widest px-2 py-1 bg-transparent border-0 text-foreground hover:bg-foreground hover:text-background transition-colors"
             >
                 {tag.name}
             </button>

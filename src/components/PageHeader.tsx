@@ -33,8 +33,13 @@ export default function PageHeader({ categories, username, email, tabs }: Props)
     }
 
     useEffect(() => {
+        function isTypingTarget(el: Element | null): boolean {
+            if (!el) return false;
+            const tag = el.tagName;
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (el as HTMLElement).isContentEditable;
+        }
         function onKeyDown(e: KeyboardEvent) {
-            if (e.key === '/' && document.activeElement !== desktopInputRef.current) {
+            if (e.key === '/' && !isTypingTarget(document.activeElement)) {
                 e.preventDefault();
                 setSearchOpen(true);
                 desktopInputRef.current?.focus();
