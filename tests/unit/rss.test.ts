@@ -117,9 +117,11 @@ describe('syncFeed', () => {
             { primaryKey: 'id' }
         );
 
+        // Title is never overwritten by a sync — set once at discovery/creation
+        // and preserved across re-syncs so manual renames don't get clobbered.
         expect(mockedUpdate).toHaveBeenCalledWith({
             where: { id: 'src_1' },
-            data: expect.objectContaining({ lastSync: expect.any(Date), title: 'Example' }),
+            data: { lastSync: expect.any(Date) },
         });
     });
 
