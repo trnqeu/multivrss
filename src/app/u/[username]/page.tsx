@@ -23,7 +23,7 @@ export default async function Home({
 
     // A category or source filter implies the user wants the River — default there
     // unless they explicitly switched to Front Page with ?view=front
-    const hasFilter = !!(params.cat || params.source);
+    const hasFilter = !!(params.cat || params.source || params.q);
     const cookieStore = await cookies();
     const defaultView: 'front' | 'river' = cookieStore.get('default-view')?.value === 'river' ? 'river' : 'front';
     const view: 'front' | 'river' =
