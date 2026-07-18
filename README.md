@@ -228,12 +228,15 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 - [x] **Email verification at signup** — `EmailVerificationToken` model, Resend email, `/verify-email` route, login blocked until `emailVerified` set (existing users backfilled)
 - [x] **Per-user feed limit** — max 200 feeds per account enforced in `createFeedSource` action
 - [x] **Fix FeedList semantic HTML** — added `role="list"` / `role="listitem"` to feed containers and items
-- [ ] **CSP nonce** — replace `'unsafe-inline'` in `script-src` with a per-request nonce generated in `src/proxy.ts`; pass nonce to root layout via request header; blocks inline XSS even if an injection point is found
+- [x] **CSP script-src hardening** — replaced `'unsafe-inline'` with a build-time SHA-256 hash of the single inline script (`src/lib/theme-script.ts`, computed in `next.config.ts`); blocks inline XSS even if an injection point is found. A per-request nonce was considered but rejected: it requires dynamic rendering on every page, which conflicts with `cacheComponents` (PPR)
 
 #### Phase 2 — Infrastructure
 
 - [x] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
-- [ ] **Sentry integration** — `@sentry/nextjs` SDK for error tracking in Server Actions, Route Handlers, cron sync, and RSS parser; session replay for UI bugs; performance tracing on Prisma/Meilisearch calls; alerting on error spikes
+- [x] **Sentry integration** — `@sentry/nextjs` SDK installed and wired: `instrumentation.ts` (`onRequestError`) captures errors from Server Actions, Route Handlers (including cron routes), and Server Components automatically; `instrumentation-client.ts` + `global-error.tsx` cover client-side and root render crashes. DSN flows end-to-end — local `.env`, GitHub repo Variable for the build-time client bundle (`NEXT_PUBLIC_SENTRY_DSN` baked into the Docker image via `build-args`), `.env.production`/`.env.staging` on the server — and was verified with a real test event reaching the Sentry dashboard.
+  - [ ] **Session Replay** — not yet enabled (`Sentry.replayIntegration()`)
+  - [ ] **Prisma/Meilisearch performance tracing** — `tracesSampleRate` is set, but no explicit span instrumentation for Prisma/Meilisearch calls added yet
+  - [ ] **Alerting on error spikes** — configure alert rules in the Sentry dashboard
 - [ ] **Uptime & metrics monitoring** — Prometheus + Grafana or BetterStack for infrastructure metrics and uptime checks
 
 #### Phase 3 — Feed sync refactor (critical for scale)
@@ -256,11 +259,12 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 
 - [x] **Three explicit environments** — Local (`localhost:3002`), Staging (`dev` → `staging.multivrss.com`), Production (`main` → `multivrss.com`)
 - [x] **`dev` push → staging deploy** — quality gate → Docker build → SSH deploy → health check → auto-rollback
-- [x] **`main` push → production deploy** — same pipeline with manual approval gate before deploy
+- [x] **`main` push → production deploy** — same pipeline, trigger restricted to the `main` branch
 - [x] **Prisma migration before code swap** — runs in an isolated one-shot container before `docker compose up`
 - [x] **`/api/health` route** — checks DB, Meilisearch, and Redis connectivity
 - [x] **Rollback on failure** — automated rollback to previous SHA if health check fails after deploy
-- [x] **GitHub Environments** — `staging` (auto) and `production` (manual reviewer) with scoped secrets
+- [x] **GitHub Environments** — `staging` and `production` with scoped secrets
+- [ ] **Manual approval gate on production deploy** — required reviewers on the `production` environment need GitHub Pro (or a public repo); not available on the current private-repo free plan. Same limitation blocks native branch protection on `main`. Revisit if upgrading the plan or open-sourcing the repo.
 - [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
 
 ### Self-Hosting _(optional / not yet decided)_
@@ -288,6 +292,7 @@ Steps to make the repo public and let users run their own instance.
 
 ### Core features
 
+- [ ] **Android app (Capacitor wrapper)** — wrap the existing Next.js PWA in a native WebView shell via [Capacitor](https://capacitorjs.com/); publishable to Google Play. Reuses the current frontend as-is; unlocks native plugins (push notifications, native share target replacing/augmenting `share-target/`) beyond what the web share-target endpoint can do. Key steps: add `@capacitor/core` + `@capacitor/android`, configure `capacitor.config.ts` to point at the deployed production URL (or bundle a local build), wire native push via `@capacitor/push-notifications` if adopted, sign and publish the APK/AAB.
 - [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click; save articles to reading list; REST API already in place
 - [ ] **Export as CSV** — two separate exports: (1) all feed sources (URL, category, title) for re-importing into another RSS reader; (2) all saved links (URL, title, tags, saved date) compatible with Instapaper/Pocket CSV format
 - [ ] **Import from CSV** — two separate imports: (1) feed list (OPML or CSV with URL + optional category); (2) saved links from Instapaper, Pocket, or any CSV with a URL column — maps to `SavedLink` rows
@@ -317,6 +322,7 @@ Steps to make the repo public and let users run their own instance.
 ### Marketing & Infrastructure
 
 - [ ] **Marketing site i18n** — multi-language support for the public marketing pages at `/` (hero, pricing, tips). Scope is marketing only — the authenticated dashboard stays English-only. Use Next.js 16 built-in i18n routing (`i18n` config in `next.config.ts`) with locale-prefixed URLs (e.g. `/it`, `/es`). Launch languages TBD; suggested starting pair: English (default) + Italian. Requires extracting all marketing copy into locale message files; `next-intl` is the recommended library for App Router.
+- [ ] **Privacy Policy & Cookie Policy pages** — `/privacy` and `/cookies` under the marketing site (i18n en/it), required before public launch for EU users. Must disclose: third-party sub-processors that process personal data (Sentry once enabled — IP address, user agent, stack traces, breadcrumbs), `localStorage` usage (theme preference), and any analytics added later. No cookies are set today (Sentry uses request headers for tracing, not cookies), but GDPR requires disclosing personal-data processing regardless of cookie use.
 - [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
 - [ ] **OWASP secure development** — apply OWASP Top 10 across every feature:
