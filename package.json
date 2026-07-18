@@ -17,6 +17,7 @@
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.5.0",
     "@scalar/nextjs-api-reference": "^0.11.4",
+    "@sentry/nextjs": "^10.66.0",
     "@types/marked": "^5.0.2",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.79.0",
