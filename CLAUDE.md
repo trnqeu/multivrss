@@ -283,6 +283,11 @@ EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
 REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)
 REDIS_PORT=6379
 YOUTUBE_API_KEY=<key>         # optional; YouTube channels as feed sources (src/lib/youtube.ts)
+SENTRY_DSN=<dsn>              # server/edge error reporting (src/sentry.server.config.ts, src/sentry.edge.config.ts)
+NEXT_PUBLIC_SENTRY_DSN=<dsn>  # client-side error reporting (src/instrumentation-client.ts)
+SENTRY_ORG=<org-slug>         # optional; source map upload at build time (next.config.ts)
+SENTRY_PROJECT=<project-slug> # optional; source map upload at build time (next.config.ts)
+SENTRY_AUTH_TOKEN=<token>     # optional; source map upload at build time, CI only
 ```
 
 ## Dependency Docs (chub)
