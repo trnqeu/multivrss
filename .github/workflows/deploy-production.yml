@@ -39,7 +39,9 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ github.sha }}-migrator
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: GIT_COMMIT=${{ github.sha }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
 
       - name: Build and push app image
         uses: docker/build-push-action@v6
@@ -52,7 +54,9 @@ jobs:
             ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: GIT_COMMIT=${{ github.sha }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
 
   deploy:
     name: Deploy to Production
