@@ -69,6 +69,10 @@ export const en: Dictionary = {
       { label: "Changelog", href: "#" },
       { label: "Status", href: "#" },
     ],
+    legalLinks: [
+      { label: "Privacy Policy", slug: "privacy" },
+      { label: "Cookie Policy", slug: "cookies" },
+    ],
   },
   meta: {
     home: {

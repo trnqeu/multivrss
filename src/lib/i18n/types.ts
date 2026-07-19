@@ -61,6 +61,7 @@ export interface Dictionary {
     resourcesLabel: string;
     productLinks: FooterLink[];
     resourceLinks: FooterLink[];
+    legalLinks: FooterLink[];
   };
   meta: {
     home: {
