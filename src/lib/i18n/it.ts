@@ -70,6 +70,10 @@ export const it: Dictionary = {
       { label: "Changelog", href: "#" },
       { label: "Stato", href: "#" },
     ],
+    legalLinks: [
+      { label: "Privacy Policy", slug: "privacy" },
+      { label: "Cookie Policy", slug: "cookies" },
+    ],
   },
   meta: {
     home: {

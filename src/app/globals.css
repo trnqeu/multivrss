@@ -214,3 +214,23 @@ a:focus-visible {
   font-size: inherit;
   color: inherit;
 }
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 14px;
+}
+.prose th, .prose td {
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid black;
+  line-height: 1.5;
+}
+.prose th {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-bottom-width: 2px;
+}
