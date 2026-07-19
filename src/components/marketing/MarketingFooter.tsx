@@ -55,8 +55,19 @@ export default function MarketingFooter({ lang, dict }: Props) {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mt-[36px] pt-[20px] border-t border-black/12 font-mono text-[10px] tracking-[0.12em] text-black/30 max-w-[1200px] mx-auto">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-[36px] pt-[20px] border-t border-black/12 font-mono text-[10px] tracking-[0.12em] text-black/30 max-w-[1200px] mx-auto">
         <span>© 2026 MULTIVRSS · MADE IN TORINO</span>
+        <div className="flex items-center gap-4">
+          {t.legalLinks.map((l) => (
+            <Link
+              key={l.label}
+              href={"slug" in l ? `/${lang}/${l.slug}` : (l.href ?? "#")}
+              className="hover:text-black transition-colors"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
         <span>v0.1.0 · BUILD 2026.05.23</span>
       </div>
     </footer>
