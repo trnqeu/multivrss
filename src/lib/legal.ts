@@ -18,9 +18,14 @@ export function getLegalDoc(slug: string, lang: Lang): LegalDoc | null {
   const raw = fs.readFileSync(filePath, "utf-8");
   const { data, content } = matter(raw);
 
+  const updated =
+    data.updated instanceof Date
+      ? data.updated.toISOString().slice(0, 10)
+      : String(data.updated);
+
   return {
     title: data.title as string,
-    updated: data.updated as string,
+    updated,
     content,
   };
 }
