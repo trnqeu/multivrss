@@ -24,11 +24,14 @@ function parsePost(file: string, lang: Lang): BlogPost {
   const raw = fs.readFileSync(path.join(BLOG_DIR, lang, file), "utf-8");
   const { data, content } = matter(raw);
 
+  const date =
+    data.date instanceof Date ? data.date.toISOString().slice(0, 10) : String(data.date);
+
   return {
     slug,
     title: data.title as string,
     category: data.category as string,
-    date: data.date as string,
+    date,
     readTime: data.readTime as string,
     lang: data.lang as string | undefined,
     featured: data.featured as boolean | undefined,
