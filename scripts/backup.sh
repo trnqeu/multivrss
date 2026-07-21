@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Backup PostgreSQL to Hetzner Storage Box via SFTP.
+# Backup PostgreSQL to Cloudflare R2 via the S3-compatible API.
 # Usage: backup.sh <environment>   (environment = production | staging)
 #
 # Prerequisites on the server:
-#   1. sshpass installed:  apt install sshpass
+#   1. AWS CLI installed:  apt install awscli
 #   2. /etc/multivrss-backup.env containing:
-#        STORAGE_BOX_HOST=uXXXXXX.your-storagebox.de
-#        STORAGE_BOX_USER=uXXXXXX
-#        SSHPASS=your-storage-box-password
+#        R2_ACCOUNT_ID=your-cloudflare-account-id
+#        R2_ACCESS_KEY_ID=your-r2-access-key-id
+#        R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+#        R2_BUCKET=multivrss-backups
 #        POSTGRES_USER=your-db-user
+#      Create the R2 API token in the Cloudflare dashboard → R2 → Manage API
+#      Tokens → scope it to "Object Read & Write" on this bucket only.
 #
 # Cron (add to /etc/cron.d/multivrss-backup):
 #   0 3 * * * ubuntu /home/ubuntu/multivrss/scripts/backup.sh production >> /var/log/multivrss-backup.log 2>&1
@@ -32,6 +35,11 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
+
+export AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
+export AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
+export AWS_DEFAULT_REGION="auto"
+R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
 
 if [ "$ENVIRONMENT" = "production" ]; then
   COMPOSE_PROJECT="multivrss-prod"
@@ -57,15 +65,11 @@ docker exec "$DB_CONTAINER" pg_dumpall -U "$POSTGRES_USER" \
 BACKUP_SIZE=$(du -sh "$LOCAL_DIR/$BACKUP_FILE" | cut -f1)
 echo "[$(date -Iseconds)] Dump complete: $BACKUP_FILE ($BACKUP_SIZE)"
 
-# Upload to Storage Box
-sshpass -e sftp -o StrictHostKeyChecking=no \
-  "${STORAGE_BOX_USER}@${STORAGE_BOX_HOST}" <<SFTP
--mkdir ${REMOTE_DIR}
-put ${LOCAL_DIR}/${BACKUP_FILE} ${REMOTE_DIR}/${BACKUP_FILE}
-bye
-SFTP
+# Upload to R2
+aws s3 cp "$LOCAL_DIR/$BACKUP_FILE" "s3://${R2_BUCKET}/${REMOTE_DIR}/${BACKUP_FILE}" \
+  --endpoint-url "$R2_ENDPOINT"
 
-echo "[$(date -Iseconds)] Upload complete → ${REMOTE_DIR}/${BACKUP_FILE}"
+echo "[$(date -Iseconds)] Upload complete → s3://${R2_BUCKET}/${REMOTE_DIR}/${BACKUP_FILE}"
 
 # Remove local temp file
 rm -f "$LOCAL_DIR/$BACKUP_FILE"
@@ -75,28 +79,17 @@ rm -f "$LOCAL_DIR/$BACKUP_FILE"
 CUTOFF=$(date -d "${RETENTION_DAYS} days ago" +%Y%m%d 2>/dev/null \
          || date -v-"${RETENTION_DAYS}"d +%Y%m%d)  # macOS fallback
 
-# List remote files, extract those matching our naming pattern, delete old ones
-BATCH_FILE=$(mktemp)
-sshpass -e sftp -o StrictHostKeyChecking=no \
-  "${STORAGE_BOX_USER}@${STORAGE_BOX_HOST}" \
-  -b <(echo "ls ${REMOTE_DIR}/") 2>/dev/null \
-  | grep "multivrss_${ENVIRONMENT}_" \
+echo "[$(date -Iseconds)] Checking for backups older than ${RETENTION_DAYS} days..."
+aws s3 ls "s3://${R2_BUCKET}/${REMOTE_DIR}/" --endpoint-url "$R2_ENDPOINT" \
   | awk '{print $NF}' \
+  | grep "multivrss_${ENVIRONMENT}_" \
   | while IFS= read -r remote_file; do
       # Extract YYYYMMDD from filename: multivrss_production_20250101_030000.sql.gz
       file_date=$(echo "$remote_file" | grep -oE '[0-9]{8}' | head -1)
       if [ -n "$file_date" ] && [ "$file_date" -lt "$CUTOFF" ]; then
-        echo "rm ${REMOTE_DIR}/${remote_file}"
+        echo "[$(date -Iseconds)] Pruning old backup: $remote_file"
+        aws s3 rm "s3://${R2_BUCKET}/${REMOTE_DIR}/${remote_file}" --endpoint-url "$R2_ENDPOINT"
       fi
-    done > "$BATCH_FILE"
-
-if [ -s "$BATCH_FILE" ]; then
-  echo "bye" >> "$BATCH_FILE"
-  echo "[$(date -Iseconds)] Pruning old backups..."
-  sshpass -e sftp -o StrictHostKeyChecking=no \
-    "${STORAGE_BOX_USER}@${STORAGE_BOX_HOST}" \
-    -b "$BATCH_FILE"
-fi
-rm -f "$BATCH_FILE"
+    done
 
 echo "[$(date -Iseconds)] Backup finished."
