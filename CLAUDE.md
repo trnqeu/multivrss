@@ -240,7 +240,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 ## Known Gotchas
 
-- `AGENTS.md`, `notes.md`, `GEMINI.md`, `MARKETING_PLAN.md` are in `.gitignore` — they exist only locally, never committed.
+- `AGENTS.md` and `GEMINI.md` stay at repo root (read from root by their respective CLI tools); `docs/notes.md`, `docs/MARKETING_PLAN.md`, `docs/CICD.md`, `docs/EDITORIAL.md` live under `docs/`. All are in `.gitignore` — they exist only locally, never committed.
 - No `opencode.json` in the repo.
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - No `.env.example` — check local `.env` for required vars.
@@ -328,5 +328,5 @@ Project-level skill definitions: `.agent-skills/skills/`. System skills: pre-ins
 ## References
 
 - `README.md` — product vision + roadmap (keep the roadmap section updated after each feature)
-- `notes.md` — Adminer recipe, curated feed seed list for onboarding, personal notes
+- `docs/notes.md` — Adminer recipe, curated feed seed list for onboarding, personal notes
 - Every task should be checked against the roadmap in `README.md` to mark items done or adjust scope
