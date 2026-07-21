@@ -2,6 +2,7 @@
 
 import { registerUser } from "@/app/actions/auth";
 import { useActionState, useState } from "react";
+import { OAuthButtons } from "@/components/OAuthButtons";
 
 
 export default function RegisterPage() {
@@ -75,7 +76,9 @@ export default function RegisterPage() {
                     </button>
                 </form>
 
-
+                <div className="px-8 pb-8">
+                    <OAuthButtons callbackUrl="/u" label="up" />
+                </div>
             </div>
         </main>
     )
