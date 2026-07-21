@@ -296,7 +296,7 @@ Steps to make the repo public and let users run their own instance.
 - [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click; save articles to reading list; REST API already in place
 - [ ] **Export as CSV** — two separate exports: (1) all feed sources (URL, category, title) for re-importing into another RSS reader; (2) all saved links (URL, title, tags, saved date) compatible with Instapaper/Pocket CSV format
 - [ ] **Import from CSV** — two separate imports: (1) feed list (OPML or CSV with URL + optional category); (2) saved links from Instapaper, Pocket, or any CSV with a URL column — maps to `SavedLink` rows
-- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `notes.md`).
+- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `docs/notes.md`).
 - [ ] **RSS feed creator** — generate a feed for websites that don't provide one
 - [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
 - [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance
