@@ -70,6 +70,9 @@ export function isPrivateIp(ip: string): boolean {
 /** Password strength regex: 8+ chars, upper, lower, digit, special char. */
 export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+/** Username regex: 3-20 chars, letters/numbers/underscore/hyphen only (used in the [username] route segment). */
+export const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
+
 /** Strips HTML tags, collapsing whitespace. */
 export function stripHtml(str: string): string {
     return str.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
-import { PASSWORD_REGEX } from "@/lib/utils";
+import { PASSWORD_REGEX, USERNAME_REGEX } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -23,6 +23,9 @@ export async function registerUser(prevState: string | null, formData: FormData)
     }
 
     try {
+        if (!USERNAME_REGEX.test(username)) {
+            return "Username must be 3-20 characters: letters, numbers, underscore or hyphen only.";
+        }
         if (!PASSWORD_REGEX.test(password)) {
             return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
         }
