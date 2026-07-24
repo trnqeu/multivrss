@@ -64,7 +64,6 @@ Secrets (`SSH_HOST`, `SSH_USER`, `SSH_KEY`) are scoped to their environment — 
 app          Next.js, port 127.0.0.1:3001:3000
 worker       BullMQ feed-sync, same image, command: node dist/worker.js
 db           postgres:16-alpine, named volume pgdata
-meilisearch  v1.13, named volume meilidata
 redis        redis:8-alpine, named volume redisdata
 ```
 
@@ -72,7 +71,7 @@ All services on the `internal` network — nothing exposed to the public interne
 
 ## Health check endpoint (`/api/health`)
 
-Returns `{ status: "ok"|"degraded", db, meili, redis }`. Checks all three backing services via `Promise.allSettled`. Returns 503 if any service is down. The deploy script gates on `status === "ok"`.
+Returns `{ status: "ok"|"degraded", db, redis }`. Checks both backing services via `Promise.allSettled`. Returns 503 if any service is down. The deploy script gates on `status === "ok"`.
 
 ## Port map
 

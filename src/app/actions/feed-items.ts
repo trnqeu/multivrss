@@ -1,7 +1,6 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { meili } from "@/lib/meili";
 import { revalidatePath, updateTag } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -20,7 +19,6 @@ export async function markAsRead(itemId: string): Promise<ActionState> {
             },
             data: { read: true }
         });
-        await meili.index('items').updateDocuments([{ id: itemId, read: true }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         return { success: true, message: "Marked as read." }
@@ -40,7 +38,6 @@ export async function markAsUnread(itemId: string): Promise<ActionState> {
             },
             data: { read: false }
         });
-        await meili.index('items').updateDocuments([{ id: itemId, read: false }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         return { success: true, message: "Marked as unread." }
@@ -62,7 +59,6 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
             },
             data: { savedAt: now }
         });
-        await meili.index('items').updateDocuments([{ id: itemId, savedAt: now.getTime() }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         revalidatePath(`/u/${session.user.username}/saved`);
@@ -84,7 +80,6 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
             },
             data: { savedAt: null }
         });
-        await meili.index('items').updateDocuments([{ id: itemId, savedAt: null }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         revalidatePath(`/u/${session.user.username}/saved`);
@@ -103,9 +98,6 @@ async function stampFrontPageShown(itemIds: string[], userId: string) {
         where: { id: { in: itemIds }, source: { category: { userId } } },
         data: { frontPageShownAt: now },
     });
-    await meili.index('items').updateDocuments(
-        itemIds.map(id => ({ id, frontPageShownAt: now.getTime() }))
-    );
 }
 
 export async function markFrontPageShown(itemIds: string[]): Promise<ActionState> {
@@ -128,12 +120,10 @@ export async function dismissFrontPageItem(
     if (!session) return { success: false };
 
     try {
-        const dismissed = await prisma.feedItem.update({
+        await prisma.feedItem.update({
             where: { id: itemId, source: { category: { userId: session.user.id } } },
             data: { read: true },
-            select: { id: true, sourceId: true },
         });
-        await meili.index('items').updateDocuments([{ id: dismissed.id, read: true }]);
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
 

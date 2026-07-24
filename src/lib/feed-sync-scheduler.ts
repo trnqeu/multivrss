@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma'
 import { feedSyncQueue } from '@/lib/queue'
-import { meili } from '@/lib/meili'
 
 export interface FeedSyncScanResult {
   enqueued: number
@@ -47,9 +46,6 @@ export async function runFeedSyncScan(): Promise<FeedSyncScanResult> {
   if (staleIds.length > 0) {
     const { count } = await prisma.feedItem.deleteMany({ where: { id: { in: staleIds } } })
     purged = count
-    meili.index('items').deleteDocuments(staleIds).catch((err: unknown) => {
-      console.error('Meili purge failed:', err)
-    })
   }
 
   return { enqueued: staleFeeds.length, purged }

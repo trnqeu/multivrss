@@ -3,10 +3,11 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { dayBucket } from '@/lib/utils';
+import { dayBucket, getHost } from '@/lib/utils';
 import { getCategories } from '@/app/actions/categories';
 import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
-import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/meili';
+import { setFeedItemTags, setSavedLinkTags } from '@/app/actions/tags';
+import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/search-types';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import EmptyStream from "./EmptyStream";
@@ -54,7 +55,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
     const [readFilter, setReadFilter] = useState<string | undefined>(undefined);
     const router = useRouter();
     const [categories, setCategories] = useState<{ name: string }[]>([]);
-    const [tagModalItem, setTagModalItem] = useState<string | null>(null);
+    const [tagModalItem, setTagModalItem] = useState<{ id: string; isSavedLink: boolean } | null>(null);
     const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
 
 
@@ -217,16 +218,20 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                 ) : (
                     <div role="list">
                         {hits.map((item, index) => {
+                            const isSavedLink = item.type === 'savedLink';
                             const currentDay = dayBucket(item.pubDate);
                             const prevDay    = index > 0 ? dayBucket(hits[index - 1].pubDate) : null;
                             const isNewDay   = currentDay !== prevDay;
                             const dateLabel = item.pubDate
                                 ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                                 : '—';
-                            const preview = item._formatted?.content ?? item.content;
+                            const preview = isSavedLink
+                                ? (item._formatted?.description ?? item.description)
+                                : (item._formatted?.content ?? item.content);
+                            const sourceLabel = isSavedLink ? getHost(item.link).toUpperCase() : item.sourceTitle;
                             const tags = itemTags.get(item.id) ?? [];
 
-                            const readToggle = (
+                            const readToggle = isSavedLink ? null : (
                                 <button
                                     onClick={() => toggleRead(item)}
                                     className={`self-center leading-none text-[11px] bg-transparent border-0 p-0 cursor-pointer transition-colors ${item.read ? 'text-foreground/35' : 'text-terracotta'}`}
@@ -246,19 +251,21 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             ))}
                                         </span>
                                     )}
-                                    <button
-                                        onClick={() => toggleSave(item)}
-                                        title={item.savedAt ? 'Remove from saved' : 'Save'}
-                                        className="bg-transparent border-0 px-0 py-0 cursor-pointer"
-                                    >
-                                        <Bookmark
-                                            filled={!!item.savedAt}
-                                            className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
-                                        />
-                                    </button>
+                                    {!isSavedLink && (
+                                        <button
+                                            onClick={() => toggleSave(item)}
+                                            title={item.savedAt ? 'Remove from saved' : 'Save'}
+                                            className="bg-transparent border-0 px-0 py-0 cursor-pointer"
+                                        >
+                                            <Bookmark
+                                                filled={!!item.savedAt}
+                                                className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
+                                            />
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
-                                        onClick={() => setTagModalItem(item.id)}
+                                        onClick={() => setTagModalItem({ id: item.id, isSavedLink })}
                                         className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
                                     >
                                         TAG
@@ -267,7 +274,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                             );
 
                             return (
-                                <Fragment key={item.id}>
+                                <Fragment key={`${item.type}-${item.id}`}>
                                     {isNewDay && currentDay && (
                                         <div className={`flex items-center gap-3 ${index === 0 ? 'mt-2' : 'mt-4'} mb-2`}>
                                             <span className="font-mono text-[9px] font-extrabold tracking-[.28em] text-terracotta whitespace-nowrap">
@@ -280,12 +287,12 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     {/* Mobile row — stacked: meta+actions / title / preview */}
                                     <div
                                         role="listitem"
-                                        className={`md:hidden flex flex-col gap-1 py-2.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] ${item.read ? 'opacity-[.42]' : ''}`}
+                                        className={`md:hidden flex flex-col gap-1 py-2.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] ${!isSavedLink && item.read ? 'opacity-[.42]' : ''}`}
                                     >
                                         <div className="flex items-center gap-2">
                                             {readToggle}
                                             <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta truncate">
-                                                {item.sourceTitle}
+                                                {sourceLabel}
                                             </span>
                                             <span aria-hidden="true" className="text-foreground/25">·</span>
                                             <span className="font-mono text-[9px] text-foreground/35 whitespace-nowrap">
@@ -300,7 +307,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             onClick={() => {
-                                                if (!(item.read ?? false)) {
+                                                if (!isSavedLink && !(item.read ?? false)) {
                                                     setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
                                                     markAsRead(item.id);
                                                 }
@@ -319,12 +326,12 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     {/* Desktop row — wraps to more lines when title/preview don't fit */}
                                     <div
                                         role="listitem"
-                                        className={`hidden md:grid group grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${item.read ? 'opacity-[.42]' : ''}`}
+                                        className={`hidden md:grid group grid-cols-[16px_150px_42px_1fr_auto] items-baseline gap-x-3 py-1.5 px-1.5 -mx-1.5 border-t border-foreground/[0.07] hover:bg-[var(--tc-soft)] transition-colors ${!isSavedLink && item.read ? 'opacity-[.42]' : ''}`}
                                     >
                                         {readToggle}
 
                                         <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
-                                            {item.sourceTitle}
+                                            {sourceLabel}
                                         </span>
 
                                         <span className="font-mono text-[9.5px] text-foreground/35 whitespace-nowrap">
@@ -337,7 +344,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 onClick={() => {
-                                                    if (!(item.read ?? false)) {
+                                                    if (!isSavedLink && !(item.read ?? false)) {
                                                         setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
                                                         markAsRead(item.id);
                                                     }
@@ -379,11 +386,12 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                 <AssignTagsModal
                     open
                     onClose={() => setTagModalItem(null)}
-                    itemId={tagModalItem}
-                    initialTags={itemTags.get(tagModalItem) ?? []}
+                    itemId={tagModalItem.id}
+                    initialTags={itemTags.get(tagModalItem.id) ?? []}
                     allTags={allTags}
+                    onSave={tagModalItem.isSavedLink ? setSavedLinkTags : setFeedItemTags}
                     onTagsApplied={(_id, newTags) => {
-                        setItemTags(prev => new Map(prev).set(tagModalItem, newTags));
+                        setItemTags(prev => new Map(prev).set(tagModalItem.id, newTags));
                     }}
                 />
             )}

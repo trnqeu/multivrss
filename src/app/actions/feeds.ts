@@ -1,10 +1,9 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { meili } from "@/lib/meili";
 import { syncFeed, validateFeedUrl, discoverFeedUrl } from "@/lib/rss";
 import { DomainGate } from "@/lib/domain-gate";
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -52,9 +51,9 @@ async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl
     const slug = await uniqueFeedSlug(slugify(title), sourceId);
 
     try {
-        // Set the resolved url/title/slug before syncFeed runs — it reads
-        // source.title back out of the DB to denormalize into Meilisearch,
-        // so the update must land first.
+        // Set the resolved url/title/slug before syncFeed runs — it re-fetches
+        // the source by id, so the update must land first or it'll fetch the
+        // wrong (pre-discovery) URL.
         await prisma.feedSource.update({
             where: { id: sourceId },
             data: { url: feedUrl, title, slug },
@@ -72,20 +71,23 @@ async function discoverAndSyncNewSource(sourceId: string, userId: string, rawUrl
     await triggerRevalidate(userId);
 }
 
-export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
-    const session = await getServerSession(authOptions);
-    if (!session) return { success: false, message: "Unauthorized" };
-    const userId = session.user.id;
-    const username = session.user.username;
-    const url = formData.get("url") as string;
-    const customTitle = (formData.get("customTitle") as string)?.trim() || undefined;
-    const categoryId = formData.get("categoryId") as string;
-    const newCategoryName = formData.get("newCategoryName") as string;
+// Does the actual work of creating a feed source: validation, dedup/limit
+// checks, category resolution, and kicking off background discovery+sync.
+// Deliberately does NOT touch cache invalidation (updateTag/revalidatePath) —
+// updateTag() only works when called from within an actual Server Action
+// dispatch, not from arbitrary server-side code that merely calls this
+// function directly (e.g. the /u/add Route Handler, which must instead use
+// revalidateTag()). Callers are responsible for invalidating the cache
+// tags/paths listed at the bottom of createFeedSource() below on success.
+async function createFeedSourceCore(
+    userId: string,
+    input: { url: string; customTitle?: string; categoryId?: string; newCategoryName?: string },
+): Promise<ActionState> {
+    const { url, customTitle, categoryId, newCategoryName } = input;
 
     if (!url) {
         return { success: false, message: "URL is required." };
     }
-
 
     try {
         await validateFeedUrl(url);
@@ -145,10 +147,6 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
             console.error(`Background discovery failed for source ${source.id}:`, err);
         });
 
-        updateTag(`feed:${userId}`);
-        updateTag(`sources:${userId}`);
-        updateTag(`sidebar:${userId}`);
-        revalidatePath(`/u/${username}`, 'layout');
         return { success: true, message: "Feed source added successfully" };
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -160,23 +158,57 @@ export async function createFeedSource(prevState: ActionState | null, formData: 
     }
 }
 
+export async function createFeedSource(prevState: ActionState | null, formData: FormData): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    const userId = session.user.id;
+    const username = session.user.username;
+
+    const result = await createFeedSourceCore(userId, {
+        url: formData.get("url") as string,
+        customTitle: (formData.get("customTitle") as string)?.trim() || undefined,
+        categoryId: formData.get("categoryId") as string,
+        newCategoryName: formData.get("newCategoryName") as string,
+    });
+
+    if (result.success) {
+        updateTag(`feed:${userId}`);
+        updateTag(`sources:${userId}`);
+        updateTag(`sidebar:${userId}`);
+        revalidatePath(`/u/${username}`, 'layout');
+    }
+
+    return result;
+}
+
+// Entry point for contexts that are NOT a Server Action dispatch (currently
+// just the /u/add Route Handler — see src/app/u/add/route.ts). Runs the same
+// core logic as createFeedSource() but invalidates via revalidateTag(), the
+// Route-Handler-safe equivalent of updateTag().
+export async function createFeedSourceForUser(
+    userId: string,
+    username: string,
+    input: { url: string; customTitle?: string; categoryId?: string; newCategoryName?: string },
+): Promise<ActionState> {
+    const result = await createFeedSourceCore(userId, input);
+
+    if (result.success) {
+        revalidateTag(`feed:${userId}`, 'max');
+        revalidateTag(`sources:${userId}`, 'max');
+        revalidateTag(`sidebar:${userId}`, 'max');
+        revalidatePath(`/u/${username}`, 'layout');
+    }
+
+    return result;
+}
+
 export async function deleteFeedSource(sourceId: string) {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
     try {
-        const items = await prisma.feedItem.findMany({
-            where: { source: { id: sourceId, category: { userId: session.user.id } } },
-            select: { id: true }
-        });
-
         await prisma.feedSource.delete({
             where: { id: sourceId, category: { userId: session.user.id } }
         });
-
-        if (items.length > 0) {
-            meili.index('items').deleteDocuments(items.map(i => i.id))
-                .catch((err: unknown) => console.error('Meilisearch delete failed:', err));
-        }
     } catch (error) {
         console.error("❌ Error deleting feed source:", error);
         return { success: false, message: "Failed to delete feed source." };
@@ -246,22 +278,6 @@ export async function updateFeedSource(prevState: ActionState | null, formData: 
             where: { id: sourceId, category: { userId: session.user.id } },
             data: { title, categoryId: finalCategoryId }
         });
-
-        const newCat = await prisma.category.findUniqueOrThrow({
-            where: { id: finalCategoryId },
-            select: { id: true, name: true }
-        });
-        const sourceItems = await prisma.feedItem.findMany({
-            where: { sourceId },
-            select: { id: true }
-        });
-        if (sourceItems.length > 0) {
-            meili.index('items').updateDocuments(
-                sourceItems.map(item => ({ id: item.id, categoryId: newCat.id, categoryName: newCat.name }))
-            ).catch((err: unknown) => {
-                console.error(`Meilisearch category re-sync failed for source ${sourceId}:`, err);
-            });
-        }
 
         updateTag(`feed:${session.user.id}`);
         updateTag(`sources:${session.user.id}`);

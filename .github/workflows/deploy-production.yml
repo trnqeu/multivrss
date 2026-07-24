@@ -102,7 +102,7 @@ jobs:
 
             # Start backing services first so the migrator can reach the DB
             IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production up -d db redis meilisearch
+            docker compose -f docker-compose.prod.yml --project-name multivrss-prod --env-file .env.production up -d db redis
 
             # Wait for Postgres to accept connections (12 × 5s = 60s)
             echo "Waiting for Postgres..."

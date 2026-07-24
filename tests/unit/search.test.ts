@@ -1,133 +1,130 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { prisma } from '@/lib/prisma';
-import { meili } from '@/lib/meili';
-import { searchFeedItemsForUser } from '@/lib/search';
-
-vi.mock('next/cache', () => ({
-    cacheLife: vi.fn(),
-    cacheTag: vi.fn(),
-}));
+import { searchAllForUser } from '@/lib/search';
 
 vi.mock('@/lib/prisma', () => ({
     prisma: {
-        feedSource: {
-            findMany: vi.fn(),
-        },
+        $queryRaw: vi.fn(),
     },
 }));
 
-vi.mock('@/lib/meili', () => ({
-    meili: {
-        index: vi.fn(),
-    },
-    HIGHLIGHT_PRE: '<mark>',
-    HIGHLIGHT_POST: '</mark>',
-}));
+const mockedQueryRaw = vi.mocked(prisma.$queryRaw);
 
-const mockedFindMany = vi.mocked(prisma.feedSource.findMany);
-const mockedMeiliIndex = vi.mocked(meili.index);
+function row(overrides: Record<string, unknown> = {}) {
+    return {
+        id: 'item_1',
+        type: 'feedItem',
+        link: 'https://example.com/post',
+        title: 'Example post',
+        title_hl: null,
+        content: 'Some content',
+        content_hl: null,
+        description: null,
+        description_hl: null,
+        source_title: 'Example Source',
+        category_name: 'TECH',
+        source_id: 'source_1',
+        read: false,
+        saved_at: null,
+        pub_date: new Date('2026-01-01T00:00:00Z'),
+        total_count: 1,
+        ...overrides,
+    };
+}
 
-describe('searchFeedItemsForUser', () => {
+describe('searchAllForUser', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('returns an empty result set when the user has no sources', async () => {
-        mockedFindMany.mockResolvedValue([]);
+    it('runs a browse-mode query (no tsquery/rank/UNION) when the search term is empty', async () => {
+        mockedQueryRaw.mockResolvedValue([]);
 
-        const result = await searchFeedItemsForUser('user_1', 'rss');
+        const result = await searchAllForUser('user_1', '');
 
+        expect(mockedQueryRaw).toHaveBeenCalledTimes(1);
+        const sqlArg = mockedQueryRaw.mock.calls[0][0] as unknown as { sql: string; values: unknown[] };
+        expect(sqlArg.sql).not.toContain('websearch_to_tsquery');
+        expect(sqlArg.sql).not.toContain('UNION ALL');
+        expect(sqlArg.sql).toContain('ORDER BY pub_date DESC');
         expect(result.hits).toEqual([]);
-        expect(mockedFindMany).toHaveBeenCalledWith({
-            where: { category: { userId: 'user_1' } },
-            select: { id: true, category: { select: { name: true } } },
-        });
-        expect(mockedMeiliIndex).not.toHaveBeenCalled();
+        expect(result.estimatedTotalHits).toBe(0);
     });
 
-    it('searches Meilisearch with only user-owned source IDs', async () => {
-        const hits = [
-            { id: 'item_1', link: 'https://example.com/post', title: 'Example post', pubDate: 1700000000000 },
-        ];
-        const search = vi.fn().mockResolvedValue({
-            hits,
-            estimatedTotalHits: 1,
-            processingTimeMs: 5,
-            facetDistribution: {},
-        });
+    it('runs a ranked full-text query and unions in saved links when requested', async () => {
+        mockedQueryRaw.mockResolvedValue([row()]);
 
-        mockedFindMany.mockResolvedValue([
-            { id: 'source_1', category: { name: 'TECH' } },
-            { id: 'source_2', category: { name: 'NEWS' } },
-        ]);
-        mockedMeiliIndex.mockReturnValue({ search } as ReturnType<typeof meili.index>);
+        const result = await searchAllForUser('user_1', 'rss', { includeSavedLinks: true });
 
-        const result = await searchFeedItemsForUser('user_1', 'rss');
-
-        expect(mockedFindMany).toHaveBeenCalledWith({
-            where: { category: { userId: 'user_1' } },
-            select: { id: true, category: { select: { name: true } } },
-        });
-        expect(mockedMeiliIndex).toHaveBeenCalledWith('items');
-        expect(search).toHaveBeenCalledWith('rss', {
-            limit: 30,
-            offset: 0,
-            filter: ['(sourceId = "source_1" OR sourceId = "source_2")'],
-            sort: ['pubDate:desc'],
-            facets: ['categoryName', 'sourceTitle'],
-            attributesToHighlight: ['title', 'content'],
-            attributesToCrop: ['content'],
-            cropLength: 100,
-            highlightPreTag: '<mark>',
-            highlightPostTag: '</mark>',
-        });
-        expect(result.hits).toEqual(hits);
+        const sqlArg = mockedQueryRaw.mock.calls[0][0] as unknown as { sql: string; values: unknown[] };
+        expect(sqlArg.sql).toContain('websearch_to_tsquery');
+        expect(sqlArg.sql).toContain('UNION ALL');
+        expect(sqlArg.sql).toContain('ts_rank_cd');
+        expect(sqlArg.sql).toContain('ORDER BY rank DESC');
+        expect(sqlArg.values).toContain('user_1');
+        expect(sqlArg.values).toContain('rss');
+        expect(result.hits).toHaveLength(1);
         expect(result.estimatedTotalHits).toBe(1);
     });
 
-    it('filters by category when valid', async () => {
-        mockedFindMany.mockResolvedValue([
-            { id: 'source_1', category: { name: 'TECH' } },
-            { id: 'source_2', category: { name: 'NEWS' } },
-        ]);
+    it('does not union saved links when a category/source/read filter is active, even if requested', async () => {
+        mockedQueryRaw.mockResolvedValue([]);
 
-        const search = vi.fn().mockResolvedValue({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null });
-        mockedMeiliIndex.mockReturnValue({ search } as any);
+        await searchAllForUser('user_1', 'rss', { includeSavedLinks: true, cat: 'TECH' });
 
-        await searchFeedItemsForUser('user_1', 'rss', 'TECH');
-
-        expect(search).toHaveBeenCalledWith('rss', expect.objectContaining({
-            filter: ['(sourceId = "source_1" OR sourceId = "source_2")', 'categoryName = "TECH"'],
-        }));
+        const sqlArg = mockedQueryRaw.mock.calls[0][0] as unknown as { sql: string; values: unknown[] };
+        expect(sqlArg.sql).not.toContain('UNION ALL');
+        expect(sqlArg.sql).toContain('category_name = ');
+        expect(sqlArg.values).toContain('TECH');
     });
 
-    it('ignores invalid category name', async () => {
-        mockedFindMany.mockResolvedValue([
-            { id: 'source_1', category: { name: 'TECH' } },
-        ]);
+    it('applies the read filter as a bound boolean parameter', async () => {
+        mockedQueryRaw.mockResolvedValue([]);
 
-        const search = vi.fn().mockResolvedValue({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null });
-        mockedMeiliIndex.mockReturnValue({ search } as any);
+        await searchAllForUser('user_1', '', { read: 'unread' });
 
-        await searchFeedItemsForUser('user_1', 'rss', 'INVALID');
-
-        expect(search).toHaveBeenCalledWith('rss', expect.objectContaining({
-            filter: ['(sourceId = "source_1")'],
-        }));
+        const sqlArg = mockedQueryRaw.mock.calls[0][0] as unknown as { sql: string; values: unknown[] };
+        expect(sqlArg.sql).toContain('read = ');
+        expect(sqlArg.values).toContain(false);
     });
 
-    it('filters by read status', async () => {
-        mockedFindMany.mockResolvedValue([
-            { id: 'source_1', category: { name: 'TECH' } },
+    it('still returns results for a user with saved links but no feed sources (no early short-circuit)', async () => {
+        mockedQueryRaw.mockResolvedValue([
+            row({ id: 'link_1', type: 'savedLink', link: 'https://foo.dev', title: 'Foo', source_id: null, category_name: null, source_title: null, read: null, total_count: 1 }),
         ]);
 
-        const search = vi.fn().mockResolvedValue({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0, facetDistribution: null });
-        mockedMeiliIndex.mockReturnValue({ search } as any);
+        const result = await searchAllForUser('user_1', 'foo', { includeSavedLinks: true });
 
-        await searchFeedItemsForUser('user_1', 'rss', undefined, undefined, 30, 0, undefined, 'unread');
+        expect(result.hits).toHaveLength(1);
+        expect(result.hits[0].type).toBe('savedLink');
+    });
 
-        expect(search).toHaveBeenCalledWith('rss', expect.objectContaining({
-            filter: ['(sourceId = "source_1")', 'read = false'],
-        }));
+    it('falls back to a hostname-derived title for untitled saved links', async () => {
+        mockedQueryRaw.mockResolvedValue([
+            row({ id: 'link_1', type: 'savedLink', link: 'https://www.example.dev/foo', title: '', title_hl: null, source_id: null }),
+        ]);
+
+        const result = await searchAllForUser('user_1', 'foo', { includeSavedLinks: true });
+
+        expect(result.hits[0].title).toBe('example.dev');
+    });
+
+    it('extracts the total count from the count(*) OVER() window column', async () => {
+        mockedQueryRaw.mockResolvedValue([row({ total_count: 42 }), row({ id: 'item_2', total_count: 42 })]);
+
+        const result = await searchAllForUser('user_1', 'rss');
+
+        expect(result.estimatedTotalHits).toBe(42);
+        expect(result.hits).toHaveLength(2);
+    });
+
+    it('clamps limit to [1, 200] and offset to >= 0', async () => {
+        mockedQueryRaw.mockResolvedValue([]);
+
+        await searchAllForUser('user_1', '', { limit: 9999, offset: -5 });
+
+        const sqlArg = mockedQueryRaw.mock.calls[0][0] as unknown as { sql: string; values: unknown[] };
+        expect(sqlArg.values).toContain(200);
+        expect(sqlArg.values).toContain(0);
     });
 });

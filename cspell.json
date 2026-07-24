@@ -6,8 +6,6 @@
     "buildx",
     "appleboy",
     "pipefail",
-    "meili",
-    "meilisearch",
     "bullmq",
     "nextauth",
     "resend",
