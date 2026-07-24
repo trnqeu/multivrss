@@ -1,11 +1,9 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { searchFeedItemsForUser } from "@/lib/search";
-import { configureMeiliIndex } from "@/lib/meili";
+import { searchAllForUser } from "@/lib/search";
 
 export async function GET(request: NextRequest) {
-    await configureMeiliIndex();
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -22,10 +20,12 @@ export async function GET(request: NextRequest) {
     const offset = Math.max(0, parseInt(params.get("offset") ?? "0", 10));
 
     try {
-        const result = await searchFeedItemsForUser(session.user.id, q, cat, since, limit, offset, sourceId, read);
+        const result = await searchAllForUser(session.user.id, q, {
+            cat, since, sourceId, read, limit, offset, includeSavedLinks: true,
+        });
         return Response.json(result);
     } catch (err) {
-        console.error("[search] Meilisearch error:", err);
+        console.error("[search] Postgres search error:", err);
         return Response.json({ error: "Search unavailable" }, { status: 503 });
     }
 }

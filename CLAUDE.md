@@ -36,7 +36,7 @@ npm run test:watch   # Vitest watch mode
 Database and services:
 
 ```bash
-docker-compose up -d                          # Postgres (5435) + Meilisearch (7700)
+docker-compose up -d                          # Postgres (5435) + Redis (6379)
 npx prisma migrate dev --name <name>          # Create + apply migration
 npx prisma migrate deploy                     # Apply existing migrations
 npx prisma generate                           # Regenerate client after schema changes
@@ -46,21 +46,20 @@ Manual integration checks (`tsconfig.test.json` uses CommonJS — main tsconfig 
 
 ```bash
 npx ts-node --project tsconfig.test.json tests/test-rss.ts
-npx ts-node --project tsconfig.test.json tests/test-meili.ts
 ```
 
 ## Verification Order
 
 1. `npm run test` + `npm run lint`
 2. `npm run build` for framework/route/component changes
-3. `npx ts-node --project tsconfig.test.json tests/test-rss.ts` or `tests/test-meili.ts` for RSS/Meili changes
+3. `npx ts-node --project tsconfig.test.json tests/test-rss.ts` for RSS changes
 4. After Prisma changes: create migration + `npx prisma generate`
-5. When adding searchable/filterable/sortable Meilisearch fields: update index settings + indexing payloads together
+5. When adding a new searchable text field: extend the generated `tsvector` column's migration SQL (see `prisma/migrations/*_add_fulltext_search`) and the corresponding branch query in `src/lib/search.ts`
 6. Update this file when behavior or workflow changes
 
 ## Architecture
 
-**Stack:** Next.js 16.2, React 19, TypeScript 5, Tailwind CSS 4, PostgreSQL 16, Prisma 7 (`@prisma/adapter-pg`), Meilisearch, NextAuth v4 (JWT), Docker.
+**Stack:** Next.js 16.2, React 19, TypeScript 5, Tailwind CSS 4, PostgreSQL 16 (native full-text search — `tsvector`/GIN, no separate search service), Prisma 7 (`@prisma/adapter-pg`), NextAuth v4 (JWT), Docker.
 
 **Route structure:**
 
@@ -84,9 +83,8 @@ src/app/
     feeds/sources/route.ts  Feed source CRUD
     saved/route.ts, saved/[id]/tags/route.ts   Saved links + tagging
     cron/sync/route.ts    Bearer-token cron (CRON_SECRET), syncs stale feeds
-    cron/reconcile/route.ts  Bearer-token cron, reconciliation pass
     internal/revalidate/route.ts  Internal-secret-gated cache revalidation
-    search/route.ts       Meilisearch proxy
+    search/route.ts       Full-text search (Postgres, see src/lib/search.ts)
     health/route.ts       Health check for deploy pipeline
     openapi/route.ts      OpenAPI schema
   actions/                Server Actions, split by domain (each file has its own 'use server')
@@ -105,8 +103,7 @@ src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)
   prisma.ts               Prisma singleton (pg.Pool + @prisma/adapter-pg)
   rss.ts                  Feed URL validation (DNS + private IP check) + ingestion/sync
-  meili.ts                Meilisearch singleton, index config, SearchHit type
-  search.ts               searchFeedItemsForUser() with "use cache" + cacheTag
+  search.ts               searchAllForUser() — Postgres full-text search (tsvector/GIN) across FeedItem + SavedLink, parameterized $queryRaw
   email.ts                Password reset via Resend
   utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
@@ -130,11 +127,10 @@ tests/unit/               Vitest unit tests
 - `src/proxy.ts` replaces `middleware.ts` in Next.js 16. Do not create a new `middleware.ts`.
 - `params` in route segments is `Promise<{ slug: string }>` — must be awaited.
 - `cacheComponents: true` in `next.config.ts`. Use `"use cache"` + `cacheLife` + `cacheTag` for cacheable server output. Use `connection()` to defer to request time when needed.
-  - `src/lib/search.ts` caches `getSourcesForUser()` with `cacheLife('minutes')` and `cacheTag('sources:${userId}')`.
   - Do not put request-specific or private data inside a shared `"use cache"` scope.
 - Call `revalidatePath()` / `revalidateTag()` **before** `redirect()` — redirect throws and skips subsequent calls.
 - Server Components by default. `"use client"` only for interactive forms. Server Actions handle all mutations.
-- Meilisearch is synced inside `src/lib/rss.ts` after each upsert.
+- Full-text search is native Postgres: `FeedItem.searchVector`/`SavedLink.searchVector` are `GENERATED ALWAYS AS (...) STORED` `tsvector` columns (see `prisma/migrations/*_add_fulltext_search`), populated automatically on every insert/update — no separate indexing step or sync-on-write call needed anywhere.
 - Category names stored uppercase. `slugify()` uses underscores, not hyphens. Route lookup replaces hyphens with spaces when resolving slugs.
 
 ## Auth & Security — Mandatory
@@ -151,10 +147,9 @@ Never trust client-supplied IDs. Always filter by `userId`.
 - **Feed URLs:** treat as untrusted — `validateFeedUrl()` checks syntax, DNS, private IPv4/IPv6 ranges (SSRF guard). Apply the same check before fetching arbitrary URLs in `resolvePageTitle`.
 - **Password reset:** never reveal whether an email exists (always respond generically).
 - **Server Actions:** validate + normalize inputs at the top of each action.
-- **Meilisearch filters:** validate user-supplied filter values against the user's own data before interpolating (see `src/lib/search.ts`).
-- **No raw SQL** — Prisma parameterized queries only. Never interpolate into shell commands or filter strings.
+- **Raw SQL:** only via Prisma's parameterized `$queryRaw`/`$executeRaw` tagged templates (`Prisma.sql`/`Prisma.join`/`Prisma.empty` for conditional fragments) — needed for Postgres full-text search (`tsvector`/`ts_rank_cd`/`ts_headline`, see `src/lib/search.ts`). Never use `$queryRawUnsafe` or string-concatenate values into SQL text; bind parameters, don't interpolate.
 - **Dependencies:** prefer minimal. Flag any new package with known CVEs or excessive permissions.
-- **Infrastructure:** no service (Postgres, Meilisearch) exposed to public internet. All inter-service on internal Docker network.
+- **Infrastructure:** no service (Postgres, Redis) exposed to public internet. All inter-service on internal Docker network.
 - **Nginx headers in production:** `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`.
 - Secrets live only in `.env` / `.env.production` — never in code, logs, or committed files.
 
@@ -165,7 +160,7 @@ Apply OWASP Top 10 to every feature, route, and Server Action:
 1. **Input validation** — validate + sanitize + normalize at the boundary. Use `validateFeedUrl()`, regex checks, length limits, type coercion.
 2. **Authentication & session** — `getServerSession(authOptions)` on every private endpoint. JWT in httpOnly cookie. No token in URL params or Referrer.
 3. **Authorization (broken access control)** — always scope by `userId`. Never use client-supplied IDs without ownership check.
-4. **Injection** — Prisma only. Never interpolate into shell commands or Meilisearch filter strings.
+4. **Injection** — Prisma parameterized queries by default; raw SQL (full-text search) only via `$queryRaw` tagged templates with bound parameters, never string concatenation. Never interpolate into shell commands.
 5. **SSRF** — `validateFeedUrl()` blocks RFC 1918, loopback, link-local. Apply same guard to `resolvePageTitle`.
 6. **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy in Nginx or `next.config.ts`.
 7. **Error handling** — never expose stack traces or DB errors to the client. Generic messages externally; structured logging internally.
@@ -227,6 +222,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - `Tag`: user-scoped; applied to both `SavedLink` and `FeedItem` via join tables
 - Cascade deletes: `Category → FeedSource → FeedItem`
 - Indexes on `FeedItem.sourceId` and `FeedItem.pubDate`
+- `FeedItem.searchVector` / `SavedLink.searchVector`: generated `tsvector` columns (GIN-indexed, `'simple'` config, title weighted `A` over content/description weighted `B`) — declared `Unsupported("tsvector")?` in `schema.prisma`; the `GENERATED ALWAYS AS (...) STORED` expression and GIN index exist only in hand-written migration SQL, not the Prisma schema DSL
 
 ## Design System
 
@@ -251,12 +247,12 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 **Local** (`docker-compose.yml`):
 - Postgres `postgres:16-alpine` on host port `5435`, container `multivrss-db`
-- Meilisearch on host port `7700`, container `multivrss-search`
+- Redis on host port `6379`, container `multivrss-redis`
 - App runs outside Docker: `npm run dev` on port `3002`
-- Local env vars: `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `MEILI_MASTER_KEY`
+- Local env vars: `DB_USER`, `DB_PASSWORD`, `DB_NAME`
 
 **Prod/Staging** (`docker-compose.prod.yml`):
-- All services on `internal` network — no public ports for DB or Meilisearch
+- All services on `internal` network — no public ports for DB or Redis
 - App at `127.0.0.1:3001:3000` (loopback only, Nginx in front)
 - Alternate env file: `ENV_FILE=.env.staging docker compose -f docker-compose.prod.yml up -d`
 - Adminer: `docker compose -f docker-compose.prod.yml --profile tools up -d adminer`
@@ -267,8 +263,6 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 ```env
 DATABASE_URL=postgresql://[USER]:[PASSWORD]@localhost:5435/multivrss-db?schema=public
-MEILI_HOST=http://localhost:7700
-MEILI_MASTER_KEY=<key>
 NEXTAUTH_URL=http://localhost:3002
 NEXTAUTH_SECRET=<secret>
 GITHUB_ID=<oauth-client-id>
@@ -296,8 +290,8 @@ For current third-party API docs, use Context Hub:
 
 ```bash
 npm install -g @aisuite/chub
-chub search "meilisearch"
-chub get meilisearch/js --lang js
+chub search "prisma"
+chub get prisma/prisma --lang js
 ```
 
 Caveat: `chub` can hang flushing PostHog telemetry. Use `timeout 25s chub ...` when needed.
@@ -314,7 +308,6 @@ Load the relevant skill before coding in the corresponding area:
 | `prisma` | Schema changes, queries, migrations, Prisma client |
 | `nextauth-v4` | Auth setup, session handling, OAuth, route protection |
 | `react19-forms` | Forms (`action` prop, `useActionState`, `useFormStatus`) |
-| `meilisearch` | Indexing, search, index settings, filter/sort config |
 | `rss-parser` | Feed fetching, RSS parsing, `syncFeed` |
 | `next-best-practices` | Hydration errors, async APIs, route conventions |
 | `react-best-practices` | Performance profiling, bundle size, re-renders |

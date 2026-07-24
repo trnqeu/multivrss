@@ -78,6 +78,11 @@ export function stripHtml(str: string): string {
     return str.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+/** Derives a display label from a URL's hostname, stripping a leading "www.". Falls back to the raw string on parse failure. */
+export function getHost(url: string): string {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+}
+
 /** Decodes HTML/XML character entities (handles double-encoded feeds, e.g. &#39; → '). */
 export function decodeHtmlEntities(str: string): string {
     return str

@@ -1,12 +1,23 @@
 import { prisma } from '@/lib/prisma';
-import { meili } from '@/lib/meili';
-import type { SearchHit } from '@/lib/meili';
 import { cacheLife, cacheTag } from 'next/cache';
 
-export type FrontPageItem = SearchHit & {
+type FrontPageBaseItem = {
+    id: string;
+    link: string;
+    title: string;
+    pubDate: number | null;
+    content?: string;
+    sourceTitle?: string;
+};
+
+export type FrontPageItem = FrontPageBaseItem & {
     categoryName: string;
+    read: boolean;
+    savedAt: number | null;
     reason: string;
-    reasonType: 'source' | 'similar';
+    // 'similar' (Meilisearch-based Engine B) is disabled, not removed
+    // conceptually — restore if a Postgres-based similarity engine replaces it.
+    reasonType: 'source';
     affinity: number;
 };
 
@@ -52,7 +63,6 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     const sourceIds = sources.map(s => s.id);
     const sourceName = new Map(sources.map(s => [s.id, s.title ?? '']));
     const sourceCat = new Map(sources.map(s => [s.id, s.category.name]));
-    const ownershipFilter = sourceIds.map(id => `sourceId = "${id}"`).join(' OR ');
     const since = Date.now() - RECO_LOOKBACK_DAYS * 86_400_000;
 
     const [recentSaved, recentRead, readCount, savedCount] = await Promise.all([
@@ -110,47 +120,10 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         }
     }
 
-    // ── ENGINE B: MEILISEARCH SIMILARITY ──
-    // Batch all seed queries into a single multiSearch round-trip.
-    const seeds = [...recentSaved, ...recentRead].slice(0, SEED_LIMIT);
-    const savedIds = new Set(recentSaved.map(i => i.id));
-
-    if (seeds.length > 0) {
-        try {
-            const multiResult = await meili.multiSearch({
-                queries: seeds.map(seed => ({
-                    indexUid: 'items',
-                    q: seed.title,
-                    limit: 4,
-                    filter: [`(${ownershipFilter})`, 'read = false', 'savedAt IS NULL', 'frontPageShownAt IS NULL'],
-                    showRankingScore: true,
-                    attributesToRetrieve: ['id', 'link', 'title', 'content', 'pubDate', 'sourceTitle', 'categoryName'],
-                })),
-            });
-
-            for (let i = 0; i < seeds.length; i++) {
-                const seed = seeds[i];
-                const hits = multiResult.results[i].hits as (SearchHit & { _rankingScore?: number })[];
-                for (const hit of hits) {
-                    if (seen.has(hit.id) || pick.has(hit.id)) continue;
-                    const score = hit._rankingScore ?? 0;
-                    if (score < 0.4) continue;
-                    pick.set(hit.id, {
-                        ...hit,
-                        categoryName: hit.categoryName ?? '—',
-                        read: false, savedAt: null,
-                        reasonType: 'similar',
-                        reason: `Similar to "${truncate(seed.title)}" you ${savedIds.has(seed.id) ? 'saved' : 'read'}`,
-                        affinity: Math.round(score * 100),
-                    });
-                }
-            }
-        } catch {
-            // Meili unavailable — skip similarity engine
-        }
-    }
-
     // ── MERGE → RANK → GROUP ──
+    // Engine B ("similar items", previously Meilisearch multiSearch-based) is
+    // temporarily disabled — see FrontPageItem.reasonType. Engine A above is
+    // the sole contributor to `pick` for now.
     const all = [...pick.values()].sort(byAffinity);
 
     // forYouPool: top N globals (highest affinity across all categories), pre-shuffled server-side
@@ -251,4 +224,3 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
 }
 
 const byAffinity = (a: FrontPageItem, b: FrontPageItem) => b.affinity - a.affinity;
-const truncate = (s: string, n = 40) => (s.length > n ? s.slice(0, n - 1) + '…' : s);

@@ -114,8 +114,6 @@ Create `~/multivrss/.env.production` on the server:
 
 ```env
 DATABASE_URL=postgresql://USER:PASS@db:5432/multivrss?schema=public
-MEILI_HOST=http://meilisearch:7700
-MEILI_MASTER_KEY=<strong-random>
 REDIS_URL=redis://redis:6379
 NEXTAUTH_URL=https://multivrss.com
 NEXTAUTH_SECRET=<strong-random>

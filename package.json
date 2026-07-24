@@ -25,7 +25,6 @@
     "gray-matter": "^4.0.3",
     "ioredis": "^5.11.1",
     "marked": "^18.0.5",
-    "meilisearch": "^0.56.0",
     "next": "^16.2.6",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",

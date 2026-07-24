@@ -1,4 +1,4 @@
-import { searchFeedItemsForUser } from '@/lib/search';
+import { searchAllForUser } from '@/lib/search';
 import { dayBucket } from '@/lib/utils';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -19,15 +19,11 @@ async function CachedFeedContent({
     cacheLife('seconds');
     cacheTag(`feed:${userId}`);
 
-    const result = await searchFeedItemsForUser(
-        userId,
-        '',
-        categoryName,
-        undefined,
-        100,
-        0,
+    const result = await searchAllForUser(userId, '', {
+        cat: categoryName,
+        limit: 100,
         sourceId,
-    );
+    });
 
     const items = result.hits.map(hit => ({
         id: hit.id,

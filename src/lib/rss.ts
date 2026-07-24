@@ -1,6 +1,5 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
-import { meili } from './meili';
 import dns from 'dns';
 import net from 'net';
 import http from 'http';
@@ -283,10 +282,9 @@ async function fetchAndParseFeed(feedUrl: string): Promise<ParsedFeed> {
 }
 
 export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
-    // 1. Find source in the database (include category for Meili denormalization)
+    // 1. Find source in the database
     const source = await prisma.feedSource.findUnique({
         where: { id: sourceId },
-        include: { category: true },
     });
 
     if (!source) throw new Error('Source not found');
@@ -350,33 +348,7 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         created = await prisma.feedItem.createManyAndReturn({ data: toCreate });
     }
 
-    const meiliItems = [...created, ...toUpdate];
-
-    // 4. Sync to Meilisearch — fire-and-forget, non bloccante
-    if (meiliItems.length > 0) {
-        meili.index('items').addDocuments(
-            meiliItems.map((item) => ({
-                id: item.id,
-                externalId: item.externalId,
-                title: item.title,
-                content: item.content,
-                link: item.link,
-                pubDate: item.pubDate ? (item.pubDate instanceof Date ? item.pubDate.getTime() : item.pubDate) : null,
-                sourceId: item.sourceId,
-                sourceTitle: source.title || '',
-                categoryId: source.category.id,
-                categoryName: source.category.name,
-                read: false,
-                savedAt: item.savedAt ? (item.savedAt instanceof Date ? item.savedAt.getTime() : item.savedAt) : null,
-                frontPageShownAt: item.frontPageShownAt ? (item.frontPageShownAt instanceof Date ? item.frontPageShownAt.getTime() : item.frontPageShownAt) : null,
-            })),
-            { primaryKey: 'id' }
-        ).catch((error: unknown) => {
-            console.error(`Meilisearch sync failed for source ${sourceId}:`, error);
-        });
-    }
-
-    // 5. Update the last sync date of the source. Title is intentionally
+    // 4. Update the last sync date of the source. Title is intentionally
     // not touched here — it's set once when the source is created/discovered
     // and must not be clobbered by the feed's own title on later syncs,
     // otherwise manual renames and custom names would keep reverting.
