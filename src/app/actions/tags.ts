@@ -34,13 +34,16 @@ export async function createTag(name: string): Promise<ActionState & { tag?: Tag
   }
 
   try {
-    const tag = await prisma.tag.create({
-      data: { userId: session.user.id, name: trimmed },
+    const tag = await prisma.tag.upsert({
+      where: { userId_name: { userId: session.user.id, name: trimmed } },
+      update: {},
+      create: { userId: session.user.id, name: trimmed },
+      select: { id: true, name: true },
     });
     updateTag(`sidebar:${session.user.id}`);
-    return { success: true, message: 'Tag created.', tag: { id: tag.id, name: tag.name } };
+    return { success: true, message: 'Tag saved.', tag };
   } catch {
-    return { success: false, message: 'Tag already exists.' };
+    return { success: false, message: 'Failed to create tag.' };
   }
 }
 

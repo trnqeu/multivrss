@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { OAuthButtons } from "@/components/OAuthButtons";
+import { sanitizeCallbackUrl } from "@/lib/utils";
 
 const ERROR_MESSAGES: Record<string, string> = {
     OAuthAccountNotLinked: "An account with this email already exists. Sign in with email and password.",
@@ -17,7 +18,7 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
     const verified = searchParams.get("verified");
-    const callbackUrl = searchParams.get("callbackUrl") || "/u";
+    const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -91,7 +92,7 @@ export default function LoginPage() {
                         Don&apos;t have an account?
                     </p>
                     <Link
-                        href="/register"
+                        href={callbackUrl === "/u" ? "/register" : `/register?callbackUrl=${encodeURIComponent(callbackUrl)}`}
                         className="mt-4 inline-block border-2 border-terracotta text-terracotta bg-transparent px-6 py-2.5 text-sm font-bold uppercase tracking-widest hover:bg-terracotta hover:text-background transition-colors"
                     >
                         Register

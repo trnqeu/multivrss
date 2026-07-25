@@ -11,64 +11,73 @@ const GROUPS = [
   {
     name: "MIND",
     sources: [
-      { name: "Farnam Street", domain: "fs.blog" },
-      { name: "The Marginalian", domain: "themarginalian.org" },
-      { name: "Aeon", domain: "aeon.co" },
+      { name: "Farnam Street", domain: "fs.blog", url: "https://fs.blog/feed/" },
+      { name: "The Marginalian", domain: "themarginalian.org", url: "https://www.themarginalian.org/feed/" },
+      { name: "Aeon", domain: "aeon.co", url: "https://aeon.co/feed.rss" },
     ],
   },
   {
     name: "TECHNOLOGY",
     sources: [
-      { name: "Simon Willison's Weblog", domain: "simonwillison.net" },
-      { name: "Stratechery", domain: "stratechery.com" },
-      { name: "Hacker News", domain: "news.ycombinator.com" },
-      { name: "Pluralistic", domain: "pluralistic.net" },
+      { name: "Simon Willison's Weblog", domain: "simonwillison.net", url: "https://simonwillison.net/atom/entries/" },
+      { name: "Stratechery", domain: "stratechery.com", url: "https://stratechery.com/feed/" },
+      { name: "Hacker News", domain: "news.ycombinator.com", url: "https://news.ycombinator.com/rss" },
+      { name: "Pluralistic", domain: "pluralistic.net", url: "https://pluralistic.net/feed/" },
     ],
   },
   {
     name: "NEWS",
     sources: [
-      { name: "The Guardian", domain: "theguardian.com" },
-      { name: "Reuters", domain: "reuters.com" },
-      { name: "NYT › World", domain: "nytimes.com" },
+      { name: "The Guardian", domain: "theguardian.com", url: "https://www.theguardian.com/world/rss" },
+      { name: "Reuters", domain: "reuters.com", url: "https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en" },
+      { name: "NYT › World", domain: "nytimes.com", url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml" },
     ],
   },
   {
     name: "SCIENCE",
     sources: [
-      { name: "Quanta Magazine", domain: "quantamagazine.org" },
-      { name: "Nautilus", domain: "nautil.us" },
+      { name: "Quanta Magazine", domain: "quantamagazine.org", url: "https://www.quantamagazine.org/feed/" },
+      { name: "Nautilus", domain: "nautil.us", url: "https://nautil.us/feed/" },
     ],
   },
   {
     name: "DESIGN",
     sources: [
-      { name: "It's Nice That", domain: "itsnicethat.com" },
-      { name: "Brand New", domain: "underconsideration.com" },
+      { name: "Creative Boom", domain: "creativeboom.com", url: "https://www.creativeboom.com/feed/" },
+      { name: "Brand New", domain: "underconsideration.com", url: "https://www.underconsideration.com/brandnew/atom.xml" },
     ],
   },
   {
     name: "ENGINEERING",
     sources: [
-      { name: "Julia Evans", domain: "jvns.ca" },
-      { name: "Dan Luu", domain: "danluu.com" },
+      { name: "Julia Evans", domain: "jvns.ca", url: "https://jvns.ca/atom.xml" },
+      { name: "Dan Luu", domain: "danluu.com", url: "https://danluu.com/atom.xml" },
     ],
   },
   {
     name: "CULTURE",
     sources: [
-      { name: "Longreads", domain: "longreads.com" },
-      { name: "The Browser", domain: "thebrowser.com" },
+      { name: "Longreads", domain: "longreads.com", url: "https://longreads.com/feed/" },
+      { name: "The Browser", domain: "thebrowser.com", url: "https://thebrowser.com/feed" },
     ],
   },
 ] as const;
 
 const TOTAL = GROUPS.reduce((n, g) => n + g.sources.length, 0);
 
-function AddButton() {
+// Sends a logged-out visitor through login (or registration, via the link on
+// that page) and back to /u/add, which completes the add once authenticated —
+// see src/app/u/add/page.tsx. callbackUrl is threaded through the whole
+// register → verify-email → login chain so the intent survives it.
+function buildAddHref(feedUrl: string, feedName: string, categoryName: string): string {
+  const resumePath = `/u/add?${new URLSearchParams({ feedUrl, feedName, category: categoryName })}`;
+  return `/login?${new URLSearchParams({ callbackUrl: resumePath })}`;
+}
+
+function AddButton({ href }: { href: string }) {
   return (
     <Link
-      href="/register"
+      href={href}
       className="group inline-flex items-center gap-1 border-[1.5px] border-black px-3 py-[7px] font-mono text-[10px] font-extrabold tracking-[0.14em] uppercase shrink-0 hover:bg-terracotta hover:border-terracotta transition-colors"
     >
       <span className="text-terracotta text-[13px] leading-none group-hover:text-black transition-colors">
@@ -135,7 +144,7 @@ export default function SourcesPage() {
                         {src.domain}
                       </span>
                     </div>
-                    <AddButton />
+                    <AddButton href={buildAddHref(src.url, src.name, group.name)} />
                   </li>
                 ))}
               </ul>

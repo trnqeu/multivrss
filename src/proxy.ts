@@ -49,7 +49,9 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith("/u")) {
     const token = await getToken({ req });
     if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname + req.nextUrl.search);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
