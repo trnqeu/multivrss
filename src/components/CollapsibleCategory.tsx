@@ -132,7 +132,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                                 key={cat.id}
                                 type="button"
                                 onClick={() => handleDeleteCategory(cat.id)}
-                                className="px-2 py-1 border border-foreground/30 uppercase tracking-wider font-bold text-foreground/70 hover:border-terracotta hover:text-terracotta shrink-0"
+                                className="bg-transparent px-2 py-1 border border-foreground/30 uppercase tracking-wider font-bold text-foreground/70 hover:border-terracotta hover:text-terracotta shrink-0"
                             >
                                 {cat.name}
                             </button>
@@ -140,14 +140,14 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         <button
                             type="button"
                             onClick={() => handleDeleteCategory()}
-                            className="px-2 py-1 border border-terracotta uppercase tracking-wider font-bold text-terracotta hover:bg-terracotta hover:text-background shrink-0"
+                            className="bg-transparent px-2 py-1 border border-terracotta uppercase tracking-wider font-bold text-terracotta hover:bg-terracotta hover:text-background shrink-0"
                         >
                             Unsorted
                         </button>
                         <button
                             type="button"
                             onClick={() => setCatDeleteMode('idle')}
-                            className="ml-auto px-1 text-foreground/40 hover:text-foreground shrink-0 uppercase tracking-wider font-bold"
+                            className="bg-transparent ml-auto px-1 text-foreground/40 hover:text-foreground shrink-0 uppercase tracking-wider font-bold"
                         >
                             Cancel
                         </button>

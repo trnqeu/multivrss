@@ -2,12 +2,12 @@ import Link from "next/link";
 import type { Dictionary, Lang } from "@/lib/i18n";
 
 const SOURCES = [
-  { cat: "MIND", name: "Farnam Street", domain: "fs.blog" },
-  { cat: "SCIENCE", name: "Quanta Magazine", domain: "quantamagazine.org" },
-  { cat: "TECH", name: "Simon Willison", domain: "simonwillison.net" },
-  { cat: "NEWS", name: "Reuters", domain: "reuters.com" },
-  { cat: "CULTURE", name: "Longreads", domain: "longreads.com" },
-  { cat: "ENG", name: "Julia Evans", domain: "jvns.ca" },
+  { cat: "TECH", name: "Hacker News", domain: "news.ycombinator.com" },
+  { cat: "NEWS", name: "BBC News", domain: "bbc.co.uk" },
+  { cat: "CULTURE", name: "The Verge", domain: "theverge.com" },
+  { cat: "MUSIC", name: "The FADER", domain: "thefader.com" },
+  { cat: "SCIENCE", name: "Noema Magazine", domain: "noemamag.com" },
+  { cat: "PODCAST", name: "Lex Fridman Podcast", domain: "lexfridman.com" },
 ] as const;
 
 interface Props {
