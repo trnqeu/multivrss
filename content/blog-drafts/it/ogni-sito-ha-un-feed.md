@@ -2,7 +2,6 @@
 title: "Ogni sito ha ancora un feed — basta chiederlo."
 category: "GUIDA"
 date: "18 JUN 2026"
-readTime: "6 MIN"
 lang: "en · it"
 featured: true
 excerpt: "Google News, Substack, Reddit, YouTube, GitHub releases. Una mappa degli endpoint RSS nascosti nel web moderno e come trasformarli in un'iscrizione con un clic."

@@ -2,7 +2,6 @@
 title: "Every site still has a feed — you just have to ask."
 category: "GUIDE"
 date: "18 JUN 2026"
-readTime: "6 MIN"
 lang: "en · it"
 featured: true
 excerpt: "Google News, Substack, Reddit, YouTube, GitHub releases. A map of the RSS endpoints hiding in plain sight on the modern web, and how to turn each into a one-click subscription."

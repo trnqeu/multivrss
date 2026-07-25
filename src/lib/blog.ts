@@ -11,12 +11,12 @@ export interface BlogPost {
   title: string;
   category: string;
   date: string;
-  readTime: string;
   lang?: string;
   featured?: boolean;
   excerpt?: string;
   author?: string;
   content: string;
+  translationSlug?: string;
 }
 
 function parsePost(file: string, lang: Lang): BlogPost {
@@ -32,12 +32,12 @@ function parsePost(file: string, lang: Lang): BlogPost {
     title: data.title as string,
     category: data.category as string,
     date,
-    readTime: data.readTime as string,
     lang: data.lang as string | undefined,
     featured: data.featured as boolean | undefined,
     excerpt: data.excerpt as string | undefined,
     author: data.author as string | undefined,
     content,
+    translationSlug: data.translationSlug as string | undefined,
   };
 }
 

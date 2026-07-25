@@ -9,56 +9,86 @@ export const metadata: Metadata = {
 
 const GROUPS = [
   {
-    name: "MIND",
+    name: "CULTURE",
     sources: [
-      { name: "Farnam Street", domain: "fs.blog", url: "https://fs.blog/feed/" },
-      { name: "The Marginalian", domain: "themarginalian.org", url: "https://www.themarginalian.org/feed/" },
-      { name: "Aeon", domain: "aeon.co", url: "https://aeon.co/feed.rss" },
-    ],
-  },
-  {
-    name: "TECHNOLOGY",
-    sources: [
-      { name: "Simon Willison's Weblog", domain: "simonwillison.net", url: "https://simonwillison.net/atom/entries/" },
-      { name: "Stratechery", domain: "stratechery.com", url: "https://stratechery.com/feed/" },
-      { name: "Hacker News", domain: "news.ycombinator.com", url: "https://news.ycombinator.com/rss" },
-      { name: "Pluralistic", domain: "pluralistic.net", url: "https://pluralistic.net/feed/" },
-    ],
-  },
-  {
-    name: "NEWS",
-    sources: [
-      { name: "The Guardian", domain: "theguardian.com", url: "https://www.theguardian.com/world/rss" },
-      { name: "Reuters", domain: "reuters.com", url: "https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en" },
-      { name: "NYT › World", domain: "nytimes.com", url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml" },
-    ],
-  },
-  {
-    name: "SCIENCE",
-    sources: [
-      { name: "Quanta Magazine", domain: "quantamagazine.org", url: "https://www.quantamagazine.org/feed/" },
-      { name: "Nautilus", domain: "nautil.us", url: "https://nautil.us/feed/" },
+      { name: "The Guardian: Books", domain: "theguardian.com", url: "https://www.theguardian.com/books/rss" },
+      { name: "The Conversation (English)", domain: "theconversation.com", url: "https://theconversation.com/articles.atom?language=en" },
+      { name: "Luciano Floridi", domain: "mastodon.world", url: "https://mastodon.world/@lucianofloridi.rss" },
+      { name: "NPR Topics: Movies", domain: "npr.org", url: "https://feeds.npr.org/1045/rss.xml" },
+      { name: "The Verge", domain: "theverge.com", url: "https://www.theverge.com/rss/index.xml" },
+      { name: "Wikipedia: On This Day", domain: "en.wikipedia.org", url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=onthisday&feedformat=atom" },
+      { name: "Wikipedia: Picture of the Day", domain: "en.wikipedia.org", url: "https://en.wikipedia.org/w/api.php?action=featuredfeed&feed=potd&feedformat=atom" },
     ],
   },
   {
     name: "DESIGN",
     sources: [
-      { name: "Creative Boom", domain: "creativeboom.com", url: "https://www.creativeboom.com/feed/" },
-      { name: "Brand New", domain: "underconsideration.com", url: "https://www.underconsideration.com/brandnew/atom.xml" },
+      { name: "Michele De Lucchi's Substack", domain: "micheledelucchi.substack.com", url: "https://micheledelucchi.substack.com/feed" },
     ],
   },
   {
-    name: "ENGINEERING",
+    name: "HUMOR",
     sources: [
-      { name: "Julia Evans", domain: "jvns.ca", url: "https://jvns.ca/atom.xml" },
-      { name: "Dan Luu", domain: "danluu.com", url: "https://danluu.com/atom.xml" },
+      { name: "NPR Topics: Humor & Fun", domain: "npr.org", url: "https://feeds.npr.org/1052/rss.xml" },
+      { name: "xkcd", domain: "xkcd.com", url: "https://xkcd.com/atom.xml" },
     ],
   },
   {
-    name: "CULTURE",
+    name: "MUSIC",
     sources: [
-      { name: "Longreads", domain: "longreads.com", url: "https://longreads.com/feed/" },
-      { name: "The Browser", domain: "thebrowser.com", url: "https://thebrowser.com/feed" },
+      { name: "The Guardian: Music", domain: "theguardian.com", url: "https://www.theguardian.com/music/rss" },
+      { name: "Pitchfork: Album Reviews", domain: "pitchfork.com", url: "https://pitchfork.com/feed/feed-album-reviews/rss" },
+      { name: "The FADER", domain: "thefader.com", url: "https://www.thefader.com/feed.rss" },
+      { name: "The Line of Best Fit", domain: "bestfitmusic.substack.com", url: "https://bestfitmusic.substack.com/feed" },
+    ],
+  },
+  {
+    name: "NEWS",
+    sources: [
+      { name: "404 Media", domain: "404media.co", url: "https://www.404media.co/rss/" },
+      { name: "BBC News", domain: "bbc.co.uk", url: "https://www.bbci.co.uk/news/rss.xml" },
+      { name: "Kagi News: World", domain: "news.kagi.com", url: "https://news.kagi.com/world.rss" },
+      { name: "NPR Topics: News", domain: "npr.org", url: "https://feeds.npr.org/1001/rss.xml" },
+      { name: "NPR: World Story of the Day", domain: "npr.org", url: "https://feeds.npr.org/1056/rss.xml" },
+      { name: "Repubblica.it", domain: "repubblica.it", url: "https://www.repubblica.it/rss/homepage/rss2.0.xml" },
+      { name: "Wikipedia: Current Events", domain: "en.wikipedia.org", url: "https://www.to-rss.xyz/wikipedia/current_events/" },
+      { name: "The Guardian: World News", domain: "theguardian.com", url: "https://www.theguardian.com/world/rss" },
+    ],
+  },
+  {
+    name: "PODCAST",
+    sources: [
+      { name: "Dwarkesh Podcast", domain: "dwarkesh.com", url: "https://www.dwarkesh.com/feed/podcast/" },
+      { name: "Lex Fridman Podcast", domain: "lexfridman.com", url: "https://lexfridman.com/feed/podcast/" },
+      { name: "The Ezra Klein Show", domain: "nytimes.com", url: "https://feeds.simplecast.com/82Fl35Px" },
+    ],
+  },
+  {
+    name: "SCIENCE",
+    sources: [
+      { name: "Noema Magazine", domain: "noemamag.com", url: "https://www.noemamag.com/?feed=noemarss" },
+    ],
+  },
+  {
+    name: "SPORT",
+    sources: [
+      { name: "Dynasty League Football", domain: "dynastyleaguefootball.com", url: "https://dynastyleaguefootball.com/feed" },
+      { name: "MLB.com Blogs", domain: "mlblogs.com", url: "https://mlbcomblogs.mlblogs.com/feed" },
+    ],
+  },
+  {
+    name: "TECH",
+    sources: [
+      { name: "Hacker News", domain: "news.ycombinator.com", url: "https://news.ycombinator.com/rss" },
+      { name: "IEEE Spectrum", domain: "spectrum.ieee.org", url: "https://spectrum.ieee.org/customfeeds/feed/all-topics" },
+      { name: "Kagi News: Technology", domain: "news.kagi.com", url: "https://news.kagi.com/tech.rss" },
+      { name: "MIT News", domain: "news.mit.edu", url: "https://news.mit.edu/rss/feed" },
+      { name: "NPR Topics: Technology", domain: "npr.org", url: "https://feeds.npr.org/1019/rss.xml" },
+      { name: "NYT: Technology", domain: "nytimes.com", url: "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" },
+      { name: "Simon Willison's Weblog", domain: "simonwillison.net", url: "https://simonwillison.net/atom/entries/" },
+      { name: "The Next Web", domain: "thenextweb.com", url: "https://thenextweb.com/feed" },
+      { name: "MultivRSS Blog (EN)", domain: "multivrss.com", url: "https://multivrss.com/blog/en.xml" },
+      { name: "MultivRSS Blog (IT)", domain: "multivrss.com", url: "https://multivrss.com/blog/it.xml" },
     ],
   },
 ] as const;

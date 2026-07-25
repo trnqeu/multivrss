@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Lang } from "@/lib/i18n";
+import { useLangAlt } from "@/components/marketing/LangAltContext";
 
 interface Props {
   lang: Lang;
@@ -11,9 +12,12 @@ interface Props {
 
 export default function SystemStrip({ lang, version }: Props) {
   const pathname = usePathname();
+  const altHref = useLangAlt();
 
-  const switchLangHref = (target: Lang) =>
-    pathname.replace(/^\/(en|it)/, `/${target}`);
+  const switchLangHref = (target: Lang) => {
+    if (target !== lang && altHref) return altHref;
+    return pathname.replace(/^\/(en|it)/, `/${target}`);
+  };
 
   return (
     <div className="flex items-center justify-between px-[34px] py-[11px] border-b border-black/12 font-mono text-[10.5px] font-semibold tracking-[0.13em] text-black/30 max-[920px]:px-[22px]">

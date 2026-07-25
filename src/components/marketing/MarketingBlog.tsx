@@ -33,17 +33,18 @@ export default function MarketingBlog({ lang, dict }: Props) {
       className="px-[34px] py-[88px] border-t-2 border-black max-[920px]:px-[26px] max-[920px]:py-16"
     >
       <div className="max-w-[1200px] mx-auto">
-        <p className="font-mono text-[11px] font-extrabold tracking-[0.22em] text-terracotta uppercase mb-4">
-          {"//"} {t.kicker}
-        </p>
-
         {/* Header row */}
-        <div className="flex items-end justify-between gap-10 mb-12 flex-wrap max-[560px]:flex-col max-[560px]:items-start">
+        <div className="flex items-start justify-between gap-10 mb-9 flex-wrap max-[560px]:flex-col max-[560px]:items-start">
           <div>
-            <h2 className="normal-case font-black text-[clamp(34px,4.4vw,60px)] tracking-[-0.025em] leading-[1]">
-              {t.title}
-            </h2>
-            <p className="text-[15px] text-black/55 leading-[1.55] max-w-[440px] mt-[14px]">
+            <div className="inline-block bg-foreground text-background px-7 py-6 mb-4 max-[560px]:px-5 max-[560px]:py-5">
+              <p className="font-mono text-[11px] font-extrabold tracking-[0.22em] text-terracotta uppercase mb-4">
+                {"//"} {t.kicker}
+              </p>
+              <h2 className="normal-case font-black text-[clamp(34px,4.4vw,60px)] tracking-[-0.025em] leading-[1] m-0">
+                {t.title}
+              </h2>
+            </div>
+            <p className="text-[15px] text-black/55 leading-[1.55] max-w-[440px] m-0">
               {t.subtitle}
             </p>
           </div>
@@ -55,7 +56,7 @@ export default function MarketingBlog({ lang, dict }: Props) {
               {t.seeAll}
             </Link>
             <a
-              href="/blog/feed.xml"
+              href={`/blog/${lang}.xml`}
               className="inline-flex items-center gap-[10px] border-2 border-black px-[15px] py-[11px] font-mono text-[11px] font-extrabold tracking-[0.14em] uppercase transition-colors hover:bg-terracotta hover:border-terracotta"
             >
               <RssIcon />
@@ -87,8 +88,6 @@ export default function MarketingBlog({ lang, dict }: Props) {
               )}
               <div className="flex items-center gap-3 font-mono text-[10px] font-semibold tracking-[0.1em] text-black/30 uppercase">
                 <span>{featured.date}</span>
-                <span className="text-black/12">·</span>
-                <span>{featured.readTime}</span>
                 {featured.lang && (
                   <>
                     <span className="text-black/12">·</span>
@@ -118,8 +117,6 @@ export default function MarketingBlog({ lang, dict }: Props) {
                 </Link>
                 <div className="flex items-center gap-3 font-mono text-[10px] font-semibold tracking-[0.1em] text-black/30 uppercase">
                   <span>{post.date}</span>
-                  <span className="text-black/12">·</span>
-                  <span>{post.readTime}</span>
                 </div>
               </li>
             ))}

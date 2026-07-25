@@ -2,7 +2,6 @@
 title: "Reading lists that outlive the apps that hold them."
 category: "PRODUCT"
 date: "28 MAY 2026"
-readTime: "5 MIN"
 excerpt: "Pocket, Instapaper, Google Reader — they all died. Your reading list shouldn't die with them."
 ---
 

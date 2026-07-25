@@ -32,17 +32,23 @@ export default async function BlogIndexPage({ params }: Props) {
 
   return (
     <>
-      <header className="px-[34px] pt-[80px] pb-[46px] max-[920px]:px-[22px] max-[920px]:pt-14 max-[920px]:pb-9">
-        <div className="max-w-[1200px] mx-auto">
-          <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[22px]">
-            {"//"} {t.kicker}
-          </p>
-          <h1 className="normal-case font-black text-[clamp(48px,6vw,104px)] leading-[0.95] tracking-[-0.035em] mb-[26px]">
-            {t.title}
-          </h1>
-          <p className="text-[17px] leading-[1.6] text-black/55 m-0 max-w-[560px]">
-            {t.subtitle}
-          </p>
+      <header>
+        <div className="bg-foreground text-background px-[34px] pt-[80px] pb-10 max-[920px]:px-[22px] max-[920px]:pt-14 max-[920px]:pb-8">
+          <div className="max-w-[1200px] mx-auto">
+            <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[22px]">
+              {"//"} {t.kicker}
+            </p>
+            <h1 className="normal-case font-black text-[clamp(48px,6vw,104px)] leading-[0.95] tracking-[-0.035em]">
+              {t.title}
+            </h1>
+          </div>
+        </div>
+        <div className="px-[34px] pt-[26px] pb-[46px] max-[920px]:px-[22px] max-[920px]:pt-[18px] max-[920px]:pb-9">
+          <div className="max-w-[1200px] mx-auto">
+            <p className="text-[17px] leading-[1.6] text-black/55 m-0 max-w-[560px]">
+              {t.subtitle}
+            </p>
+          </div>
         </div>
       </header>
 
@@ -71,8 +77,6 @@ export default async function BlogIndexPage({ params }: Props) {
                   )}
                   <div className="flex items-center gap-3 font-mono text-[10px] font-semibold tracking-[0.1em] text-black/30 uppercase mt-3">
                     <span>{post.date}</span>
-                    <span className="text-black/12">·</span>
-                    <span>{post.readTime}</span>
                   </div>
                 </li>
               ))}
