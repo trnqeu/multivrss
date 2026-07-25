@@ -163,7 +163,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                                 type="button"
                                 onClick={() => setTagsExpanded(v => !v)}
                                 aria-expanded={tagsExpanded}
-                                className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
+                                className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
                             >
                                 {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
                                 <span className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
