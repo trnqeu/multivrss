@@ -2,7 +2,6 @@
 title: "Perché abbiamo eliminato lo scroll infinito."
 category: "MANIFESTO"
 date: "09 JUN 2026"
-readTime: "4 MIN"
 excerpt: "Lo scroll infinito è un dark pattern camuffato da comodità. Ecco perché MultivRSS si rifiuta di usarlo."
 ---
 
