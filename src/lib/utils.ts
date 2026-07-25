@@ -67,6 +67,12 @@ export function isPrivateIp(ip: string): boolean {
     );
 }
 
+/** Restricts a user-supplied redirect target to a relative in-app path, preventing open redirects. */
+export function sanitizeCallbackUrl(url: string | null | undefined, fallback = '/u'): string {
+    if (!url || !url.startsWith('/') || url.startsWith('//')) return fallback;
+    return url;
+}
+
 /** Password strength regex: 8+ chars, upper, lower, digit, special char. */
 export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 

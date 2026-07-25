@@ -4,21 +4,27 @@ import { useRef, useState, useEffect, useCallback, useTransition } from "react";
 import { useActionState } from "react";
 import { createPortal } from "react-dom";
 import AddFeedForm from "./AddFeedForm";
-import { saveExternalLink } from "@/app/actions/saved-links";
+import AssignTagsModal from "./AssignTagsModal";
+import { saveExternalLink, updateSavedLinkDetails, type SavedLinkData } from "@/app/actions/saved-links";
+import type { TagData } from "@/app/actions/tags";
+import { useSavedLinksSync } from "./SavedLinksSyncContext";
 import { Bookmark } from "./icons/Bookmark";
 import type { Category } from "@prisma/client";
 
 interface Props {
     categories: Category[];
+    tags: TagData[];
 }
 
 const URL_RE = /^https?:\/\/.+\..+/;
 
-export default function AddPopover({ categories }: Props) {
+export default function AddPopover({ categories, tags }: Props) {
     const [open, setOpen] = useState(false);
     const [url, setUrl] = useState("");
     const [showFeedModal, setShowFeedModal] = useState(false);
     const [feedInitialUrl, setFeedInitialUrl] = useState("");
+    const [savedLink, setSavedLink] = useState<SavedLinkData | null>(null);
+    const [titleDraft, setTitleDraft] = useState("");
 
     const buttonRef = useRef<HTMLButtonElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -26,6 +32,7 @@ export default function AddPopover({ categories }: Props) {
 
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, null);
     const [, startTransition] = useTransition();
+    const { notifyLinkSaved, notifyLinkDetailsSaved } = useSavedLinksSync();
 
     const close = useCallback(() => {
         setOpen(false);
@@ -60,8 +67,15 @@ export default function AddPopover({ categories }: Props) {
         return () => document.removeEventListener("keydown", onKey);
     }, [open, close]);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    useEffect(() => { if (saveState?.success) close(); }, [saveState?.success, close]);
+    useEffect(() => {
+        if (saveState?.success && saveState.link) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSavedLink(saveState.link);
+            setTitleDraft(saveState.link.title ?? "");
+            notifyLinkSaved(saveState.link);
+            close();
+        }
+    }, [saveState, close, notifyLinkSaved]);
 
     function handleFollowSource() {
         setFeedInitialUrl(url);
@@ -186,6 +200,24 @@ export default function AddPopover({ categories }: Props) {
                 onClose={() => setShowFeedModal(false)}
                 initialUrl={feedInitialUrl}
             />
+
+            {/* Edit title & tags — opened after "Save the link" succeeds */}
+            {savedLink && (
+                <AssignTagsModal
+                    open
+                    onClose={() => setSavedLink(null)}
+                    itemId={savedLink.id}
+                    initialTags={[]}
+                    allTags={tags}
+                    heading="EDIT_SAVED_LINK"
+                    titleField={{ value: titleDraft, onChange: setTitleDraft }}
+                    onSave={(id, tagIds, title) => updateSavedLinkDetails(id, title ?? '', tagIds)}
+                    onTagsApplied={(id, appliedTags) => {
+                        notifyLinkDetailsSaved(id, titleDraft.trim() || null, appliedTags);
+                        setSavedLink(null);
+                    }}
+                />
+            )}
         </>
     );
 }

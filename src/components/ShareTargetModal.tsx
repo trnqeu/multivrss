@@ -3,8 +3,9 @@
 import { useEffect, useState, useTransition, useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
 import AssignTagsModal from "./AssignTagsModal";
-import { saveExternalLink, type SaveExternalLinkState } from "@/app/actions/saved-links";
-import { setSavedLinkTags, type TagData } from "@/app/actions/tags";
+import { saveExternalLink, updateSavedLinkDetails, type SaveExternalLinkState } from "@/app/actions/saved-links";
+import type { TagData } from "@/app/actions/tags";
+import { useSavedLinksSync } from "./SavedLinksSyncContext";
 import type { Category } from "@prisma/client";
 
 interface Props {
@@ -20,15 +21,19 @@ const initialState: SaveExternalLinkState = { success: false };
 export default function ShareTargetModal({ categories, tags, url, title, onClose }: Props) {
     const [showFeedModal, setShowFeedModal] = useState(false);
     const [savedLinkId, setSavedLinkId] = useState<string | null>(null);
+    const [titleDraft, setTitleDraft] = useState(title);
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, initialState);
     const [, startTransition] = useTransition();
+    const { notifyLinkSaved, notifyLinkDetailsSaved } = useSavedLinksSync();
 
     useEffect(() => {
         if (saveState?.success && saveState.link) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSavedLinkId(saveState.link.id);
+            setTitleDraft(saveState.link.title ?? '');
+            notifyLinkSaved(saveState.link);
         }
-    }, [saveState]);
+    }, [saveState, notifyLinkSaved]);
 
     function handleFollow() {
         setShowFeedModal(true);
@@ -60,8 +65,13 @@ export default function ShareTargetModal({ categories, tags, url, title, onClose
                 itemId={savedLinkId}
                 initialTags={[]}
                 allTags={tags}
-                onSave={setSavedLinkTags}
-                onTagsApplied={onClose}
+                heading="EDIT_SAVED_LINK"
+                titleField={{ value: titleDraft, onChange: setTitleDraft }}
+                onSave={(id, tagIds, titleValue) => updateSavedLinkDetails(id, titleValue ?? '', tagIds)}
+                onTagsApplied={(id, appliedTags) => {
+                    notifyLinkDetailsSaved(id, titleDraft.trim() || null, appliedTags);
+                    onClose();
+                }}
             />
         );
     }
