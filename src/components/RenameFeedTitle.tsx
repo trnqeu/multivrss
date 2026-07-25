@@ -41,7 +41,7 @@ export default function RenameFeedTitle({ sourceId, title, username, editing, on
         <div className="flex-1 flex items-center">
             <MobileNavLink
                 href={`/u/${username}?source=${sourceId}&view=river`}
-                className="flex-1 py-1 text-[12px] font-medium text-foreground/85 hover:text-foreground transition-colors"
+                className="flex-1 py-1 text-[10px] font-medium text-foreground/55 group-hover:text-foreground transition-colors"
             >
                 {title}
             </MobileNavLink>

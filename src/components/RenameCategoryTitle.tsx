@@ -58,7 +58,7 @@ export default function RenameCategoryTitle({ categoryId, name, username, editin
         <span className="inline-flex items-center gap-1 min-w-0">
             <MobileNavLink
                 href={`/u/${username}?view=river&cat=${encodeURIComponent(name)}`}
-                className={`text-[10.5px] font-bold uppercase tracking-[.13em] py-1 truncate ${active ? 'text-terracotta' : 'text-foreground/55 group-hover/sbc:text-foreground'}`}
+                className={`text-[11px] font-extrabold uppercase tracking-[.1em] py-1 truncate ${active ? 'text-terracotta' : 'text-foreground/55 group-hover/sbc:text-foreground'}`}
             >
                 {name}
             </MobileNavLink>
