@@ -28,7 +28,18 @@ describe('proxy', () => {
 
         expect(mockedGetToken).toHaveBeenCalledWith({ req: request });
         expect(response.status).toBe(307);
-        expect(response.headers.get('location')).toBe('https://multivrss.test/login');
+        expect(response.headers.get('location')).toBe('https://multivrss.test/login?callbackUrl=%2Fu%2Ftestuser');
+    });
+
+    it('preserves the query string of the original destination in callbackUrl', async () => {
+        mockedGetToken.mockResolvedValue(null);
+
+        const request = new NextRequest('https://multivrss.test/u/add?feedUrl=https%3A%2F%2Ffs.blog%2Ffeed%2F');
+        const response = await proxy(request);
+
+        expect(response.headers.get('location')).toBe(
+            'https://multivrss.test/login?callbackUrl=%2Fu%2Fadd%3FfeedUrl%3Dhttps%253A%252F%252Ffs.blog%252Ffeed%252F',
+        );
     });
 
     it('allows authenticated requests to continue', async () => {

@@ -1,6 +1,6 @@
 # MultivRSS
 
-A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4, PostgreSQL + Prisma 7, Meilisearch, Docker.
+A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4, PostgreSQL + Prisma 7 (native full-text search — no separate search service), Docker.
 
 ---
 
@@ -121,24 +121,22 @@ Layer caching uses `type=gha` (GitHub Actions cache) to avoid rebuilding unchang
 
 ### `/api/health` endpoint
 
-`GET /api/health` checks all three backing services in parallel via `Promise.allSettled`. Returns HTTP 200 `{"status":"ok"}` only when all pass; returns HTTP 503 `{"status":"degraded", ...}` if any fail. The deploy script matches on the `"ok"` string — a degraded response triggers rollback.
+`GET /api/health` checks all backing services in parallel via `Promise.allSettled`. Returns HTTP 200 `{"status":"ok"}` only when all pass; returns HTTP 503 `{"status":"degraded", ...}` if any fail. The deploy script matches on the `"ok"` string — a degraded response triggers rollback.
 
 | Field | Check |
 |-------|-------|
 | `db` | `prisma.$queryRaw\`SELECT 1\`` |
-| `meili` | `meili.health()` |
 | `redis` | `redis.ping()` |
 
 ### Production stack (`docker-compose.prod.yml`)
 
-Five containers on an isolated `internal` Docker network. No service port is publicly exposed; the app listens on loopback only, with Nginx in front:
+Four containers on an isolated `internal` Docker network. No service port is publicly exposed; the app listens on loopback only, with Nginx in front:
 
 | Container | Image | Host binding |
 |-----------|-------|-------------|
 | `app` | `ghcr.io/trnqeu/multivrss:SHA` | `127.0.0.1:3001` |
 | `worker` | same image, `node dist/worker.js` | none |
 | `db` | `postgres:16-alpine` | none |
-| `meilisearch` | `getmeili/meilisearch:v1.13` | none |
 | `redis` | `redis:8-alpine` | none |
 
 `adminer` is defined but only starts with `--profile tools` — never auto-started in normal operation.
@@ -184,13 +182,14 @@ For production the flow is identical but triggers on `main`.
 ### Done
 
 - [x] OAuth sign-in (GitHub + Google) with Prisma Adapter
-- [x] Meilisearch full-text search bar (+ filters by category, time range, source, read status)
+- [x] Full-text search bar (+ filters by category, time range, source, read status)
+- [x] **Migrated search from Meilisearch to native Postgres full-text search** — removed the Meilisearch service entirely (RAM cost on the production host); `FeedItem`/`SavedLink` now carry a generated `tsvector` column (GIN-indexed, weighted title/content) queried via parameterized `$queryRaw`. Saved links are now searchable, unified and ranked alongside feed items in the same search bar for the first time. The home page's Meilisearch-based "similar items" recommendation engine is temporarily disabled (source-affinity ranking still active) pending a Postgres-native redesign.
 - [x] Sidebar toggle (open/close)
 - [x] Collapsible sidebar categories
 - [x] Alphabetical feed sorting within categories
 - [x] Manual sync button (syncs all feeds for the logged-in user)
-- [x] Accelerated sync with concurrency, Meili delta, timeout, non-blocking overlay
-- [x] Read / unread toggle (pallino + opacity) with dual Prisma+Meilisearch write
+- [x] Accelerated sync with concurrency, delta upserts, timeout, non-blocking overlay
+- [x] Read / unread toggle (pallino + opacity)
 - [x] Light / dark mode with paper as default, persisted in localStorage
 - [x] Marketing landing page (`/`) with hero, pillars, live preview, tips, pricing
 - [x] Protected staging via Basic Auth (`STAGING_PASSWORD` in proxy.ts)
@@ -210,7 +209,7 @@ For production the flow is identical but triggers on `main`.
 
 - [x] **Staleness filter nel cron** — sincronizzare solo feed con `lastSync < 30min fa` o `null`, invece di tutti i feed a ogni tick
 - [x] **Batch UPDATE per item cambiati** — sostituire gli update uno-a-uno dentro il loop con `prisma.$transaction`
-- [x] **Meilisearch fire-and-forget** — `addDocuments()` lanciato senza await con `.catch()` per errori
+- [x] ~~Meilisearch fire-and-forget indexing~~ — superseded: search moved to native Postgres full-text search (generated `tsvector` column, no separate index-sync step), see "Migrated search from Meilisearch to native Postgres full-text search" above
 - [x] **Priorità feed mai sincronizzati** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in cron e syncAllFeeds
 - [x] **Rate limiting per dominio** — `DomainGate` con semaforo: max 2 richieste concorrenti per hostname
 - [x] **Coda di job (BullMQ + Redis)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring; ogni feed diventa un job indipendente
@@ -235,7 +234,7 @@ A phased plan to make the app ready for real users at scale. Phases are ordered 
 - [x] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
 - [x] **Sentry integration** — `@sentry/nextjs` SDK installed and wired: `instrumentation.ts` (`onRequestError`) captures errors from Server Actions, Route Handlers (including cron routes), and Server Components automatically; `instrumentation-client.ts` + `global-error.tsx` cover client-side and root render crashes. DSN flows end-to-end — local `.env`, GitHub repo Variable for the build-time client bundle (`NEXT_PUBLIC_SENTRY_DSN` baked into the Docker image via `build-args`), `.env.production`/`.env.staging` on the server — and was verified with a real test event reaching the Sentry dashboard.
   - [ ] **Session Replay** — not yet enabled (`Sentry.replayIntegration()`)
-  - [ ] **Prisma/Meilisearch performance tracing** — `tracesSampleRate` is set, but no explicit span instrumentation for Prisma/Meilisearch calls added yet
+  - [ ] **Prisma performance tracing** — `tracesSampleRate` is set, but no explicit span instrumentation for Prisma calls added yet
   - [ ] **Alerting on error spikes** — configure alert rules in the Sentry dashboard
 - [ ] **Uptime & metrics monitoring** — Prometheus + Grafana or BetterStack for infrastructure metrics and uptime checks
 
@@ -253,7 +252,7 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 
 #### Phase 5 — Load testing
 
-- [ ] **Load test suite** — simulate concurrent users and high feed-sync volume to find bottlenecks before production traffic does. Candidate tools: [k6](https://k6.io) (scripted, CI-friendly) or Artillery. Key scenarios: authenticated feed list page under N concurrent users, cron sync with M feeds in queue, Meilisearch search under load. Gate: run before any capacity-related infrastructure change and before each major release.
+- [ ] **Load test suite** — simulate concurrent users and high feed-sync volume to find bottlenecks before production traffic does. Candidate tools: [k6](https://k6.io) (scripted, CI-friendly) or Artillery. Key scenarios: authenticated feed list page under N concurrent users, cron sync with M feeds in queue, full-text search under load. Gate: run before any capacity-related infrastructure change and before each major release.
 
 ### DevOps & CI/CD
 
@@ -261,7 +260,7 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 - [x] **`dev` push → staging deploy** — quality gate → Docker build → SSH deploy → health check → auto-rollback
 - [x] **`main` push → production deploy** — same pipeline, trigger restricted to the `main` branch
 - [x] **Prisma migration before code swap** — runs in an isolated one-shot container before `docker compose up`
-- [x] **`/api/health` route** — checks DB, Meilisearch, and Redis connectivity
+- [x] **`/api/health` route** — checks DB and Redis connectivity
 - [x] **Rollback on failure** — automated rollback to previous SHA if health check fails after deploy
 - [x] **GitHub Environments** — `staging` and `production` with scoped secrets
 - [ ] **Manual approval gate on production deploy** — required reviewers on the `production` environment need GitHub Pro (or a public repo); not available on the current private-repo free plan. Same limitation blocks native branch protection on `main`. Revisit if upgrading the plan or open-sourcing the repo.
@@ -273,7 +272,7 @@ Steps to make the repo public and let users run their own instance.
 
 - [ ] **Git history audit** — scan full history for committed secrets (`trufflehog filesystem .`); rewrite with `git filter-repo` if anything is found
 - [ ] **`.env.example`** — document all required env vars with placeholder values and comments on where to obtain each (OAuth credentials, Resend API key, etc.)
-- [ ] **All-in-one `docker-compose.yml`** — add an `app` service so `docker compose up` starts DB + Meilisearch + Next.js together; current compose assumes the app runs outside Docker
+- [ ] **All-in-one `docker-compose.yml`** — add an `app` service so `docker compose up` starts DB + Redis + Next.js together; current compose assumes the app runs outside Docker
 - [ ] **Init entrypoint** — run `prisma migrate deploy` + `prisma generate` automatically on first container start
 - [ ] **Self-hosting guide in README** — prerequisites, clone, copy env, `docker compose up`, first login
 
@@ -282,7 +281,7 @@ Steps to make the repo public and let users run their own instance.
 - [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)
 - [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
 - [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
-- [x] **Feed item retention / auto-purge** — cron deletes `FeedItem` rows with `pubDate < 90 days` and `savedAt = null`; syncs Meilisearch index
+- [x] **Feed item retention / auto-purge** — cron deletes `FeedItem` rows with `pubDate < 90 days` and `savedAt = null`
 
 ### TBD / Future
 
@@ -343,28 +342,24 @@ Steps to make the repo public and let users run their own instance.
 
 ### Personalization
 
-- [ ] **"For You" recommendations page** — `/u/[username]/for-you` shows articles from the user's subscribed feeds ranked by similarity to their saved and read history. Signal: `FeedItem.savedAt` (strong, explicit) and `FeedItem.read` (weak, implicit). Three implementation options in order of complexity:
+- [ ] **"Similar items" recommendation engine (redesign needed)** — the home page's "For You" strip ranks items via two engines merged in `src/lib/frontpage.ts`: Engine A (source affinity, pure Prisma — active) and Engine B (title-similarity search — **temporarily disabled** as of the Meilisearch → Postgres full-text search migration; it depended on `meili.multiSearch()` with `showRankingScore`, which has no direct equivalent in Postgres FTS). Signal available for a redesign: `FeedItem.savedAt` (strong, explicit) and `FeedItem.read` (weak, implicit). Options, in order of complexity:
 
-  **Option A — Meilisearch keyword similarity (MVP, no new infrastructure)**
-  - Take the titles of the last N saved/read `FeedItem`s; build a composite Meilisearch multi-query; aggregate, deduplicate, and filter already-read results.
-  - Quality: medium (term-based, not semantic — misses synonyms and related concepts).
-  - Effort: low (~2 sessions). Reuses existing Meilisearch index and `searchFeedItemsForUser()` pattern.
+  ~~**Option A — Meilisearch keyword similarity**~~ — this is what Engine B was; no longer applicable, Meilisearch is removed from the stack (RAM cost).
 
-  **Option B — Meilisearch with AI embedder (recommended for semantic quality)**
-  - Configure a Meilisearch embedder (Voyage AI ~$0.06/1M tokens, or Ollama free locally) to unlock the `/indexes/feed_items/similar` endpoint.
-  - Send saved `FeedItem` IDs to `/similar`; Meilisearch returns K nearest neighbours by vector cosine similarity.
-  - Requires: embedder config in `meili.ts`, one-time re-indexing of all existing articles, API key or local model.
-  - Quality: high (true semantic similarity). The `/for-you` route itself changes minimally vs Option A.
-  - Effort: medium (~3–4 sessions).
+  ~~**Option B — Meilisearch with AI embedder**~~ — same dependency, ruled out for the same reason.
 
-  **Option C — pgvector in PostgreSQL (maximum control)**
+  **Option C — pgvector in PostgreSQL (maximum control, unaffected by the Meilisearch removal)**
   - Add `pgvector` extension to Docker, add `embedding vector(1024)` column to `FeedItem`, generate and store embeddings on every feed sync (via Voyage AI or similar).
   - Query: average the embeddings of the last N saved/read items → `ORDER BY embedding <=> $avg_embedding LIMIT 20`.
-  - Enables advanced ranking: weighted saved-vs-read signal, temporal decay, per-category boosting — without depending on Meilisearch for vectors.
   - This is the "Vector database — TBD" item above, made concrete.
   - Quality: high + most flexible. Effort: high (~6–8 sessions).
 
-  **Recommended path:** implement Option A first (validate the UX and the signal), then upgrade to Option B once the page is live.
+  **Option D — Postgres keyword similarity (no new infrastructure, lowest effort)**
+  - Reuse the `tsvector`/GIN columns already added for search: for each of the last N saved/read `FeedItem` titles, rank other unread items by `ts_rank_cd` against a `websearch_to_tsquery` built from that title (or `pg_trgm` similarity for a fuzzier match), excluding already-seen items.
+  - Quality: medium (term-based, not semantic — same ceiling the old Meilisearch-based Engine B had).
+  - Effort: low — no new service, no embeddings, reuses `src/lib/search.ts`'s existing query patterns.
+
+  **Recommended path:** Option D restores Engine B's original UX cheaply on the now-Postgres-only stack; revisit Option C only if term-based similarity proves insufficient in practice.
 
 ---
 

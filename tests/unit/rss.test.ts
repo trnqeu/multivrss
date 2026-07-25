@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { EventEmitter } from 'events';
 import { prisma } from '@/lib/prisma';
-import { meili } from '@/lib/meili';
 
 const mockTransaction = vi.hoisted(() => vi.fn((updates: any) => Promise.all(updates)));
 
@@ -17,12 +16,6 @@ vi.mock('@/lib/prisma', () => ({
             createManyAndReturn: vi.fn(),
             update: vi.fn(),
         },
-    },
-}));
-
-vi.mock('@/lib/meili', () => ({
-    meili: {
-        index: vi.fn(),
     },
 }));
 
@@ -61,7 +54,6 @@ const mockedUpdate = vi.mocked(prisma.feedSource.update);
 const mockedFindMany = vi.mocked(prisma.feedItem.findMany);
 const mockedCreateManyAndReturn = vi.mocked(prisma.feedItem.createManyAndReturn);
 const mockedUpdateItem = vi.mocked(prisma.feedItem.update);
-const mockedMeiliIndex = vi.mocked(meili.index);
 
 describe('syncFeed', () => {
     beforeEach(() => {
@@ -75,8 +67,8 @@ describe('syncFeed', () => {
         await expect(syncFeed('nonexistent')).rejects.toThrow('Source not found');
     });
 
-    it('creates new items and syncs delta to Meilisearch', async () => {
-        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example', category: { id: 'cat_1', name: 'TECH' } };
+    it('creates new items from the parsed feed', async () => {
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
         mockedFindUnique.mockResolvedValue(source);
         mockedFindMany.mockResolvedValue([]);
 
@@ -94,9 +86,6 @@ describe('syncFeed', () => {
         ];
         mockedCreateManyAndReturn.mockResolvedValue(createdItems);
 
-        const addDocuments = vi.fn().mockResolvedValue({ taskUid: 42 });
-        mockedMeiliIndex.mockReturnValue({ addDocuments } as any);
-
         const { syncFeed } = await import('@/lib/rss');
         const result = await syncFeed('src_1');
 
@@ -108,15 +97,6 @@ describe('syncFeed', () => {
             ],
         });
 
-        // Only new items sent to Meili (delta)
-        expect(addDocuments).toHaveBeenCalledWith(
-            [
-                expect.objectContaining({ id: 'item_1', title: 'Post 1', read: false }),
-                expect.objectContaining({ id: 'item_2', title: 'Post 2', read: false }),
-            ],
-            { primaryKey: 'id' }
-        );
-
         // Title is never overwritten by a sync — set once at discovery/creation
         // and preserved across re-syncs so manual renames don't get clobbered.
         expect(mockedUpdate).toHaveBeenCalledWith({
@@ -125,8 +105,8 @@ describe('syncFeed', () => {
         });
     });
 
-    it('does not send unchanged items to Meilisearch', async () => {
-        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example', category: { id: 'cat_1', name: 'TECH' } };
+    it('does not create or update anything for unchanged items', async () => {
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
         mockedFindUnique.mockResolvedValue(source);
 
         const existingItem = { id: 'item_1', externalId: 'ext_1', title: 'Post 1', content: 'Content 1', link: 'https://example.com/1', pubDate: new Date('2025-01-01T00:00:00Z'), sourceId: 'src_1' };
@@ -139,19 +119,16 @@ describe('syncFeed', () => {
             ],
         });
 
-        const addDocuments = vi.fn().mockResolvedValue({ taskUid: 42 });
-        mockedMeiliIndex.mockReturnValue({ addDocuments } as any);
-
         const { syncFeed } = await import('@/lib/rss');
         const result = await syncFeed('src_1');
 
         expect(result).toEqual([]);
         expect(mockedCreateManyAndReturn).not.toHaveBeenCalled();
-        expect(addDocuments).not.toHaveBeenCalled();
+        expect(mockedUpdateItem).not.toHaveBeenCalled();
     });
 
-    it('updates items with changed title or content and syncs to Meili', async () => {
-        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example', category: { id: 'cat_1', name: 'TECH' } };
+    it('updates items with changed title or content', async () => {
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
         mockedFindUnique.mockResolvedValue(source);
 
         const existingItem = { id: 'item_1', externalId: 'ext_1', title: 'Old Title', content: 'Old Content', link: 'https://example.com/1', pubDate: new Date('2025-01-01T00:00:00Z'), sourceId: 'src_1' };
@@ -164,9 +141,6 @@ describe('syncFeed', () => {
             ],
         });
 
-        const addDocuments = vi.fn().mockResolvedValue({ taskUid: 42 });
-        mockedMeiliIndex.mockReturnValue({ addDocuments } as any);
-
         const { syncFeed } = await import('@/lib/rss');
         const result = await syncFeed('src_1');
 
@@ -175,16 +149,10 @@ describe('syncFeed', () => {
             where: { id: 'item_1' },
             data: { title: 'New Title', content: 'New Content' },
         });
-
-        // Updated items sent to Meili
-        expect(addDocuments).toHaveBeenCalledWith(
-            [expect.objectContaining({ id: 'item_1', title: 'New Title', content: 'New Content' })],
-            { primaryKey: 'id' }
-        );
     });
 
     it('uses prefetched feed when provided', async () => {
-        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example', category: { id: 'cat_1', name: 'TECH' } };
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
         mockedFindUnique.mockResolvedValue(source);
         mockedFindMany.mockResolvedValue([]);
 
@@ -197,9 +165,6 @@ describe('syncFeed', () => {
 
         const createdItems = [{ id: 'item_1', externalId: 'ext_1', title: 'Post 1', content: 'Content 1', link: 'https://example.com/1', pubDate: new Date('2025-01-01T00:00:00Z'), sourceId: 'src_1' }];
         mockedCreateManyAndReturn.mockResolvedValue(createdItems);
-
-        const addDocuments = vi.fn().mockResolvedValue({ taskUid: 42 });
-        mockedMeiliIndex.mockReturnValue({ addDocuments } as any);
 
         const { syncFeed } = await import('@/lib/rss');
         await syncFeed('src_1', prefetched);

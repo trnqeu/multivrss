@@ -66,7 +66,7 @@ export default async function SavedPage({ params }: SavedPageProps) {
 
     return (
         <>
-            <PageHeader categories={categories} username={session.user.username} email={session.user.email} />
+            <PageHeader categories={categories} tags={allTags} username={session.user.username} email={session.user.email} />
             <Suspense fallback={null}>
                 <SavedPageClient
                     username={session.user.username}

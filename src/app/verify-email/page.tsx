@@ -1,17 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { sanitizeCallbackUrl } from "@/lib/utils";
 
 interface Props {
-    searchParams: Promise<{ token?: string }>;
+    searchParams: Promise<{ token?: string; callbackUrl?: string }>;
 }
 
 export default async function VerifyEmailPage({ searchParams }: Props) {
-    const { token } = await searchParams;
+    const { token, callbackUrl } = await searchParams;
     const error = await verifyToken(token);
 
     if (!error) {
-        redirect("/login?verified=1");
+        const safeCallbackUrl = sanitizeCallbackUrl(callbackUrl);
+        redirect(`/login?verified=1&callbackUrl=${encodeURIComponent(safeCallbackUrl)}`);
     }
 
     return (

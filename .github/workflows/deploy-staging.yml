@@ -102,7 +102,7 @@ jobs:
             # Bring up infrastructure first so the migrator can reach db:5432
             cd ~/multivrss
             IMAGE_TAG="$SHA" \
-            docker compose -f docker-compose.prod.yml --project-name multivrss-staging --env-file .env.staging up -d db redis meilisearch
+            docker compose -f docker-compose.prod.yml --project-name multivrss-staging --env-file .env.staging up -d db redis
 
             # Wait for Postgres to be ready (up to 30s)
             for i in $(seq 1 15); do

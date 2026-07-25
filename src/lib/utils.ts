@@ -67,12 +67,26 @@ export function isPrivateIp(ip: string): boolean {
     );
 }
 
+/** Restricts a user-supplied redirect target to a relative in-app path, preventing open redirects. */
+export function sanitizeCallbackUrl(url: string | null | undefined, fallback = '/u'): string {
+    if (!url || !url.startsWith('/') || url.startsWith('//')) return fallback;
+    return url;
+}
+
 /** Password strength regex: 8+ chars, upper, lower, digit, special char. */
 export const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+/** Username regex: 3-20 chars, letters/numbers/underscore/hyphen only (used in the [username] route segment). */
+export const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,20}$/;
 
 /** Strips HTML tags, collapsing whitespace. */
 export function stripHtml(str: string): string {
     return str.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Derives a display label from a URL's hostname, stripping a leading "www.". Falls back to the raw string on parse failure. */
+export function getHost(url: string): string {
+    try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
 }
 
 /** Decodes HTML/XML character entities (handles double-encoded feeds, e.g. &#39; → '). */

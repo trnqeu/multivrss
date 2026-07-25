@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import SaveLinkBar from '@/components/SaveLinkBar';
@@ -11,6 +11,7 @@ import { deleteSavedLink } from '@/app/actions/saved-links';
 import { unsaveFeedItem } from '@/app/actions/feed-items';
 import { removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions/tags';
 import SavedTagPill from '@/components/SavedTagPill';
+import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 
 interface SavedPageClientProps {
     username: string;
@@ -23,20 +24,40 @@ export default function SavedPageClient({ username, initialArticles, initialLink
     const [articles, setArticles] = useState(initialArticles);
     const [links, setLinks] = useState(initialLinks);
     const [tags, setTags] = useState(initialTags);
+    const [tagsExpanded, setTagsExpanded] = useState(false);
     const searchParams = useSearchParams();
     const activeTag = searchParams.get('tag');
+    const query = searchParams.get('q') ?? '';
+    const normalizedQuery = query.trim().toLowerCase();
 
-    const filteredLinks = activeTag
-        ? links.filter(l => l.tags.some(t => t.name === activeTag))
-        : links;
+    function matchesQuery(title: string | null, body: string | null): boolean {
+        if (!normalizedQuery) return true;
+        return `${title ?? ''} ${body ?? ''}`.toLowerCase().includes(normalizedQuery);
+    }
 
-    const filteredArticles = activeTag
-        ? articles.filter(a => a.tags.some(t => t.name === activeTag))
-        : articles;
+    const filteredLinks = links
+        .filter(l => !activeTag || l.tags.some(t => t.name === activeTag))
+        .filter(l => matchesQuery(l.title, l.description));
+
+    const filteredArticles = articles
+        .filter(a => !activeTag || a.tags.some(t => t.name === activeTag))
+        .filter(a => matchesQuery(a.title, a.content));
 
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
     }, []);
+
+    const handleSetLinkDetails = useCallback((linkId: string, title: string | null, newTags: TagVM[]) => {
+        setLinks(prev => prev.map(l =>
+            l.id === linkId ? { ...l, title, tags: newTags } : l
+        ));
+    }, []);
+
+    const { register } = useSavedLinksSync();
+    useEffect(() => {
+        register({ onLinkSaved: handleLinkSaved, onLinkDetailsSaved: handleSetLinkDetails });
+        return () => register(null);
+    }, [register, handleLinkSaved, handleSetLinkDetails]);
 
     const handleRemoveArticle = useCallback(async (id: string) => {
         setArticles(prev => prev.filter(a => a.id !== id));
@@ -94,6 +115,14 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await deleteTag(tagId);
     }, []);
 
+    const sortedTags = useMemo(
+        () => [...tags].sort((a, b) => a.name.localeCompare(b.name)),
+        [tags]
+    );
+    const TAG_PREVIEW_COUNT = 8;
+    const visibleTags = tagsExpanded ? sortedTags : sortedTags.slice(0, TAG_PREVIEW_COUNT);
+    const hiddenTagCount = sortedTags.length - visibleTags.length;
+
     const total = filteredArticles.length + filteredLinks.length;
 
     return (
@@ -120,7 +149,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 {/* Tag filter bar */}
                 {tags.length > 0 && !activeTag && (
                     <div className="flex flex-wrap gap-1.5">
-                        {tags.map(tag => (
+                        {visibleTags.map(tag => (
                             <SavedTagPill
                                 key={tag.id}
                                 tag={tag}
@@ -129,13 +158,25 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                                 onDelete={handleDeleteTag}
                             />
                         ))}
+                        {(hiddenTagCount > 0 || tagsExpanded) && (
+                            <button
+                                type="button"
+                                onClick={() => setTagsExpanded(v => !v)}
+                                aria-expanded={tagsExpanded}
+                                className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
+                            >
+                                {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
+                                <span className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
+                            </button>
+                        )}
                     </div>
                 )}
-                <SaveLinkBar onSaved={handleLinkSaved} />
+                <SaveLinkBar tags={tags} onSaved={handleLinkSaved} onDetailsSaved={handleSetLinkDetails} />
             </header>
             <SavedView
                 articles={filteredArticles}
                 links={filteredLinks}
+                activeQuery={query}
                 allTags={tags}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
