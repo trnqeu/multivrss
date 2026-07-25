@@ -13,7 +13,7 @@ export default function RowActionIcons({ onRename, onDeleteClick, renameLabel, d
         <span className={`items-center gap-1 shrink-0 ${className}`}>
             <button
                 type="button"
-                onClick={onRename}
+                onClick={(e) => { e.stopPropagation(); onRename(); }}
                 aria-label={renameLabel}
                 className="p-1 bg-transparent border-0 text-foreground/50 hover:text-terracotta transition-colors"
             >
@@ -21,7 +21,7 @@ export default function RowActionIcons({ onRename, onDeleteClick, renameLabel, d
             </button>
             <button
                 type="button"
-                onClick={onDeleteClick}
+                onClick={(e) => { e.stopPropagation(); onDeleteClick(); }}
                 aria-label={deleteLabel}
                 className="p-1 bg-transparent border-0 text-foreground/50 hover:text-terracotta transition-colors"
             >
