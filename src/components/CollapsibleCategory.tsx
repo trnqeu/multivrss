@@ -48,14 +48,33 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
         setCatDeleteMode('idle');
     }
 
+    const rowInteractive = catDeleteMode === 'idle';
+
     return (
         <div className="flex flex-col gap-1">
             <div
-                className={`group/sbc flex items-center gap-2 px-1 py-[6px] border-t border-foreground/[0.08] transition-colors ${isActive ? 'bg-[var(--tc-soft)]' : 'hover:bg-[var(--tc-soft)]'}`}
+                onClick={rowInteractive ? onToggle : undefined}
+                onKeyDown={rowInteractive ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onToggle();
+                    }
+                } : undefined}
+                role={rowInteractive ? 'button' : undefined}
+                tabIndex={rowInteractive ? 0 : undefined}
+                aria-expanded={rowInteractive ? isOpen : undefined}
+                aria-label={rowInteractive ? (isOpen ? `Close ${category.name}` : `Open ${category.name}`) : undefined}
+                className={`group/sbc flex items-center gap-2 px-[6px] py-[7px] border-t border-foreground/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-1 ${rowInteractive ? 'cursor-pointer' : ''} ${isActive || isOpen ? 'bg-[var(--tc-soft)]' : 'hover:bg-[var(--tc-soft)]'}`}
             >
                 {catDeleteMode === 'idle' && (
                     <>
-                        <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <span
+                            aria-hidden="true"
+                            className={`shrink-0 w-2 text-[8px] leading-none transition-transform duration-[120ms] ${isOpen ? 'rotate-90 text-terracotta' : 'text-foreground/35'}`}
+                        >
+                            ▸
+                        </span>
+                        <div className="flex items-center gap-1 flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
                             <RenameCategoryTitle
                                 categoryId={category.id}
                                 name={category.name}
@@ -67,7 +86,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         </div>
                         <button
                             type="button"
-                            onClick={() => setCatActionsOpen(v => !v)}
+                            onClick={(e) => { e.stopPropagation(); setCatActionsOpen(v => !v); }}
                             aria-label={catActionsOpen ? `Hide actions for ${category.name}` : `Show actions for ${category.name}`}
                             aria-expanded={catActionsOpen}
                             className="shrink-0 bg-transparent border-0 p-0 text-foreground/40 hover:text-terracotta font-mono text-xs leading-none pointer-fine:hidden"
@@ -83,7 +102,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                             deleteLabel={`Delete ${category.name}`}
                             className={`${catActionsOpen ? 'flex' : 'hidden'} group-hover/sbc:flex group-focus-within/sbc:flex`}
                         />
-                        <span className="font-mono text-[9px] text-foreground/25 shrink-0">
+                        <span className="font-mono text-[9px] font-bold text-foreground/35 tabular-nums shrink-0">
                             {sourceCount.toString().padStart(2, '0')}
                         </span>
                         <span
@@ -92,29 +111,21 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         >
                             →
                         </span>
-                        <button
-                            type="button"
-                            onClick={onToggle}
-                            onMouseDown={(e) => e.preventDefault()}
-                            aria-expanded={isOpen}
-                            aria-label={isOpen ? `Close ${category.name}` : `Open ${category.name}`}
-                            className="w-[18px] h-[18px] border border-foreground/25 text-foreground/45 bg-background inline-flex items-center justify-center font-mono text-xs font-extrabold leading-none shrink-0 hover:border-terracotta hover:text-terracotta transition-colors"
-                        >
-                            {isOpen ? '–' : '+'}
-                        </button>
                     </>
                 )}
 
                 {catDeleteMode === 'confirm' && (
-                    <InlineDeleteConfirm
-                        label={category.name}
-                        onCancel={() => setCatDeleteMode('idle')}
-                        onConfirm={() => handleDeleteCategory()}
-                    />
+                    <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                        <InlineDeleteConfirm
+                            label={category.name}
+                            onCancel={() => setCatDeleteMode('idle')}
+                            onConfirm={() => handleDeleteCategory()}
+                        />
+                    </div>
                 )}
 
                 {catDeleteMode === 'pick-destination' && (
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0 font-mono text-[9px] overflow-x-auto">
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0 font-mono text-[9px] overflow-x-auto" onClick={(e) => e.stopPropagation()}>
                         <span className="text-foreground/50 uppercase tracking-wider shrink-0">Move {sourceCount} to:</span>
                         {otherCategories.map(cat => (
                             <button
@@ -145,9 +156,12 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
             </div>
 
             {isOpen && (
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col">
                     {category.sources.map((source) => (
-                        <li key={source.id} className="group flex items-center gap-1">
+                        <li
+                            key={source.id}
+                            className="group relative flex items-center gap-1 pl-[22px] pr-[6px] py-[6px] transition-colors hover:bg-[var(--tc-soft)] before:content-[''] before:absolute before:left-2 before:top-0 before:bottom-0 before:w-px before:bg-foreground/[0.14]"
+                        >
                             {confirmingSourceId === source.id ? (
                                 <InlineDeleteConfirm
                                     label={source.title ?? source.slug}
@@ -189,7 +203,7 @@ export default function CollapsibleCategory({ category, allCategories, isOpen, o
                         </li>
                     ))}
                     {category.sources.length === 0 && (
-                        <span className="label-system text-[9px] opacity-20 italic">Empty_Slot</span>
+                        <span className="label-system text-[9px] opacity-20 italic pl-[22px] py-[6px]">Empty_Slot</span>
                     )}
                 </ul>
             )}
