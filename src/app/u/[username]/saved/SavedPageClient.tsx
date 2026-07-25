@@ -25,14 +25,21 @@ export default function SavedPageClient({ username, initialArticles, initialLink
     const [tags, setTags] = useState(initialTags);
     const searchParams = useSearchParams();
     const activeTag = searchParams.get('tag');
+    const query = searchParams.get('q') ?? '';
+    const normalizedQuery = query.trim().toLowerCase();
 
-    const filteredLinks = activeTag
-        ? links.filter(l => l.tags.some(t => t.name === activeTag))
-        : links;
+    function matchesQuery(title: string | null, body: string | null): boolean {
+        if (!normalizedQuery) return true;
+        return `${title ?? ''} ${body ?? ''}`.toLowerCase().includes(normalizedQuery);
+    }
 
-    const filteredArticles = activeTag
-        ? articles.filter(a => a.tags.some(t => t.name === activeTag))
-        : articles;
+    const filteredLinks = links
+        .filter(l => !activeTag || l.tags.some(t => t.name === activeTag))
+        .filter(l => matchesQuery(l.title, l.description));
+
+    const filteredArticles = articles
+        .filter(a => !activeTag || a.tags.some(t => t.name === activeTag))
+        .filter(a => matchesQuery(a.title, a.content));
 
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
@@ -136,6 +143,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
             <SavedView
                 articles={filteredArticles}
                 links={filteredLinks}
+                activeQuery={query}
                 allTags={tags}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
