@@ -34,6 +34,7 @@ export interface LinkVM {
 interface Props {
     articles: ArticleVM[];
     links: LinkVM[];
+    activeQuery?: string;
     allTags: TagVM[];
     onRemoveArticle: (id: string) => void;
     onRemoveLink: (id: string) => void;
@@ -71,7 +72,7 @@ interface ModalItem {
 }
 
 export default function SavedView({
-    articles, links, allTags,
+    articles, links, activeQuery, allTags,
     onRemoveArticle, onRemoveLink,
     onRemoveTagFromArticle, onRemoveTagFromLink,
     onSetArticleTags, onSetLinkTags,
@@ -113,7 +114,9 @@ export default function SavedView({
     return (
         <section className="p-8 md:p-12">
             {total === 0 ? (
-                <EmptyStream variant="no-saved" />
+                activeQuery
+                    ? <EmptyStream variant="no-results" contextLabel={activeQuery} />
+                    : <EmptyStream variant="no-saved" />
             ) : (
                 <div className="leading-relaxed text-sm text-foreground font-medium">
                     {allItems.map((item, index) => {
