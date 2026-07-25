@@ -2,6 +2,7 @@ import PageHeader from "@/components/PageHeader";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCategories } from "@/app/actions/categories";
+import { getTags } from "@/app/actions/tags";
 import { notFound } from "next/navigation";
 import { getSuggestedByCategory } from "@/lib/suggested-feeds";
 import SuggestedPageClient from "./SuggestedPageClient";
@@ -17,11 +18,12 @@ export default async function SuggestedPage({ params }: SuggestedPageProps) {
   if (session.user.username !== username) notFound();
 
   const categories = await getCategories();
+  const tags = await getTags();
   const suggested = getSuggestedByCategory();
 
   return (
     <>
-      <PageHeader categories={categories} username={session.user.username} email={session.user.email} />
+      <PageHeader categories={categories} tags={tags} username={session.user.username} email={session.user.email} />
       <SuggestedPageClient categories={categories} suggested={suggested} />
     </>
   );

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
-import { PASSWORD_REGEX } from "@/lib/utils";
+import { PASSWORD_REGEX, USERNAME_REGEX, sanitizeCallbackUrl } from "@/lib/utils";
 import crypto from "crypto";
 import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -15,6 +15,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
     const email = formData.get("email") as string;
     const username = formData.get("username") as string;
     const password = formData.get("password") as string;
+    const callbackUrl = sanitizeCallbackUrl(formData.get("callbackUrl") as string | null);
 
     const hdrs = await headers();
     const ip = getClientIp(hdrs);
@@ -23,6 +24,9 @@ export async function registerUser(prevState: string | null, formData: FormData)
     }
 
     try {
+        if (!USERNAME_REGEX.test(username)) {
+            return "Username must be 3-20 characters: letters, numbers, underscore or hyphen only.";
+        }
         if (!PASSWORD_REGEX.test(password)) {
             return "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.";
         }
@@ -40,7 +44,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
             },
         });
 
-        sendVerificationEmail(email, token).catch((err: unknown) => {
+        sendVerificationEmail(email, token, callbackUrl).catch((err: unknown) => {
             console.error('Failed to send verification email:', err);
         });
     } catch {

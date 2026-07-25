@@ -14,8 +14,10 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
     if (error) throw new Error(error.message);
 }
 
-export async function sendVerificationEmail(email: string, token: string) {
-    const verifyUrl = `${process.env.NEXTAUTH_URL}/verify-email?token=${token}`;
+export async function sendVerificationEmail(email: string, token: string, callbackUrl?: string) {
+    const verifyUrl = callbackUrl
+        ? `${process.env.NEXTAUTH_URL}/verify-email?token=${token}&callbackUrl=${encodeURIComponent(callbackUrl)}`
+        : `${process.env.NEXTAUTH_URL}/verify-email?token=${token}`;
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
         from: 'MultivRSS <noreply@multivrss.com>',

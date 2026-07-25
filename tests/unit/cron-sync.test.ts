@@ -12,12 +12,6 @@ vi.mock('@/lib/queue', () => ({
   feedSyncQueue: { addBulk: vi.fn().mockResolvedValue([]) },
 }))
 
-vi.mock('@/lib/meili', () => ({
-  meili: {
-    index: vi.fn().mockReturnValue({ deleteDocuments: vi.fn().mockResolvedValue({}) }),
-  },
-}))
-
 import { prisma } from '@/lib/prisma'
 import { feedSyncQueue } from '@/lib/queue'
 import { GET } from '@/app/api/cron/sync/route'

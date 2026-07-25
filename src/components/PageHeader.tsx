@@ -9,9 +9,11 @@ import { useSync } from './SyncProvider';
 import ThemeToggle from './ThemeToggle';
 import SettingsMenu from './SettingsMenu';
 import type { Category } from '@prisma/client';
+import type { TagData } from '@/app/actions/tags';
 
 type Props = {
     categories: Category[];
+    tags: TagData[];
     username: string;
     email?: string | null;
     tabs?: React.ReactNode;
@@ -19,7 +21,7 @@ type Props = {
 
 const INPUT_CLASS = "flex-1 p-0 bg-transparent text-foreground text-[11px] font-bold uppercase tracking-widest placeholder:text-foreground/30 border-none appearance-none shadow-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta";
 
-export default function PageHeader({ categories, username, email, tabs }: Props) {
+export default function PageHeader({ categories, tags, username, email, tabs }: Props) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const desktopInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +105,7 @@ export default function PageHeader({ categories, username, email, tabs }: Props)
                     >
                         ⌕
                     </button>
-                    <AddPopover categories={categories} />
+                    <AddPopover categories={categories} tags={tags} />
                     <button
                         onClick={handleSync}
                         disabled={isSyncing}
@@ -166,7 +168,7 @@ export default function PageHeader({ categories, username, email, tabs }: Props)
             {tabs && <div className="hidden md:block flex-1" />}
 
             <div className="hidden md:block">
-                <AddPopover categories={categories} />
+                <AddPopover categories={categories} tags={tags} />
             </div>
 
             <button

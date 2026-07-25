@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { meili } from '@/lib/meili';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendVerificationEmail } from '@/lib/email';
 
@@ -68,15 +67,8 @@ vi.mock('@/lib/email', () => ({
     sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/lib/meili', () => ({
-    meili: {
-        index: vi.fn(),
-    },
-}));
-
 const mockedSession = vi.mocked(getServerSession);
 const mockedPrisma = vi.mocked(prisma);
-const mockedMeiliIndex = vi.mocked(meili.index);
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 const mockedSendVerificationEmail = vi.mocked(sendVerificationEmail);
 
@@ -116,15 +108,12 @@ describe('markAsRead / markAsUnread', () => {
         expect(unreadResult).toEqual({ success: false, message: 'Unauthorized' });
     });
 
-    it('marks as read in both Prisma and Meilisearch', async () => {
+    it('marks as read in Prisma', async () => {
         mockedSession.mockResolvedValue({
             user: { id: 'user_1', username: 'testuser' },
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedItem.update.mockResolvedValue({} as any);
-
-        const updateDocuments = vi.fn().mockResolvedValue({});
-        mockedMeiliIndex.mockReturnValue({ updateDocuments } as any);
 
         const { markAsRead } = await import('@/app/actions/feed-items');
         const result = await markAsRead('item_1');
@@ -134,18 +123,14 @@ describe('markAsRead / markAsUnread', () => {
             where: { id: 'item_1', source: { category: { userId: 'user_1' } } },
             data: { read: true },
         });
-        expect(updateDocuments).toHaveBeenCalledWith([{ id: 'item_1', read: true }]);
     });
 
-    it('marks as unread in both Prisma and Meilisearch', async () => {
+    it('marks as unread in Prisma', async () => {
         mockedSession.mockResolvedValue({
             user: { id: 'user_1', username: 'testuser' },
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedItem.update.mockResolvedValue({} as any);
-
-        const updateDocuments = vi.fn().mockResolvedValue({});
-        mockedMeiliIndex.mockReturnValue({ updateDocuments } as any);
 
         const { markAsUnread } = await import('@/app/actions/feed-items');
         const result = await markAsUnread('item_1');
@@ -155,7 +140,6 @@ describe('markAsRead / markAsUnread', () => {
             where: { id: 'item_1', source: { category: { userId: 'user_1' } } },
             data: { read: false },
         });
-        expect(updateDocuments).toHaveBeenCalledWith([{ id: 'item_1', read: false }]);
     });
 
     it('returns error when update fails (ownership check fails)', async () => {
@@ -263,8 +247,6 @@ describe('updateFeedSource', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedSource.update.mockResolvedValue({} as any);
-        mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'cat_1', name: 'TECH' } as any);
-        mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
         const { updateFeedSource } = await import('@/app/actions/feeds');
         const result = await updateFeedSource(null, makeFormData());
@@ -283,8 +265,6 @@ describe('updateFeedSource', () => {
         });
         mockedPrisma.category.upsert.mockResolvedValue({ id: 'new_cat_id' } as any);
         mockedPrisma.feedSource.update.mockResolvedValue({} as any);
-        mockedPrisma.category.findUniqueOrThrow.mockResolvedValue({ id: 'new_cat_id', name: 'NEWS' } as any);
-        mockedPrisma.feedItem.findMany.mockResolvedValue([]);
 
         const { updateFeedSource } = await import('@/app/actions/feeds');
         const result = await updateFeedSource(null, makeFormData({ newCategoryName: 'NEWS', categoryId: '' }));

@@ -85,6 +85,45 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
     }
 }
 
+export async function updateSavedLinkDetails(linkId: string, title: string, tagIds: string[]): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    try {
+        const link = await prisma.savedLink.findFirst({
+            where: { id: linkId, userId: session.user.id },
+            select: { id: true },
+        });
+        if (!link) return { success: false, message: "Link not found." };
+
+        const trimmedTitle = title.trim();
+        const validTags = tagIds.length > 0
+            ? await prisma.tag.findMany({
+                where: { id: { in: tagIds }, userId: session.user.id },
+                select: { id: true },
+            })
+            : [];
+        const validTagIds = validTags.map(t => t.id);
+
+        await prisma.$transaction(async (tx) => {
+            await tx.savedLink.update({ where: { id: linkId }, data: { title: trimmedTitle || null } });
+            await tx.savedLinkTag.deleteMany({ where: { savedLinkId: linkId } });
+            if (validTagIds.length > 0) {
+                await tx.savedLinkTag.createMany({
+                    data: validTagIds.map(tagId => ({ savedLinkId: linkId, tagId })),
+                });
+            }
+        });
+
+        const username = session.user.username;
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${username}/saved`);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to update link." };
+    }
+}
+
 export async function deleteSavedLink(linkId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };

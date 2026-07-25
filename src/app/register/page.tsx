@@ -2,12 +2,16 @@
 
 import { registerUser } from "@/app/actions/auth";
 import { useActionState, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { OAuthButtons } from "@/components/OAuthButtons";
+import { sanitizeCallbackUrl } from "@/lib/utils";
 
 
 export default function RegisterPage() {
     const [error, formAction, isPending] = useActionState(registerUser, null);
     const [password, setPassword] = useState("");
+    const searchParams = useSearchParams();
+    const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
     const requirements = [
         { label: "At least 8 characters", met: password.length >= 8 },
         { label: "Uppercase letter", met: /[A-Z]/.test(password) },
@@ -26,6 +30,7 @@ export default function RegisterPage() {
                 </div>
 
                 <form action={formAction} className="p-8 flex flex-col gap-4">
+                    <input type="hidden" name="callbackUrl" value={callbackUrl} />
                     <div className="flex flex-col gap-1">
                         <label htmlFor="reg-email" className="sr-only">Email</label>
                         <input
@@ -77,7 +82,7 @@ export default function RegisterPage() {
                 </form>
 
                 <div className="px-8 pb-8">
-                    <OAuthButtons callbackUrl="/u" label="up" />
+                    <OAuthButtons callbackUrl={callbackUrl} label="up" />
                 </div>
             </div>
         </main>

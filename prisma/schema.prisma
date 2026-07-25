@@ -103,6 +103,12 @@ model FeedItem {
   source     FeedSource    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   tags       FeedItemTag[]
 
+  /// Generated tsvector (title=A, content=B), populated by Postgres via
+  /// GENERATED ALWAYS AS (...) STORED — see migration `add_fulltext_search`.
+  /// Unsupported so Prisma won't try to drop it; the GIN index over it is
+  /// intentionally not declared here (hand-written in the migration only).
+  searchVector Unsupported("tsvector")?
+
   @@unique([sourceId, externalId])
   @@index([sourceId])
   @@index([pubDate])
@@ -135,6 +141,9 @@ model SavedLink {
   updatedAt   DateTime @updatedAt
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags        SavedLinkTag[]
+
+  /// Generated tsvector (title=A, description=B) — see migration `add_fulltext_search`.
+  searchVector Unsupported("tsvector")?
 
   @@index([userId])
 }
