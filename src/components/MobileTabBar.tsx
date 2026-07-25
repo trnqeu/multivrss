@@ -36,7 +36,7 @@ export default function MobileTabBar({ username }: { username: string }) {
     return (
         <nav
             aria-label="Primary"
-            className="md:hidden shrink-0 flex bg-background border-t-2 border-foreground z-40 pb-[env(safe-area-inset-bottom)]"
+            className="md:hidden absolute inset-x-0 bottom-0 flex bg-background border-t-2 border-foreground z-40 pb-[env(safe-area-inset-bottom)]"
         >
             <Tab label="FEED"  active={onFeed}  onClick={() => router.push(`/u/${username}`)}>
                 <Rss size={16} />

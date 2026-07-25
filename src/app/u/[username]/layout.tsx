@@ -41,7 +41,7 @@ export default async function UserLayout({
                     <Suspense fallback={null}>
                         <ShareTargetWatcher categories={categories} tags={tags} />
                     </Suspense>
-                    <div className="flex flex-1 overflow-hidden h-screen bg-background text-foreground relative">
+                    <div className="flex h-screen shrink-0 overflow-hidden bg-background text-foreground relative">
                         <SidebarContainer>
                             <Sidebar username={session.user.username} />
                         </SidebarContainer>
