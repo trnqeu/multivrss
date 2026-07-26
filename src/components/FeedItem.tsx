@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead, saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
+import { markAsRead, saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from '@/app/actions/feed-items';
 import { useState, useCallback } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
@@ -25,6 +25,8 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
     const [isRead, setIsRead] = useState(item.read);
     const [isSaved, setIsSaved] = useState(!!item.savedAt);
     const [tags, setTags] = useState(item.tags);
+    const [title, setTitle] = useState(item.title);
+    const [titleDraft, setTitleDraft] = useState(item.title);
     const [modalOpen, setModalOpen] = useState(false);
     async function handleClick() {
         if (isRead) return;
@@ -44,7 +46,12 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
     }
     const handleTagsApplied = useCallback((_itemId: string, newTags: { id: string; name: string }[]) => {
         setTags(newTags);
-    }, []);
+        setTitle(titleDraft.trim() || item.title);
+    }, [titleDraft, item.title]);
+    function openModal() {
+        setTitleDraft(title);
+        setModalOpen(true);
+    }
     return (
     <span role="listitem" className="group/item">
         <a
@@ -67,7 +74,7 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
                     : '---'}
             </span>
             <span className="text-foreground/40 mx-2">·</span>
-            <span>{item.title}</span>
+            <span>{title}</span>
             {item.content && (
                 <>
                     <span className="text-foreground/40 mx-2">—</span>
@@ -101,7 +108,7 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
         </button>
         <button
             type="button"
-            onClick={() => setModalOpen(true)}
+            onClick={openModal}
             className="ml-1 bg-transparent border border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 cursor-pointer leading-none transition-colors"
         >
             + TAG
@@ -113,6 +120,8 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
                 itemId={item.id}
                 initialTags={tags}
                 allTags={allTags}
+                titleField={{ value: titleDraft, onChange: setTitleDraft }}
+                onSave={(id, tagIds, draftTitle) => updateFeedItemDetails(id, draftTitle ?? '', tagIds)}
                 onTagsApplied={handleTagsApplied}
             />
         )}

@@ -89,6 +89,48 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
     }
 }
 
+export async function updateFeedItemDetails(itemId: string, title: string, tagIds: string[]): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle || trimmedTitle.length > 300) {
+        return { success: false, message: "Title must be 1-300 characters." };
+    }
+
+    try {
+        const item = await prisma.feedItem.findFirst({
+            where: { id: itemId, source: { category: { userId: session.user.id } } },
+            select: { id: true },
+        });
+        if (!item) return { success: false, message: "Item not found." };
+
+        const validTags = tagIds.length > 0
+            ? await prisma.tag.findMany({
+                where: { id: { in: tagIds }, userId: session.user.id },
+                select: { id: true },
+            })
+            : [];
+        const validTagIds = validTags.map(t => t.id);
+
+        await prisma.$transaction(async (tx) => {
+            await tx.feedItem.update({ where: { id: itemId }, data: { title: trimmedTitle } });
+            await tx.feedItemTag.deleteMany({ where: { feedItemId: itemId } });
+            if (validTagIds.length > 0) {
+                await tx.feedItemTag.createMany({
+                    data: validTagIds.map(tagId => ({ feedItemId: itemId, tagId })),
+                });
+            }
+        });
+
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${session.user.username}/saved`);
+        return { success: true };
+    } catch {
+        return { success: false, message: "Failed to update item." };
+    }
+}
+
 // Stamps items as shown so getFrontPage()'s selection queries exclude them
 // from future days — keeps the "shown" write out of the cached data-fetch path.
 async function stampFrontPageShown(itemIds: string[], userId: string) {

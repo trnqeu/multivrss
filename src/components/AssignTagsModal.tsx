@@ -126,13 +126,13 @@ export default function AssignTagsModal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-20 pb-8 px-4"
             style={{ backgroundColor: 'rgba(0,0,0,0.70)' }}
             onClick={e => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-full max-w-lg border-2 border-foreground bg-background">
+            <div className="flex w-full max-w-lg max-h-[calc(100vh-7rem)] flex-col border-2 border-foreground bg-background">
                 {/* Header */}
-                <div className="flex items-center justify-between px-[22px] py-[22px] border-b-2 border-foreground">
+                <div className="flex shrink-0 items-center justify-between px-[22px] py-[22px] border-b-2 border-foreground">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-bold">
                         {heading ?? 'ASSIGN_TAGS'}
                     </span>
@@ -147,7 +147,7 @@ export default function AssignTagsModal({
                 </div>
 
                 {/* Body */}
-                <div className="px-[26px] pt-[26px] flex flex-col gap-[22px]">
+                <div className="px-[26px] pt-[26px] flex flex-col gap-[22px] overflow-y-auto">
                     {/* Section 00: Title (only when editing a saved link) */}
                     {titleField && (
                         <div className="flex flex-col gap-2">
@@ -250,7 +250,7 @@ export default function AssignTagsModal({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between px-[26px] py-5 mt-[22px] border-t-2 border-foreground">
+                <div className="flex shrink-0 items-center justify-between px-[26px] py-5 mt-[22px] border-t-2 border-foreground">
                     <span className="font-mono text-[9px] text-foreground/30 tracking-widest">
                         UID: TAG_PROC_{uid}
                     </span>
