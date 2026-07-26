@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { dayBucket, getHost } from '@/lib/utils';
 import { getCategories } from '@/app/actions/categories';
-import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
-import { setFeedItemTags, setSavedLinkTags } from '@/app/actions/tags';
+import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from '@/app/actions/feed-items';
+import { updateSavedLinkDetails } from '@/app/actions/saved-links';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/search-types';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
@@ -57,6 +57,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
     const [categories, setCategories] = useState<{ name: string }[]>([]);
     const [tagModalItem, setTagModalItem] = useState<{ id: string; isSavedLink: boolean } | null>(null);
     const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
+    const [titleDraft, setTitleDraft] = useState('');
 
 
     useEffect(() => {
@@ -265,7 +266,10 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     )}
                                     <button
                                         type="button"
-                                        onClick={() => setTagModalItem({ id: item.id, isSavedLink })}
+                                        onClick={() => {
+                                            setTagModalItem({ id: item.id, isSavedLink });
+                                            setTitleDraft(item.title ?? '');
+                                        }}
                                         className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
                                     >
                                         TAG
@@ -389,9 +393,13 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                     itemId={tagModalItem.id}
                     initialTags={itemTags.get(tagModalItem.id) ?? []}
                     allTags={allTags}
-                    onSave={tagModalItem.isSavedLink ? setSavedLinkTags : setFeedItemTags}
+                    titleField={{ value: titleDraft, onChange: setTitleDraft }}
+                    onSave={(id, tagIds, title) => tagModalItem.isSavedLink
+                        ? updateSavedLinkDetails(id, title ?? '', tagIds)
+                        : updateFeedItemDetails(id, title ?? '', tagIds)}
                     onTagsApplied={(_id, newTags) => {
                         setItemTags(prev => new Map(prev).set(tagModalItem.id, newTags));
+                        setAllHits(prev => prev.map(h => h.id === tagModalItem.id ? { ...h, title: titleDraft.trim() || h.title } : h));
                     }}
                 />
             )}

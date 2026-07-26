@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const blogEntries: MetadataRoute.Sitemap = SUPPORTED_LANGS.flatMap((lang) =>
     getAllPosts(lang).map((post) => ({
       url: localizedUrl(lang, `/blog/${post.slug}`),
-      lastModified: post.date,
+      lastModified: new Date(post.date),
       priority: 0.6,
     }))
   );
