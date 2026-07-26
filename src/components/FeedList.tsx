@@ -23,6 +23,10 @@ async function CachedFeedContent({
         cat: categoryName,
         limit: 100,
         sourceId,
+        // FeedList never reads estimatedTotalHits — skip the count(*) OVER()
+        // window, which otherwise forces Postgres to aggregate every feed
+        // item the user owns before it can sort + LIMIT.
+        includeTotalCount: false,
     });
 
     const items = result.hits.map(hit => ({
