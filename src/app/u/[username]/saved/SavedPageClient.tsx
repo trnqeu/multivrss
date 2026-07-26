@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import SaveLinkBar from '@/components/SaveLinkBar';
 import SavedView from './SavedView';
 import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
@@ -69,9 +68,9 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         await deleteSavedLink(id);
     }, []);
 
-    const handleSetArticleTags = useCallback((articleId: string, tags: TagVM[]) => {
+    const handleSetArticleDetails = useCallback((articleId: string, title: string, tags: TagVM[]) => {
         setArticles(prev => prev.map(a =>
-            a.id === articleId ? { ...a, tags } : a
+            a.id === articleId ? { ...a, title, tags } : a
         ));
     }, []);
 
@@ -82,12 +81,6 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 : a
         ));
         await removeTagFromFeedItem(articleId, tagId);
-    }, []);
-
-    const handleSetLinkTags = useCallback((linkId: string, tags: TagVM[]) => {
-        setLinks(prev => prev.map(l =>
-            l.id === linkId ? { ...l, tags } : l
-        ));
     }, []);
 
     const handleRemoveTagFromLink = useCallback(async (linkId: string, tagId: string) => {
@@ -171,7 +164,6 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                         )}
                     </div>
                 )}
-                <SaveLinkBar tags={tags} onSaved={handleLinkSaved} onDetailsSaved={handleSetLinkDetails} />
             </header>
             <SavedView
                 articles={filteredArticles}
@@ -182,8 +174,8 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 onRemoveLink={handleRemoveLink}
                 onRemoveTagFromArticle={handleRemoveTagFromArticle}
                 onRemoveTagFromLink={handleRemoveTagFromLink}
-                onSetArticleTags={handleSetArticleTags}
-                onSetLinkTags={handleSetLinkTags}
+                onSetArticleDetails={handleSetArticleDetails}
+                onSetLinkDetails={handleSetLinkDetails}
             />
         </main>
     );

@@ -16,7 +16,7 @@ describe('proxy', () => {
 
     it('matches all non-public paths', () => {
         expect(config.matcher).toEqual([
-            '/((?!api|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets).*)',
+            '/((?!api|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets|\\.well-known|sw\\.js).*)',
         ]);
     });
 

@@ -15,6 +15,10 @@ type SearchOptions = {
     sourceId?: string;
     read?: string; // 'read' | 'unread'
     includeSavedLinks?: boolean;
+    // count(*) OVER() forces Postgres to aggregate the full matching set before
+    // it can sort + LIMIT, which is expensive for users with many feed items.
+    // Callers that don't render a total (e.g. FeedList) should opt out.
+    includeTotalCount?: boolean;
 };
 
 type RawRow = {
@@ -33,7 +37,7 @@ type RawRow = {
     read: boolean | null;
     saved_at: Date | null;
     pub_date: Date | null;
-    total_count: number;
+    total_count?: number;
 };
 
 function sinceToDate(since?: string): Date | undefined {
@@ -109,7 +113,7 @@ export async function searchAllForUser(
     options: SearchOptions = {},
 ): Promise<SearchResult> {
     const start = performance.now();
-    const { cat, since, sourceId, read, limit = 30, offset = 0, includeSavedLinks = false } = options;
+    const { cat, since, sourceId, read, limit = 30, offset = 0, includeSavedLinks = false, includeTotalCount = true } = options;
 
     const cappedLimit = Math.min(Math.max(limit, 1), 200);
     const cappedOffset = Math.max(offset, 0);
@@ -137,9 +141,13 @@ export async function searchAllForUser(
         ? Prisma.sql`ORDER BY rank DESC, pub_date DESC NULLS LAST`
         : Prisma.sql`ORDER BY pub_date DESC NULLS LAST`;
 
+    const totalCountSelect = includeTotalCount
+        ? Prisma.sql`, count(*) OVER()::int AS total_count`
+        : Prisma.empty;
+
     const finalQuery = Prisma.sql`
         WITH combined AS (${combined})
-        SELECT *, count(*) OVER()::int AS total_count
+        SELECT *${totalCountSelect}
         FROM combined
         ${whereClause}
         ${orderBy}
@@ -175,7 +183,7 @@ export async function searchAllForUser(
 
     return {
         hits,
-        estimatedTotalHits: rows.length > 0 ? rows[0].total_count : 0,
+        estimatedTotalHits: includeTotalCount ? (rows[0]?.total_count ?? 0) : 0,
         processingTimeMs: Math.round(performance.now() - start),
     };
 }
