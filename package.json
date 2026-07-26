@@ -27,7 +27,6 @@
     "marked": "^18.0.5",
     "next": "^16.2.6",
     "next-auth": "^4.24.13",
-    "nodemailer": "^7.0.13",
     "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -39,7 +38,6 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
-    "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -51,7 +49,9 @@
     "vitest": "^4.1.4"
   },
   "overrides": {
-    "fast-uri": "3.1.2",
-    "hono": "4.12.18"
+    "fast-uri": "3.1.4",
+    "hono": "4.12.32",
+    "postcss": "8.5.23",
+    "sharp": "0.35.3"
   }
 }
