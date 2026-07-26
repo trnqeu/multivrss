@@ -11,6 +11,18 @@ export interface TagData {
   name: string;
 }
 
+async function findExistingTag(userId: string, name: string, excludeId?: string): Promise<TagData | null> {
+  const tag = await prisma.tag.findFirst({
+    where: {
+      userId,
+      name: { equals: name, mode: 'insensitive' },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
+    select: { id: true, name: true },
+  });
+  return tag;
+}
+
 export async function getTags(): Promise<TagData[]> {
   const session = await getServerSession(authOptions);
   if (!session) return [];
@@ -34,6 +46,11 @@ export async function createTag(name: string): Promise<ActionState & { tag?: Tag
   }
 
   try {
+    const existing = await findExistingTag(session.user.id, trimmed);
+    if (existing) {
+      return { success: true, message: 'Tag saved.', tag: existing };
+    }
+
     const tag = await prisma.tag.upsert({
       where: { userId_name: { userId: session.user.id, name: trimmed } },
       update: {},
@@ -57,6 +74,11 @@ export async function renameTag(tagId: string, name: string): Promise<ActionStat
   }
 
   try {
+    const collision = await findExistingTag(session.user.id, trimmed, tagId);
+    if (collision) {
+      return { success: false, message: 'Tag name already taken.' };
+    }
+
     await prisma.tag.update({
       where: { id: tagId, userId: session.user.id },
       data: { name: trimmed },

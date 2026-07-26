@@ -4,7 +4,8 @@ import { useState, useCallback, Fragment } from 'react';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { dayBucket } from '@/lib/utils';
 import AssignTagsModal from '@/components/AssignTagsModal';
-import { setFeedItemTags, setSavedLinkTags } from '@/app/actions/tags';
+import { updateFeedItemDetails } from '@/app/actions/feed-items';
+import { updateSavedLinkDetails } from '@/app/actions/saved-links';
 import EmptyStream from '@/components/EmptyStream';
 
 export interface TagVM {
@@ -40,8 +41,8 @@ interface Props {
     onRemoveLink: (id: string) => void;
     onRemoveTagFromArticle: (articleId: string, tagId: string) => void;
     onRemoveTagFromLink: (linkId: string, tagId: string) => void;
-    onSetArticleTags: (articleId: string, tags: TagVM[]) => void;
-    onSetLinkTags: (linkId: string, tags: TagVM[]) => void;
+    onSetArticleDetails: (articleId: string, title: string, tags: TagVM[]) => void;
+    onSetLinkDetails: (linkId: string, title: string | null, tags: TagVM[]) => void;
 }
 
 function getHost(url: string): string {
@@ -75,7 +76,7 @@ export default function SavedView({
     articles, links, activeQuery, allTags,
     onRemoveArticle, onRemoveLink,
     onRemoveTagFromArticle, onRemoveTagFromLink,
-    onSetArticleTags, onSetLinkTags,
+    onSetArticleDetails, onSetLinkDetails,
 }: Props) {
     const allItems = [
         ...articles.map(a => ({
@@ -101,12 +102,13 @@ export default function SavedView({
     ].sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
 
     const [modalItem, setModalItem] = useState<ModalItem | null>(null);
+    const [titleDraft, setTitleDraft] = useState('');
 
-    const handleModalSave = useCallback(async (id: string, tagIds: string[]) => {
+    const handleModalSave = useCallback(async (id: string, tagIds: string[], title?: string) => {
         if (!modalItem) return { success: false };
         return modalItem.isExternal
-            ? setSavedLinkTags(id, tagIds)
-            : setFeedItemTags(id, tagIds);
+            ? updateSavedLinkDetails(id, title ?? '', tagIds)
+            : updateFeedItemDetails(id, title ?? '', tagIds);
     }, [modalItem]);
 
     const total = allItems.length;
@@ -182,7 +184,10 @@ export default function SavedView({
                                     <span className="ml-1">
                                         <button
                                             type="button"
-                                            onClick={() => setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal })}
+                                            onClick={() => {
+                                                setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal });
+                                                setTitleDraft(item.title);
+                                            }}
                                             className="bg-transparent border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] uppercase tracking-widest cursor-pointer text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
                                         >
                                             + TAG
@@ -211,12 +216,13 @@ export default function SavedView({
                     itemId={modalItem.id}
                     initialTags={modalItem.tags}
                     allTags={allTags}
+                    titleField={{ value: titleDraft, onChange: setTitleDraft }}
                     onSave={handleModalSave}
                     onTagsApplied={(id, newTags) => {
                         if (modalItem.isExternal) {
-                            onSetLinkTags(id, newTags);
+                            onSetLinkDetails(id, titleDraft.trim() || null, newTags);
                         } else {
-                            onSetArticleTags(id, newTags);
+                            onSetArticleDetails(id, titleDraft.trim(), newTags);
                         }
                     }}
                 />

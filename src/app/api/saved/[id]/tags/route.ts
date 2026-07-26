@@ -47,7 +47,11 @@ export async function POST(
     }
 
     try {
-        const tag = await prisma.tag.upsert({
+        const existingTag = await prisma.tag.findFirst({
+            where: { userId, name: { equals: tagName, mode: 'insensitive' } },
+            select: { id: true, name: true },
+        });
+        const tag = existingTag ?? await prisma.tag.upsert({
             where: { userId_name: { userId, name: tagName } },
             update: {},
             create: { userId, name: tagName },
