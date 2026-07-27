@@ -30,17 +30,22 @@ export async function GET(req: NextRequest) {
 
     const session = await getServerSession(authOptions);
 
+    // Build absolute redirect URLs from NEXTAUTH_URL, not req.url: behind the
+    // production reverse proxy, req.url's host can resolve to the app's
+    // internal container address instead of the public domain.
+    const baseUrl = process.env.NEXTAUTH_URL;
+
     if (!session) {
-        const target = new URL("/share-target", req.url);
+        const target = new URL("/share-target", baseUrl);
         if (url) target.searchParams.set("url", url);
         if (sharedTitle) target.searchParams.set("title", sharedTitle);
 
-        const loginUrl = new URL("/login", req.url);
+        const loginUrl = new URL("/login", baseUrl);
         loginUrl.searchParams.set("callbackUrl", target.pathname + target.search);
         return NextResponse.redirect(loginUrl);
     }
 
-    const dest = new URL(`/u/${session.user.username}`, req.url);
+    const dest = new URL(`/u/${session.user.username}`, baseUrl);
     if (url) dest.searchParams.set("share_url", url);
     if (sharedTitle) dest.searchParams.set("share_title", sharedTitle);
     return NextResponse.redirect(dest);
