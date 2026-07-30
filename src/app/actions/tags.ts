@@ -64,7 +64,7 @@ export async function createTag(name: string): Promise<ActionState & { tag?: Tag
   }
 }
 
-export async function renameTag(tagId: string, name: string): Promise<ActionState> {
+export async function renameTag(tagId: string, name: string): Promise<ActionState & { mergedIntoTagId?: string }> {
   const session = await getServerSession(authOptions);
   if (!session) return { success: false, message: 'Unauthorized' };
 
@@ -75,17 +75,46 @@ export async function renameTag(tagId: string, name: string): Promise<ActionStat
 
   try {
     const collision = await findExistingTag(session.user.id, trimmed, tagId);
+
     if (collision) {
-      return { success: false, message: 'Tag name already taken.' };
+      await prisma.$transaction(async (tx) => {
+        const [savedLinkTags, feedItemTags] = await Promise.all([
+          tx.savedLinkTag.findMany({ where: { tagId }, select: { savedLinkId: true } }),
+          tx.feedItemTag.findMany({ where: { tagId }, select: { feedItemId: true } }),
+        ]);
+
+        if (savedLinkTags.length > 0) {
+          await tx.savedLinkTag.createMany({
+            data: savedLinkTags.map(({ savedLinkId }) => ({ savedLinkId, tagId: collision.id })),
+            skipDuplicates: true,
+          });
+        }
+        if (feedItemTags.length > 0) {
+          await tx.feedItemTag.createMany({
+            data: feedItemTags.map(({ feedItemId }) => ({ feedItemId, tagId: collision.id })),
+            skipDuplicates: true,
+          });
+        }
+
+        await tx.tag.delete({ where: { id: tagId, userId: session.user.id } });
+
+        if (collision.name !== trimmed) {
+          await tx.tag.update({ where: { id: collision.id }, data: { name: trimmed } });
+        }
+      });
+
+      revalidatePath(`/u/${session.user.username}/saved`);
+      return { success: true, message: 'Tags merged.', mergedIntoTagId: collision.id };
     }
 
     await prisma.tag.update({
       where: { id: tagId, userId: session.user.id },
       data: { name: trimmed },
     });
+    revalidatePath(`/u/${session.user.username}/saved`);
     return { success: true, message: 'Tag renamed.' };
   } catch {
-    return { success: false, message: 'Tag not found or name already taken.' };
+    return { success: false, message: 'Failed to rename tag.' };
   }
 }
 

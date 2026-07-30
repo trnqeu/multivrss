@@ -37,7 +37,8 @@ Database and services:
 
 ```bash
 docker-compose up -d                          # Postgres (5435) + Redis (6379)
-npx prisma migrate dev --name <name>          # Create + apply migration
+npx prisma migrate dev --create-only --name <name>   # Generate migration WITHOUT applying — always use this first, see Known Gotchas
+npx prisma migrate dev                                # Apply after stripping the bogus searchVector lines (see Known Gotchas)
 npx prisma migrate deploy                     # Apply existing migrations
 npx prisma generate                           # Regenerate client after schema changes
 ```
@@ -242,6 +243,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - No `.env.example` — check local `.env` for required vars.
 - Untracked `.codex` path exists — do not delete or modify.
 - `content/blog` (read by `src/lib/blog.ts`) does not exist on disk yet — the `/blog` route currently renders empty until posts are added.
+- **`prisma migrate dev` reliably corrupts on every run** because of `FeedItem.searchVector`/`SavedLink.searchVector` (`Unsupported("tsvector")`, `GENERATED ALWAYS AS (...) STORED`, hand-written in `prisma/migrations/*_add_fulltext_search`). Prisma's diff engine always proposes `DROP INDEX "FeedItem_searchVector_idx"` / `DROP INDEX "SavedLink_searchVector_idx"` + `ALTER TABLE ... ALTER COLUMN "searchVector" DROP DEFAULT` — this fires even when the schema change is unrelated to search, and even on a second `migrate dev` run right after a clean apply. Postgres rejects the `DROP DEFAULT` on a generated column (error `42601`), but the `DROP INDEX` statements are NOT protected by that failure and commit for real, silently deleting the GIN indexes backing full-text search. Always run `prisma migrate dev --create-only --name <name>` first, delete the spurious `DropIndex`/`AlterTable searchVector` lines from the generated `migration.sql` by hand, then run `prisma migrate dev` (no args) to apply. If the indexes do get dropped, recreate them manually (exact SQL in `prisma/migrations/*_add_fulltext_search/migration.sql`) — do not reach for `prisma migrate reset`, it wipes all local data and is never necessary for this issue.
 
 ## Docker
 
