@@ -20,6 +20,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
+      - name: Guard against Prisma searchVector diff bug
+        run: |
+          if grep -rlE '(DROP INDEX "(FeedItem|SavedLink)_searchVector_idx"|ALTER COLUMN "searchVector" DROP (DEFAULT|EXPRESSION))' prisma/migrations/*/migration.sql; then
+            echo "::error::A migration touches the generated searchVector column/index — this is the known Prisma diff-engine bug (see CLAUDE.md Known Gotchas). Strip these lines before committing."
+            exit 1
+          fi
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm run test

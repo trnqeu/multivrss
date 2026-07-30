@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { useActionState } from 'react';
+import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { exportFeedsCsv, importFeedsCsv } from '@/app/actions/csv';
 import type { ActionState } from '@/app/actions/types';
@@ -99,6 +100,13 @@ export default function SettingsMenu({
                     </div>
 
                     <div className="flex flex-col">
+                        <Link
+                            href={`/u/${username}/settings/api-keys`}
+                            onClick={() => setOpen(false)}
+                            className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                        >
+                            ⚿ API KEYS
+                        </Link>
                         <button
                             onClick={handleExport}
                             className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
