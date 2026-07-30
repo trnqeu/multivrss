@@ -6,7 +6,7 @@ export async function GET() {
         info: {
             title: "MultivRSS API",
             version: "1.0.0",
-            description: "REST API for the MultivRSS Chrome Extension. All endpoints require an active session cookie (NextAuth).",
+            description: "REST API for the MultivRSS Chrome Extension. Most endpoints require an active session cookie (NextAuth); /api/search also accepts a personal API key via 'Authorization: Bearer <token>'.",
         },
         servers: [{ url: process.env.NEXTAUTH_URL ?? "http://localhost:3002" }],
         paths: {

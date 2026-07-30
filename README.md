@@ -266,6 +266,18 @@ If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated G
 - [ ] **Manual approval gate on production deploy** — required reviewers on the `production` environment need GitHub Pro (or a public repo); not available on the current private-repo free plan. Same limitation blocks native branch protection on `main`. Revisit if upgrading the plan or open-sourcing the repo.
 - [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
 
+### Quality Guardrails (Testing & CI)
+
+Staged plan to layer automated guardrails on top of the existing quality gate — coverage measurement, mutation testing, BDD acceptance tests, code-quality linting — so changes are validated by objective checks rather than manual review alone. Each check starts advisory (non-blocking in CI) and flips to blocking once a real baseline is established.
+
+- [ ] **Land in-flight tag/saved-link changes** — commit the current uncommitted work (tag case-insensitive normalization, `SaveLinkBar` removal) on its own first, so the guardrails work below starts from a clean tree
+- [ ] **Test coverage baseline** — `@vitest/coverage-v8`, coverage config in `vitest.config.ts` scoped to `src/lib`, `src/app/actions`, `src/app/api/**/route.ts`, `src/proxy.ts`, `src/workers`; `npm run test:coverage`; advisory CI step reporting % via `$GITHUB_STEP_SUMMARY`
+- [ ] **Mutation testing on critical modules** — Stryker scoped to `src/lib/{rss,search,auth,utils,domain-gate,rate-limit}.ts` (SSRF guard, raw-SQL search, auth, validation primitives, concurrency gate, rate limiter); separate scheduled/manual-dispatch workflow, not per-PR, given runtime cost
+- [ ] **Gherkin/BDD acceptance tests** — `@amiceli/vitest-cucumber`; start with the feed lifecycle (add source → sync → read → save) and registration/email-verification/password-reset, both currently untested end-to-end
+- [ ] **Code-quality/complexity linting** — `eslint-plugin-sonarjs` (advisory, rules at `warn`) + `knip` for unused-export/dependency detection (doubles as partial automation of the "npm audit ... dependency hygiene" item above)
+- [ ] **Progressive CI wiring** — flip each advisory check (coverage threshold, mutation score, sonarjs rules, knip) to blocking once its baseline stabilizes; exact numbers TBD per-check once real baselines exist
+- [ ] **Docs + optional pre-commit hooks** — update `CLAUDE.md` Commands/Verification Order and `docs/CICD.md` with the new tooling and recorded baselines; optionally add Husky + lint-staged for local fast pre-commit checks (lint only, not the full test suite)
+
 ### Self-Hosting _(optional / not yet decided)_
 
 Steps to make the repo public and let users run their own instance.
