@@ -1,12 +1,11 @@
 import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthenticatedUser } from "@/lib/api-auth";
 import { searchAllForUser } from "@/lib/search";
 
 export async function GET(request: NextRequest) {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthenticatedUser(request);
 
-    if (!session) {
+    if (!user) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,7 +19,7 @@ export async function GET(request: NextRequest) {
     const offset = Math.max(0, parseInt(params.get("offset") ?? "0", 10));
 
     try {
-        const result = await searchAllForUser(session.user.id, q, {
+        const result = await searchAllForUser(user.id, q, {
             cat, since, sourceId, read, limit, offset, includeSavedLinks: true,
         });
         return Response.json(result);
