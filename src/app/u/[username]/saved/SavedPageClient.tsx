@@ -98,7 +98,24 @@ export default function SavedPageClient({ username, initialArticles, initialLink
         setTags(prev => prev.map(t => t.id === tagId ? { ...t, name: trimmed } : t));
         setArticles(prev => prev.map(a => ({ ...a, tags: a.tags.map(t => t.id === tagId ? { ...t, name: trimmed } : t) })));
         setLinks(prev => prev.map(l => ({ ...l, tags: l.tags.map(t => t.id === tagId ? { ...t, name: trimmed } : t) })));
-        await renameTag(tagId, trimmed);
+
+        const result = await renameTag(tagId, trimmed);
+        const survivorId = result.mergedIntoTagId;
+        if (!survivorId || survivorId === tagId) return;
+
+        const remap = (list: TagVM[]): TagVM[] => {
+            const remapped = list.map(t => t.id === tagId ? { ...t, id: survivorId, name: trimmed } : t);
+            const seen = new Set<string>();
+            return remapped.filter(t => {
+                if (seen.has(t.id)) return false;
+                seen.add(t.id);
+                return true;
+            });
+        };
+
+        setTags(prev => remap(prev));
+        setArticles(prev => prev.map(a => ({ ...a, tags: remap(a.tags) })));
+        setLinks(prev => prev.map(l => ({ ...l, tags: remap(l.tags) })));
     }, []);
 
     const handleDeleteTag = useCallback(async (tagId: string) => {

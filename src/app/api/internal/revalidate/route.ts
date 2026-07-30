@@ -1,4 +1,5 @@
 import { revalidateTag } from 'next/cache'
+import { frontpageTag } from '@/app/actions/shared'
 
 export async function POST(request: Request) {
   const secret = request.headers.get('x-internal-secret')
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
 
   revalidateTag(`feed:${userId}`, 'max')
   revalidateTag(`sidebar:${userId}`, 'max')
+  revalidateTag(frontpageTag(userId), 'max')
 
   return Response.json({ ok: true })
 }
