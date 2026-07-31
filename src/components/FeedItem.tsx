@@ -2,6 +2,7 @@
 
 import { markAsRead, saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from '@/app/actions/feed-items';
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
 
@@ -19,9 +20,10 @@ interface Props {
     };
     isLast: boolean;
     allTags: { id: string; name: string }[];
+    username: string;
 }
 
-export default function FeedItem( { item, isLast, allTags }: Props) {
+export default function FeedItem( { item, isLast, allTags, username }: Props) {
     const [isRead, setIsRead] = useState(item.read);
     const [isSaved, setIsSaved] = useState(!!item.savedAt);
     const [tags, setTags] = useState(item.tags);
@@ -106,6 +108,13 @@ export default function FeedItem( { item, isLast, allTags }: Props) {
                 className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
             />
         </button>
+        <Link
+            href={`/u/${username}/read/${item.id}`}
+            onClick={handleClick}
+            className="ml-1 bg-transparent border border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 leading-none transition-colors"
+        >
+            READ
+        </Link>
         <button
             type="button"
             onClick={openModal}

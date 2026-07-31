@@ -36,6 +36,7 @@ vi.mock('@/lib/prisma', () => ({
         feedItem: {
             update: vi.fn(),
             findMany: vi.fn(),
+            findFirst: vi.fn(),
         },
         category: {
             findFirst: vi.fn(),
@@ -65,6 +66,10 @@ vi.mock('@/lib/rate-limit', () => ({
 vi.mock('@/lib/email', () => ({
     sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
     sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/reader', () => ({
+    getReadableArticle: vi.fn(),
 }));
 
 const mockedSession = vi.mocked(getServerSession);
@@ -471,5 +476,85 @@ describe('resendVerificationEmail', () => {
             data: expect.objectContaining({ userId: 'user_1' }),
         });
         expect(mockedSendVerificationEmail).toHaveBeenCalledWith('test@example.com', expect.any(String));
+    });
+});
+
+// ---------------------------------------------------------------------------
+// getReaderArticle
+// ---------------------------------------------------------------------------
+describe('getReaderArticle', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockedCheckRateLimit.mockResolvedValue(true);
+    });
+
+    it('returns not-found without a session', async () => {
+        mockedSession.mockResolvedValue(null);
+
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const result = await getReaderArticle('item_1');
+
+        expect(result).toEqual({ status: 'not-found' });
+        expect(mockedPrisma.feedItem.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('returns not-found when the item does not belong to the session user', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.findFirst.mockResolvedValue(null);
+
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const result = await getReaderArticle('item_1');
+
+        expect(result).toEqual({ status: 'not-found' });
+        expect(mockedPrisma.feedItem.findFirst).toHaveBeenCalledWith({
+            where: { id: 'item_1', source: { category: { userId: 'user_1' } } },
+            select: { id: true, title: true, link: true, source: { select: { title: true } } },
+        });
+    });
+
+    it('returns rate-limited without calling getReadableArticle', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.findFirst.mockResolvedValue({
+            id: 'item_1', title: 'Title', link: 'https://example.com/a', source: { title: 'Source' },
+        } as any);
+        mockedCheckRateLimit.mockResolvedValue(false);
+
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const { getReadableArticle } = await import('@/lib/reader');
+        const result = await getReaderArticle('item_1');
+
+        expect(result).toEqual({
+            status: 'rate-limited',
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source' },
+        });
+        expect(getReadableArticle).not.toHaveBeenCalled();
+    });
+
+    it('delegates to getReadableArticle on the happy path', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.findFirst.mockResolvedValue({
+            id: 'item_1', title: 'Title', link: 'https://example.com/a', source: { title: 'Source' },
+        } as any);
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const { getReadableArticle } = await import('@/lib/reader');
+        vi.mocked(getReadableArticle).mockResolvedValue({ ok: false, reason: 'extraction-empty' });
+
+        const result = await getReaderArticle('item_1');
+
+        expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
+        expect(result).toEqual({
+            status: 'ready',
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source' },
+            result: { ok: false, reason: 'extraction-empty' },
+        });
     });
 });

@@ -64,7 +64,7 @@ const MAX_BODY_BYTES = 2_000_000;
 export async function safeFetchText(
   targetUrl: string,
   opts: { headers?: Record<string, string>; timeoutMs?: number } = {},
-): Promise<{ status: number; contentType: string; body: string }> {
+): Promise<{ status: number; contentType: string; body: string; finalUrl: string }> {
   let current = targetUrl;
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -82,7 +82,7 @@ export async function safeFetchText(
     }
     const client = parsed.protocol === 'https:' ? https : http;
 
-    const result = await new Promise<{ redirectTo: string } | { status: number; contentType: string; body: string }>((resolve, reject) => {
+    const result = await new Promise<{ redirectTo: string } | { status: number; contentType: string; body: string; finalUrl: string }>((resolve, reject) => {
       const req = client.get(
         current,
         {
@@ -111,7 +111,7 @@ export async function safeFetchText(
             }
             body += chunk;
           });
-          res.on('end', () => resolve({ status, contentType: res.headers['content-type'] ?? '', body }));
+          res.on('end', () => resolve({ status, contentType: res.headers['content-type'] ?? '', body, finalUrl: current }));
         },
       );
       req.on('timeout', () => req.destroy(new Error('Request timed out')));

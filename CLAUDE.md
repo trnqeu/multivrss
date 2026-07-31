@@ -73,6 +73,7 @@ src/app/
     page.tsx              Feed list (all feeds)
     category/[slug]/      Category-filtered feed
     source/[slug]/        Source-filtered feed
+    read/[itemId]/        Reader Mode — full extracted article text (Readability), FeedItem only
     saved/                Reading list (saved links)
     suggested/            Suggested feeds directory
   login|register|forgot-password|reset-password|verify-email/
@@ -94,7 +95,7 @@ src/app/
     auth.ts                 Register, verify email, password reset
     categories.ts           Category CRUD
     feeds.ts                Feed source CRUD, discovery, sync
-    feed-items.ts           Read/unread, save/unsave, front-page dismiss
+    feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode
     saved-links.ts          External link saving, page title resolution
     csv.ts                  Feed import/export
     tags.ts                 Tag CRUD, tag assignment to links/items
@@ -103,12 +104,13 @@ src/app/
 src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)
   prisma.ts               Prisma singleton (pg.Pool + @prisma/adapter-pg)
-  rss.ts                  Feed URL validation (DNS + private IP check) + ingestion/sync
+  rss.ts                  Feed URL validation (DNS + private IP check) + ingestion/sync; safeFetchText() also used by reader.ts
+  reader.ts               getReadableArticle() — Reader Mode: SSRF-guarded fetch + Readability extraction + sanitize-html, Redis-cached (7-day TTL, keyed by article link)
   search.ts               searchAllForUser() — Postgres full-text search (tsvector/GIN) across FeedItem + SavedLink, parameterized $queryRaw
   email.ts                Password reset via Resend
   utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
-  rate-limit.ts           In-memory rate limiter for login/password reset
+  rate-limit.ts           Redis-backed rate limiter (checkRateLimit) for login/password reset/reader mode
   i18n/                   Dictionary-based i18n (en/it) for marketing routes
   blog.ts                 Markdown blog post loader
   frontpage.ts            Landing page data (stats, featured content)
@@ -145,7 +147,7 @@ User → Category → FeedSource → FeedItem
 Never trust client-supplied IDs. Always filter by `userId`.
 
 - **Cron sync** (`/api/cron/sync`): `Authorization: Bearer ${CRON_SECRET}`
-- **Feed URLs:** treat as untrusted — `validateFeedUrl()` checks syntax, DNS, private IPv4/IPv6 ranges (SSRF guard). Apply the same check before fetching arbitrary URLs in `resolvePageTitle`.
+- **Feed URLs:** treat as untrusted — `validateFeedUrl()` checks syntax, DNS, private IPv4/IPv6 ranges (SSRF guard). Apply the same check before fetching arbitrary URLs — used by both `resolvePageTitle` and `reader.ts`'s `getReadableArticle`.
 - **Password reset:** never reveal whether an email exists (always respond generically).
 - **Server Actions:** validate + normalize inputs at the top of each action.
 - **Raw SQL:** only via Prisma's parameterized `$queryRaw`/`$executeRaw` tagged templates (`Prisma.sql`/`Prisma.join`/`Prisma.empty` for conditional fragments) — needed for Postgres full-text search (`tsvector`/`ts_rank_cd`/`ts_headline`, see `src/lib/search.ts`). Never use `$queryRawUnsafe` or string-concatenate values into SQL text; bind parameters, don't interpolate.
@@ -162,7 +164,7 @@ Apply OWASP Top 10 to every feature, route, and Server Action:
 2. **Authentication & session** — `getServerSession(authOptions)` on every private endpoint. JWT in httpOnly cookie. No token in URL params or Referrer.
 3. **Authorization (broken access control)** — always scope by `userId`. Never use client-supplied IDs without ownership check.
 4. **Injection** — Prisma parameterized queries by default; raw SQL (full-text search) only via `$queryRaw` tagged templates with bound parameters, never string concatenation. Never interpolate into shell commands.
-5. **SSRF** — `validateFeedUrl()` blocks RFC 1918, loopback, link-local. Apply same guard to `resolvePageTitle`.
+5. **SSRF** — `validateFeedUrl()` blocks RFC 1918, loopback, link-local. Apply same guard to `resolvePageTitle` and `reader.ts`.
 6. **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy in Nginx or `next.config.ts`.
 7. **Error handling** — never expose stack traces or DB errors to the client. Generic messages externally; structured logging internally.
 8. **Cryptography** — passwords hashed via bcrypt (NextAuth). No custom crypto. JWT secret via env var only.
