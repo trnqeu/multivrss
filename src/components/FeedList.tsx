@@ -13,8 +13,8 @@ interface FeedListProps {
 }
 
 async function CachedFeedContent({
-    userId, sourceId, categoryName,
-}: { userId: string; sourceId?: string; categoryName?: string }) {
+    userId, username, sourceId, categoryName,
+}: { userId: string; username: string; sourceId?: string; categoryName?: string }) {
     'use cache';
     cacheLife('seconds');
     cacheTag(`feed:${userId}`);
@@ -95,6 +95,7 @@ async function CachedFeedContent({
                                 item={{ ...item, tags: tagsByItemId.get(item.id) ?? [] }}
                                 isLast={suppressSeparator}
                                 allTags={allTags}
+                                username={username}
                             />
                         </Fragment>
                     );
@@ -109,6 +110,7 @@ export default async function FeedList({ sourceId, categoryName }: FeedListProps
     if (!session) return null;
     return <CachedFeedContent
         userId={session.user.id}
+        username={session.user.username}
         sourceId={sourceId}
         categoryName={categoryName}
     />;

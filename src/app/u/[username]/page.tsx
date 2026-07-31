@@ -78,6 +78,7 @@ export default async function Home({
                             select: { id: true, name: true },
                             orderBy: { name: 'asc' },
                         })}
+                        username={session?.user.username ?? ''}
                     />
                 )}
             </main>

@@ -60,10 +60,10 @@ function DismissButton({ onClick }: { onClick: () => void }) {
 }
 
 // ── Action cluster (save, tag, dismiss) — always visible on mobile, hover-reveal on desktop ──
-function Actions({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+function Actions({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     return (
         <div className="ml-auto shrink-0 flex items-center gap-2.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
-            <FrontPageItemActions itemId={item.id} allTags={allTags} />
+            <FrontPageItemActions itemId={item.id} allTags={allTags} username={username} />
             <DismissButton onClick={onDismiss} />
         </div>
     );
@@ -103,7 +103,7 @@ function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
 }
 
 // ── FOR YOU card ──
-function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
     return (
         <article className="group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5">
@@ -118,14 +118,14 @@ function ForYouCard({ item, allTags, onDismiss }: { item: FrontPageItem; allTags
             </FrontPageLink>
             <div className="flex items-center gap-2.5 mt-auto pt-1 min-h-[20px]">
                 <Meta item={item} />
-                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </article>
     );
 }
 
 // ── FOR YOU strip — stateful pool with dismiss/replace ──
-function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; allTags: TagVM[] }) {
+function ForYouStrip({ pool: initialPool, allTags, username }: { pool: FrontPageItem[]; allTags: TagVM[]; username: string }) {
     const [pool, setPool] = useState(initialPool);
     const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
@@ -160,7 +160,7 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
                 className="grid grid-cols-1 min-[761px]:grid-cols-2 min-[1181px]:grid-cols-4 gap-[30px]"
             >
                 {displayed.map(item => (
-                    <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                    <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} username={username} />
                 ))}
             </div>
         </section>
@@ -168,7 +168,7 @@ function ForYouStrip({ pool: initialPool, allTags }: { pool: FrontPageItem[]; al
 }
 
 // ── Category section lead article ──
-function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
     return (
         <article className="group flex flex-col items-start gap-[11px] min-w-0">
@@ -187,14 +187,14 @@ function Lead({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagV
             )}
             <div className="flex items-center gap-3 mt-0.5 w-full min-h-[20px]">
                 <Meta item={item} />
-                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </article>
     );
 }
 
 // ── Category section list row ──
-function Row({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void }) {
+function Row({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
     return (
         <li className="group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0">
@@ -208,14 +208,14 @@ function Row({ item, allTags, onDismiss }: { item: FrontPageItem; allTags: TagVM
             </FrontPageLink>
             <div className="flex items-center gap-3 min-h-[18px]">
                 <Meta item={item} />
-                <Actions item={item} allTags={allTags} onDismiss={onDismiss} />
+                <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </li>
     );
 }
 
 // ── Category section — lead + list, "See all" footer ──
-function Section({ category, items: initialItems, allTags }: { category: string; items: FrontPageItem[]; allTags: TagVM[] }) {
+function Section({ category, items: initialItems, allTags, username }: { category: string; items: FrontPageItem[]; allTags: TagVM[]; username: string }) {
     const [items, setItems] = useState(initialItems);
     const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
@@ -252,10 +252,10 @@ function Section({ category, items: initialItems, allTags }: { category: string;
             <div id={bodyId} hidden={collapsed}>
                 <ul role="list" className="flex flex-col border-t border-foreground/[0.14]">
                     <li className={`py-[18px] ${rest.length > 0 ? 'border-b border-foreground/[0.09]' : ''}`}>
-                        <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} />
+                        <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} username={username} />
                     </li>
                     {rest.map(item => (
-                        <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} />
+                        <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} username={username} />
                     ))}
                 </ul>
 
@@ -290,7 +290,7 @@ function EmptyFrontPage() {
 }
 
 // ── Main FrontPage component ──
-export default function FrontPage({ data, allTags }: { data: FrontPageData; allTags: TagVM[] }) {
+export default function FrontPage({ data, allTags, username }: { data: FrontPageData; allTags: TagVM[]; username: string }) {
     const { forYouPool, sections, stats } = data;
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
 
@@ -320,10 +320,10 @@ export default function FrontPage({ data, allTags }: { data: FrontPageData; allT
                 ) : (
                     <>
                         <Masthead stats={stats} />
-                        <ForYouStrip pool={forYouPool} allTags={allTags} />
+                        <ForYouStrip pool={forYouPool} allTags={allTags} username={username} />
                         <div className="mt-[18px] flex flex-col">
                             {sections.map(s => (
-                                <Section key={s.category} category={s.category} items={s.items} allTags={allTags} />
+                                <Section key={s.category} category={s.category} items={s.items} allTags={allTags} username={username} />
                             ))}
                         </div>
                     </>

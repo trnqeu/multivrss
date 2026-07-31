@@ -7,6 +7,8 @@ import { authOptions } from "@/lib/auth";
 import type { FrontPageItem } from "@/lib/frontpage";
 import type { ActionState } from "./types";
 import { frontpageTag } from "./shared";
+import { getReadableArticle, type ReaderResult } from "@/lib/reader";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -214,4 +216,41 @@ export async function dismissFrontPageItem(
     } catch {
         return { success: false };
     }
+}
+
+export interface ReaderPageItem {
+    id: string;
+    title: string;
+    link: string;
+    sourceTitle: string | null;
+}
+
+export type ReaderPageData =
+    | { status: 'not-found' }
+    | { status: 'rate-limited'; item: ReaderPageItem }
+    | { status: 'ready'; item: ReaderPageItem; result: ReaderResult };
+
+// Called directly from the read/[itemId] Server Component (navigation triggers
+// it, not a client event), same shape as getCategories() in categories.ts.
+export async function getReaderArticle(itemId: string): Promise<ReaderPageData> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { status: 'not-found' };
+
+    const item = await prisma.feedItem.findFirst({
+        where: { id: itemId, source: { category: { userId: session.user.id } } },
+        select: { id: true, title: true, link: true, source: { select: { title: true } } },
+    });
+    if (!item) return { status: 'not-found' };
+
+    const pageItem: ReaderPageItem = {
+        id: item.id,
+        title: item.title,
+        link: item.link,
+        sourceTitle: item.source.title,
+    };
+
+    const withinLimit = await checkRateLimit(`reader:${session.user.id}`, { maxRequests: 20, windowMs: 60_000 });
+    if (!withinLimit) return { status: 'rate-limited', item: pageItem };
+
+    return { status: 'ready', item: pageItem, result: await getReadableArticle(item.link) };
 }

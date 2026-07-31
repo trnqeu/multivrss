@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
-import { saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
+import Link from 'next/link';
+import { saveFeedItem, unsaveFeedItem, markAsRead } from '@/app/actions/feed-items';
 import { Bookmark } from '@/components/icons/Bookmark';
 import AssignTagsModal from '@/components/AssignTagsModal';
 
@@ -10,9 +11,10 @@ type TagVM = { id: string; name: string };
 type Props = {
     itemId: string;
     allTags: TagVM[];
+    username: string;
 };
 
-export default function FrontPageItemActions({ itemId, allTags }: Props) {
+export default function FrontPageItemActions({ itemId, allTags, username }: Props) {
     const [saved, setSaved] = useState(false);
     const [tags, setTags] = useState<TagVM[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -58,6 +60,13 @@ export default function FrontPageItemActions({ itemId, allTags }: Props) {
                     className={saved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
                 />
             </button>
+            <Link
+                href={`/u/${username}/read/${itemId}`}
+                onClick={() => markAsRead(itemId)}
+                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/40 hover:text-foreground px-1 py-0.5 leading-none transition-colors whitespace-nowrap"
+            >
+                READ
+            </Link>
             <button
                 type="button"
                 onClick={() => setModalOpen(true)}
