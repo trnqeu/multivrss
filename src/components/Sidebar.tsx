@@ -80,15 +80,6 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                 <SidebarCategories categories={categories} username={username} />
 
             </nav>
-
-            {/* System Footer */}
-            <div className="px-[18px] py-[13px] border-t-2 border-foreground">
-                <div className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground/35 leading-[1.7]">
-                    NODE · MULTIVRSS_ALPHA
-                    <br />
-                    Connection: [PROTECTED]
-                </div>
-            </div>
         </aside>
     );
 }
