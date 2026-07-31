@@ -294,6 +294,7 @@ Steps to make the repo public and let users run their own instance.
 - [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
 - [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
 - [x] **Feed item retention / auto-purge** — cron deletes `FeedItem` rows with `pubDate < 90 days` and `savedAt = null`
+- [x] **Reader Mode** — `/u/{username}/read/{itemId}` renders the full article text in-app (Mozilla Readability extraction + `sanitize-html` allowlist), triggered by a `READ` button on FeedItem/SearchBar rows. SSRF-guarded fetch (`validateFeedUrl`/`safeFetchText`, same guard as `resolvePageTitle`), Redis-cached by article link (7-day TTL, cache is a pure optimization — never a hard dependency), rate-limited per user. `FeedItem` only for v1; `SavedLink` can reuse the same cache/extraction layer later since caching is keyed by URL, not by item.
 
 ### TBD / Future
 

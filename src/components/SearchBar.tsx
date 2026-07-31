@@ -19,6 +19,15 @@ type ReadOpt = typeof READ_OPTS[number];
 
 type TagVM = { id: string; name: string };
 
+// Unhighlighted previews come straight from the DB with no length cap (ts_headline
+// only bounds length when there's a search query) — clip them for display.
+const PREVIEW_CHAR_LIMIT = 200;
+
+function clipPreview(text: string): string {
+    if (text.length <= PREVIEW_CHAR_LIMIT) return text;
+    return `${text.slice(0, PREVIEW_CHAR_LIMIT).trimEnd()}…`;
+}
+
 function Highlight({ text, markClass = 'bg-terracotta text-background' }: { text: string; markClass?: string }) {
     if (!text.includes(HIGHLIGHT_PRE)) return <>{text}</>;
     const parts = text.split(HIGHLIGHT_PRE);
@@ -226,9 +235,9 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                             const dateLabel = item.pubDate
                                 ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                                 : '—';
-                            const preview = isSavedLink
-                                ? (item._formatted?.description ?? item.description)
-                                : (item._formatted?.content ?? item.content);
+                            const formattedPreview = isSavedLink ? item._formatted?.description : item._formatted?.content;
+                            const rawPreview = isSavedLink ? item.description : item.content;
+                            const preview = formattedPreview ?? (rawPreview ? clipPreview(rawPreview) : rawPreview);
                             const sourceLabel = isSavedLink ? getHost(item.link).toUpperCase() : item.sourceTitle;
                             const tags = itemTags.get(item.id) ?? [];
 
@@ -263,6 +272,20 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                                 className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
                                             />
                                         </button>
+                                    )}
+                                    {!isSavedLink && (
+                                        <Link
+                                            href={`/u/${username}/read/${item.id}`}
+                                            onClick={() => {
+                                                if (!(item.read ?? false)) {
+                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                                    markAsRead(item.id);
+                                                }
+                                            }}
+                                            className="bg-transparent border border-current font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-1 py-0.5 leading-none transition-colors whitespace-nowrap"
+                                        >
+                                            READ
+                                        </Link>
                                     )}
                                     <button
                                         type="button"
