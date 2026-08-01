@@ -177,6 +177,20 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Independent music and culture criticism: reviews, features, and interviews.",
     category: "MUSIC",
   },
+  {
+    name: "AllMusic",
+    url: "https://www.allmusic.com/rss/",
+    domain: "allmusic.com",
+    description: "New releases, reviews, and music news from AllMusic.",
+    category: "MUSIC",
+  },
+  {
+    name: "AllMusic: Staff Picks",
+    url: "https://www.allmusic.com/rss/staffpicks",
+    domain: "allmusic.com",
+    description: "Editorial staff picks and featured albums from AllMusic.",
+    category: "MUSIC",
+  },
   // NEWS
   {
     name: "404 Media",
