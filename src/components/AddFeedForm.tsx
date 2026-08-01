@@ -41,7 +41,11 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
     // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
     useEffect(() => { if (open && initialUrl) setUrl(initialUrl); }, [open, initialUrl]);
 
-    // Close on success
+    // Close on success. Depends on the whole `state` object (not just
+    // `state.success`) — createFeedSource returns a new object on every
+    // submission, so this re-fires on each successful add even when the
+    // previous submission also succeeded (state.success would otherwise
+    // stay `true` across submissions and never trigger the effect again).
     useEffect(() => {
         async function run() {
             if (state?.success) {
@@ -51,7 +55,7 @@ export default function AddFeedForm({ categories, open, onClose, initialUrl }: P
         }
         run();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [state?.success]);
+    }, [state]);
 
     // Reset form fields when modal closes
     useEffect(() => {
