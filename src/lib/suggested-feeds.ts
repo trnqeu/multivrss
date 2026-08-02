@@ -179,16 +179,23 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
   },
   {
     name: "AllMusic",
-    url: "https://www.allmusic.com/rss/",
+    url: "http://feeds.feedburner.com/allmusicarticles",
     domain: "allmusic.com",
     description: "New releases, reviews, and music news from AllMusic.",
     category: "MUSIC",
   },
   {
     name: "AllMusic: Staff Picks",
-    url: "https://www.allmusic.com/rss/staffpicks",
+    url: "http://feeds.feedburner.com/allmusicstaffpicks",
     domain: "allmusic.com",
     description: "Editorial staff picks and featured albums from AllMusic.",
+    category: "MUSIC",
+  },
+  {
+    name: "Alternative Press",
+    url: "https://www.altpress.com/feed/",
+    domain: "altpress.com",
+    description: "News, interviews, and reviews from the alternative and rock music scene.",
     category: "MUSIC",
   },
   // NEWS

@@ -183,6 +183,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 )}
             </header>
             <SavedView
+                username={username}
                 articles={filteredArticles}
                 links={filteredLinks}
                 activeQuery={query}
