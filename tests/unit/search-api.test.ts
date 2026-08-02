@@ -71,7 +71,7 @@ describe('GET /api/search', () => {
 
         expect(mockedSearchAllForUser).toHaveBeenCalledWith('user_1', '', {
             cat: undefined, since: undefined, sourceId: undefined, read: undefined,
-            limit: 30, offset: 0, includeSavedLinks: true,
+            limit: 30, offset: 0, includeSavedLinks: false,
         });
         expect(response.status).toBe(200);
         await expect(response.json()).resolves.toEqual({ hits: [], estimatedTotalHits: 0, processingTimeMs: 0 });

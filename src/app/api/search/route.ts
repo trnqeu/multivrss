@@ -19,8 +19,11 @@ export async function GET(request: NextRequest) {
     const offset = Math.max(0, parseInt(params.get("offset") ?? "0", 10));
 
     try {
+        // The unfiltered river view hits this route with an empty query — saved
+        // links shouldn't pollute plain browsing, only actual searches.
+        const includeSavedLinks = q.trim().length > 0;
         const result = await searchAllForUser(user.id, q, {
-            cat, since, sourceId, read, limit, offset, includeSavedLinks: true,
+            cat, since, sourceId, read, limit, offset, includeSavedLinks,
         });
         return Response.json(result);
     } catch (err) {
