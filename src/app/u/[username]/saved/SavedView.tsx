@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, Fragment } from 'react';
+import Link from 'next/link';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { dayBucket } from '@/lib/utils';
 import AssignTagsModal from '@/components/AssignTagsModal';
@@ -33,6 +34,7 @@ export interface LinkVM {
 }
 
 interface Props {
+    username: string;
     articles: ArticleVM[];
     links: LinkVM[];
     activeQuery?: string;
@@ -73,7 +75,7 @@ interface ModalItem {
 }
 
 export default function SavedView({
-    articles, links, activeQuery, allTags,
+    username, articles, links, activeQuery, allTags,
     onRemoveArticle, onRemoveLink,
     onRemoveTagFromArticle, onRemoveTagFromLink,
     onSetArticleDetails, onSetLinkDetails,
@@ -180,7 +182,18 @@ export default function SavedView({
                                             ))}
                                         </span>
                                     )}
-                                    {/* Tag button */}
+                                    {/* Read in-app (Reader Mode is only available for feed items, not external links) */}
+                                    {!item.isExternal && (
+                                        <span className="ml-2">
+                                            <Link
+                                                href={`/u/${username}/read/${item.id}`}
+                                                className="border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
+                                            >
+                                                READ
+                                            </Link>
+                                        </span>
+                                    )}
+                                    {/* Edit title / tags button */}
                                     <span className="ml-1">
                                         <button
                                             type="button"
@@ -190,7 +203,7 @@ export default function SavedView({
                                             }}
                                             className="bg-transparent border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] uppercase tracking-widest cursor-pointer text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
                                         >
-                                            + TAG
+                                            EDIT
                                         </button>
                                     </span>
                                     <button
@@ -216,6 +229,7 @@ export default function SavedView({
                     itemId={modalItem.id}
                     initialTags={modalItem.tags}
                     allTags={allTags}
+                    heading="EDIT_ITEM"
                     titleField={{ value: titleDraft, onChange: setTitleDraft }}
                     onSave={handleModalSave}
                     onTagsApplied={(id, newTags) => {
