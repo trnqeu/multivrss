@@ -46,6 +46,28 @@ export interface Dictionary {
     add: string;
     footer: string;
   };
+  sourcesPage: {
+    kicker: string;
+    h1: string;
+    introBody: string;
+    statsSourcesLabel: string;
+    statsCategoriesLabel: string;
+    searchLabel: string;
+    searchPlaceholder: string;
+    allChipLabel: string;
+    resultsLabel: string;
+    selectAllLabel: string;
+    emptyState: string;
+    bulkCountLabel: string;
+    bulkDeselect: string;
+    bulkAddButton: string;
+    closingKicker: string;
+    closingHeadlinePre: string;
+    closingHeadlineAccent: string;
+    closingHeadlineSuffix: string;
+    closingBody: string;
+    closingCta: string;
+  };
   closing: {
     kicker: string;
     headlinePre: string;

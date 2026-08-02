@@ -30,6 +30,7 @@ export default function AssignTagsModal({
     open, onClose, itemId, initialTags, allTags, onTagsApplied, onSave, titleField, heading,
 }: AssignTagsModalProps) {
     const [search, setSearch] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialTags.map(t => t.id)));
     const [localTags, setLocalTags] = useState<TagVM[]>(allTags);
     const [isPending, setIsPending] = useState(false);
@@ -45,11 +46,20 @@ export default function AssignTagsModal({
         return () => window.removeEventListener('keydown', handleKey);
     }, [open, onClose]);
 
+    useEffect(() => {
+        const handle = setTimeout(() => setDebouncedSearch(search), 350);
+        return () => clearTimeout(handle);
+    }, [search]);
+
     const filtered = localTags.filter(t =>
         t.name.toLowerCase().includes(search.toLowerCase())
     );
     const exactMatch = localTags.some(t => t.name.toLowerCase() === search.trim().toLowerCase());
     const canCreate = search.trim().length > 0 && !exactMatch;
+    // Only allow the create action to fire once typing has settled, so a mid-word
+    // Enter/click can't commit a partial name (e.g. "Hum") before the user finishes
+    // typing the intended tag (e.g. "Humor").
+    const isSettled = search === debouncedSearch;
 
     const toggleTag = useCallback((tagId: string) => {
         setSelectedIds(prev => {
@@ -83,7 +93,7 @@ export default function AssignTagsModal({
 
     const handleCreate = useCallback(async () => {
         const name = search.trim();
-        if (!name || exactMatch || isPending) return;
+        if (!name || exactMatch || isPending || !isSettled) return;
         setIsPending(true);
         try {
             const tag = await ensureTagExists(name);
@@ -94,7 +104,7 @@ export default function AssignTagsModal({
         } finally {
             setIsPending(false);
         }
-    }, [search, exactMatch, isPending, ensureTagExists]);
+    }, [search, exactMatch, isPending, isSettled, ensureTagExists]);
 
     const handleApply = async () => {
         setIsPending(true);
@@ -199,7 +209,7 @@ export default function AssignTagsModal({
                         </div>
 
                         {/* CREATE row */}
-                        {canCreate && (
+                        {canCreate && isSettled && (
                             <button
                                 type="button"
                                 onClick={() => void handleCreate()}
