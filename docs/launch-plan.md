@@ -2,18 +2,27 @@
 
 Step-by-step checklist to go live on `multivrss.com`.
 
+> **Updated 2026-08-03.** DNS/SSL/Nginx/OAuth-prod confirmed live: `curl -I https://multivrss.com` returns valid HTTPS via Cloudflare, `GET /api/health` returns `{"status":"ok","db":"ok","redis":"ok"}`, and `/en/privacy` returns 200 — production is deployed and only 1 commit behind `dev`. Reference for later: **DNS** is what makes `multivrss.com` point to the server's IP; **SSL** is the certificate behind `https://` (the browser padlock) — both are now working.
+>
+> **New finding from the live check:** `curl -I https://multivrss.com` shows **duplicate, conflicting security headers** — `X-Frame-Options` arrives as both `DENY` (from `next.config.ts`) and `SAMEORIGIN` (from the server's Nginx `add_header` lines below), and `Strict-Transport-Security` with two different `max-age` values. The app already sets all of these in `next.config.ts` (version-controlled); the Nginx `add_header` lines in Phase 4 below are now redundant and out of sync. **Recommended fix:** remove the four `add_header` lines (`Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`) from the server's live Nginx config and let the app be the single source of truth — this is a server-side edit, not something fixable from this repo.
+
 ## Blockers — must be done before launch
 
 | Item | File / location | Status |
 |------|----------------|--------|
-| Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy) | `next.config.ts` | done |
+| Security headers (HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy) | `next.config.ts` | done — but see duplicate-header note above |
 | SSRF guard for `resolvePageTitle` | `src/app/actions.ts` | done |
 | Password reset token via POST body (not URL param) | `src/app/reset-password/page.tsx` | done |
-| Nginx rate limiting on login / auth / API endpoints | Nginx config | todo |
+| Nginx rate limiting on login / auth / API endpoints | Nginx config | done (confirmed live 2026-08-03) |
+| DNS records (Phase 2) | registrar | **done** (confirmed live 2026-08-03) |
+| SSL certificate (Phase 3) | server (certbot / Cloudflare) | **done** (confirmed live 2026-08-03) |
+| Nginx config (Phase 4) | server | done — duplicate header cleanup still pending, see above |
+| Production `.env.production` (Phase 5) | server | **done** (app + health check live) |
+| OAuth redirect URIs for prod (Phase 7) | GitHub/Google OAuth console | **done** (confirmed by user 2026-08-03) |
 
 Nice-to-have before launch (non-blocking):
 
-- Sentry error tracking
+- Sentry error tracking — **done**, verified with a real test event reaching the dashboard (see `notes.md`)
 - Database backups
 
 ---
@@ -231,6 +240,6 @@ Add to server crontab (`crontab -e`):
 | DNS + SSL | **todo** |
 | `.env.production` on server | **todo** |
 | OAuth redirect URIs for prod | **todo** |
-| Sentry | post-launch |
-| CSP nonce | post-launch |
+| Sentry | **done** |
+| CSP nonce | not planned — build-time SHA-256 hash of the inline script used instead (see README "Phase 1 — Quick wins") |
 | Database backups | post-launch day 1 |
