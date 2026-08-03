@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@/lib/i18n";
 
-type FinderSource = { name: string; domain: string; url: string };
+type FinderSource = { name: string; domain: string; url: string; description: string };
 type FinderGroup = { name: string; sources: FinderSource[] };
 
 interface Props {
@@ -190,40 +190,47 @@ export default function MarketingSourcesFinder({ groups, dict, addLabel }: Props
                     {String(group.sources.length).padStart(2, "0")}
                   </span>
                 </div>
-                <ul className="list-none m-0 p-0 grid grid-cols-1 min-[920px]:grid-cols-2 gap-x-14">
+                <ul className="list-none m-0 p-0 grid grid-cols-1 min-[920px]:grid-cols-2 gap-4">
                   {group.visibleSources.map((source) => {
                     const id = `${group.name}|${source.name}`;
                     const checked = selected.has(id);
                     const inputId = `src-${id}`;
                     return (
-                      <li
-                        key={source.url}
-                        className="flex items-center justify-between gap-[14px] py-[15px] border-b border-black/7"
-                      >
-                        <label
-                          htmlFor={inputId}
-                          className="flex items-center gap-[14px] min-w-0 cursor-pointer"
-                        >
-                          <input
-                            id={inputId}
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => toggle(id)}
-                            className="appearance-none w-[18px] h-[18px] p-0 shrink-0 border-[1.5px] border-black/12 bg-transparent cursor-pointer relative checked:bg-terracotta checked:border-terracotta hover:border-black after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-[11px] after:font-extrabold after:leading-none after:text-black checked:after:content-['✓']"
-                          />
-                          <span className="flex items-baseline gap-3 min-w-0">
-                            <span className="text-[16px] font-bold tracking-[-0.005em] whitespace-nowrap overflow-hidden text-ellipsis">
+                      <li key={source.url} className="border-2 border-black p-5 flex flex-col gap-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <label
+                            htmlFor={inputId}
+                            className="flex items-start gap-3 min-w-0 cursor-pointer"
+                          >
+                            <input
+                              id={inputId}
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggle(id)}
+                              className="appearance-none w-[18px] h-[18px] p-0 mt-0.5 shrink-0 border-[1.5px] border-black/12 bg-transparent cursor-pointer relative checked:bg-terracotta checked:border-terracotta hover:border-black after:absolute after:inset-0 after:flex after:items-center after:justify-center after:text-[11px] after:font-extrabold after:leading-none after:text-black checked:after:content-['✓']"
+                            />
+                            <span className="text-[16px] font-bold tracking-[-0.005em] leading-snug">
                               {source.name}
                             </span>
-                            <span className="font-mono text-[11px] text-black/30 tracking-[0.04em] whitespace-nowrap">
-                              {source.domain}
-                            </span>
-                          </span>
-                        </label>
-                        <AddButton
-                          href={buildAddHref(source.url, source.name, group.name)}
-                          label={addLabel}
-                        />
+                          </label>
+                          <AddButton
+                            href={buildAddHref(source.url, source.name, group.name)}
+                            label={addLabel}
+                          />
+                        </div>
+                        {source.description && (
+                          <p className="font-mono text-[11px] text-black/55 leading-relaxed m-0">
+                            {source.description}
+                          </p>
+                        )}
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-[11px] text-terracotta break-all hover:underline"
+                        >
+                          {source.domain}
+                        </a>
                       </li>
                     );
                   })}
