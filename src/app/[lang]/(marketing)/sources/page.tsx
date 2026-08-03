@@ -18,6 +18,7 @@ const GROUPS = getSuggestedByCategory().map((group) => ({
     name: feed.name,
     domain: feed.domain,
     url: feed.url,
+    description: feed.description,
   })),
 }));
 
