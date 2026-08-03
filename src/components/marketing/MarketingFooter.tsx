@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Dictionary, Lang } from "@/lib/i18n";
 import Wordmark from "@/components/Wordmark";
+import { version } from "../../../package.json";
 
 interface Props {
   lang: Lang;
@@ -68,7 +69,7 @@ export default function MarketingFooter({ lang, dict }: Props) {
             </Link>
           ))}
         </div>
-        <span>v0.1.0 · BUILD 2026.05.23</span>
+        <span>v{version}</span>
       </div>
     </footer>
   );
