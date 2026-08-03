@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Wordmark from "@/components/Wordmark";
-import { STARTER_PACKS, type StarterPack } from '@/lib/suggested-feeds';
+import { STARTER_PACKS, getSuggestedByCategory, type StarterPack } from '@/lib/suggested-feeds';
 import { addStarterPack, undoStarterPack } from '@/app/actions/starter-packs';
+import SuggestedFeedsBrowser from '@/components/SuggestedFeedsBrowser';
 
 type View = 'idle' | 'working' | 'done';
 
@@ -62,6 +63,15 @@ export default function OnboardingEmptyState({ username }: Props) {
     toastTimerRef.current = setTimeout(() => setShowToast(false), 6000);
   }
 
+  function handleBrowserAdd(sourceIds: string[]) {
+    if (sourceIds.length === 0) return;
+    setLastSourceIds(sourceIds);
+    setToastCount(sourceIds.length);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setShowToast(true);
+    toastTimerRef.current = setTimeout(() => setShowToast(false), 6000);
+  }
+
   async function handleUndo() {
     setShowToast(false);
     await undoStarterPack(lastSourceIds);
@@ -99,6 +109,7 @@ export default function OnboardingEmptyState({ username }: Props) {
         username={username}
         addedPackIds={addedPackIds}
         onAddPack={handleAddPack}
+        onBrowserAdd={handleBrowserAdd}
       />
       <Toast show={showToast} count={toastCount} onUndo={handleUndo} />
     </>
@@ -111,10 +122,12 @@ function IdleView({
   username,
   addedPackIds,
   onAddPack,
+  onBrowserAdd,
 }: {
   username: string;
   addedPackIds: string[];
   onAddPack: (id: string) => void;
+  onBrowserAdd: (sourceIds: string[]) => void;
 }) {
   return (
     <div className="max-w-[760px] mx-auto px-8 pt-[90px] pb-[100px] flex flex-col items-center text-center">
@@ -143,26 +156,13 @@ function IdleView({
 
       <InstantBanner onLoad={() => onAddPack('essentials')} alreadyAdded={addedPackIds.includes('essentials')} />
 
-      <Rule label="OR PICK A PACK" />
+      <Rule label="OR BROWSE THE DIRECTORY" />
 
-      <div className="w-full grid grid-cols-2 max-[680px]:grid-cols-1 gap-px bg-foreground/15 border border-foreground/15">
-        {STARTER_PACKS.map(pack => (
-          <PackCard
-            key={pack.id}
-            pack={pack}
-            added={addedPackIds.includes(pack.id)}
-            onAdd={() => onAddPack(pack.id)}
-          />
-        ))}
+      <div className="w-full text-left">
+        <SuggestedFeedsBrowser suggested={getSuggestedByCategory()} sticky={false} onAdded={onBrowserAdd} />
       </div>
 
       <div className="w-full flex flex-col gap-px bg-foreground/15 border border-foreground/15 mt-[26px]">
-        <FallbackPath
-          icon={<DiscoverIcon />}
-          title="Open the directory"
-          description="40+ curated sources, organised by topic: add them one by one."
-          href={`/u/${username}/suggested`}
-        />
         <FallbackPath
           icon={<span className="text-terracotta text-[18px] leading-none font-bold">+</span>}
           title="Pipe in a URL"
@@ -323,49 +323,6 @@ function InstantBanner({ onLoad, alreadyAdded }: { onLoad: () => void; alreadyAd
   );
 }
 
-function PackCard({ pack, added, onAdd }: { pack: StarterPack; added: boolean; onAdd: () => void }) {
-  const shown = pack.feeds.slice(0, 3);
-  const rest = pack.feeds.length - shown.length;
-
-  return (
-    <div className={`bg-background p-5 flex flex-col gap-3 text-left relative ${added ? 'outline outline-2 outline-terracotta -outline-offset-[2px]' : ''}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="font-serif font-semibold text-[19px] leading-[1.1] tracking-[-0.01em]">{pack.name}</div>
-        <div className="text-[8.5px] font-extrabold tracking-[.14em] text-foreground/40 whitespace-nowrap pt-[5px]">
-          {String(pack.feeds.length).padStart(2, '0')} FEEDS
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-[6px]">
-        {shown.map(f => (
-          <span key={f.name} className="text-[9px] font-bold tracking-[.08em] text-foreground/55 border border-foreground/20 px-[7px] py-[3px]">
-            {f.name}
-          </span>
-        ))}
-        {rest > 0 && (
-          <span className="text-[9px] font-bold tracking-[.08em] text-foreground/40 border border-foreground/15 px-[7px] py-[3px]">
-            +{rest} more
-          </span>
-        )}
-      </div>
-      <div className="flex items-center justify-between mt-auto pt-1">
-        <span className="text-[8.5px] font-extrabold tracking-[.12em] text-terracotta uppercase">{pack.cats}</span>
-        <button
-          onClick={onAdd}
-          disabled={added}
-          aria-label={`Add ${pack.name} pack`}
-          className={`font-mono text-[9.5px] font-extrabold tracking-[.13em] uppercase border px-3 py-[7px] transition-colors ${
-            added
-              ? 'bg-terracotta border-terracotta text-background cursor-default'
-              : 'bg-transparent border-foreground text-foreground hover:bg-foreground hover:text-background'
-          }`}
-        >
-          {added ? '✓ Added' : '+ Add pack'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function FallbackPath({
   icon,
   title,
@@ -401,14 +358,5 @@ function Spinner() {
       aria-label="Loading"
       className="w-[34px] h-[34px] rounded-full border-[3px] border-foreground/15 border-t-terracotta animate-spin"
     />
-  );
-}
-
-function DiscoverIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M8.2 3.8 6.6 6.6 3.8 8.2 5.4 5.4z" fill="currentColor" />
-    </svg>
   );
 }

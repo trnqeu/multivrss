@@ -24,7 +24,7 @@ export default async function SuggestedPage({ params }: SuggestedPageProps) {
   return (
     <>
       <PageHeader categories={categories} tags={tags} username={session.user.username} email={session.user.email} />
-      <SuggestedPageClient categories={categories} suggested={suggested} />
+      <SuggestedPageClient suggested={suggested} />
     </>
   );
 }

@@ -12,6 +12,14 @@ export type SuggestedCategory = {
 };
 
 export const SUGGESTED_FEEDS: SuggestedFeed[] = [
+  // BUSINESS
+  {
+    name: "NYT: Business",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
+    domain: "nytimes.com",
+    description: "Business and economic news from The New York Times.",
+    category: "BUSINESS",
+  },
   // CULTURE
   {
     name: "The Guardian: Books",
@@ -83,6 +91,20 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Curated long-form journalism, essays, and storytelling from around the web.",
     category: "CULTURE",
   },
+  {
+    name: "NYT: Arts",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml",
+    domain: "nytimes.com",
+    description: "Arts and culture coverage from The New York Times.",
+    category: "CULTURE",
+  },
+  {
+    name: "NYT: Style",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/FashionandStyle.xml",
+    domain: "nytimes.com",
+    description: "Fashion, style, and lifestyle coverage from The New York Times.",
+    category: "CULTURE",
+  },
   // DESIGN
   {
     name: "Michele De Lucchi's Substack",
@@ -118,6 +140,14 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     domain: "architecturalrecord.com",
     description: "Architecture news, projects, and industry analysis from Architectural Record.",
     category: "DESIGN",
+  },
+  // HEALTH
+  {
+    name: "NYT: Health",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml",
+    domain: "nytimes.com",
+    description: "Health and medical news from The New York Times.",
+    category: "HEALTH",
   },
   // HUMOR
   {
@@ -269,6 +299,34 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Reuters world news via Google News.",
     category: "NEWS",
   },
+  {
+    name: "NYT: World",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    domain: "nytimes.com",
+    description: "International news coverage from The New York Times.",
+    category: "NEWS",
+  },
+  {
+    name: "NYT: U.S.",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
+    domain: "nytimes.com",
+    description: "U.S. national news from The New York Times.",
+    category: "NEWS",
+  },
+  {
+    name: "NYT: Europe",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Europe.xml",
+    domain: "nytimes.com",
+    description: "European news coverage from The New York Times.",
+    category: "NEWS",
+  },
+  {
+    name: "NYT: Thomas L. Friedman",
+    url: "https://www.nytimes.com/svc/collections/v1/publish/www.nytimes.com/column/thomas-l-friedman/rss.xml",
+    domain: "nytimes.com",
+    description: "Opinion columns from NYT's Thomas L. Friedman on foreign affairs and globalization.",
+    category: "NEWS",
+  },
   // PODCAST
   {
     name: "Dwarkesh Podcast",
@@ -325,6 +383,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     url: "https://news.kagi.com/science.rss",
     domain: "news.kagi.com",
     description: "Science news curated by Kagi Search.",
+    category: "SCIENCE",
+  },
+  {
+    name: "NYT: Science",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",
+    domain: "nytimes.com",
+    description: "Science news and discoveries from The New York Times.",
     category: "SCIENCE",
   },
   // SPORT
@@ -495,7 +560,6 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
 export type StarterPack = {
   id: string;
   name: string;
-  cats: string;
   feeds: Array<{ name: string; url: string; category: string }>;
 };
 
@@ -503,7 +567,6 @@ export const STARTER_PACKS: StarterPack[] = [
   {
     id: 'essentials',
     name: 'The Essentials',
-    cats: 'Tech · News · Culture',
     feeds: [
       { name: 'Hacker News',    url: 'https://news.ycombinator.com/rss',       category: 'TECH'    },
       { name: 'The Guardian',   url: 'https://www.theguardian.com/world/rss',   category: 'NEWS'    },
@@ -511,40 +574,6 @@ export const STARTER_PACKS: StarterPack[] = [
       { name: 'BBC News',       url: 'https://feeds.bbci.co.uk/news/rss.xml',   category: 'NEWS'    },
       { name: 'Noema Magazine', url: 'https://www.noemamag.com/?feed=noemarss', category: 'SCIENCE' },
       { name: 'xkcd',          url: 'https://xkcd.com/atom.xml',               category: 'HUMOR'   },
-    ],
-  },
-  {
-    id: 'tech',
-    name: 'Tech Daily',
-    cats: 'Tech',
-    feeds: [
-      { name: "Simon Willison's Weblog", url: 'https://simonwillison.net/atom/entries/',    category: 'TECH' },
-      { name: 'Hacker News',            url: 'https://news.ycombinator.com/rss',            category: 'TECH' },
-      { name: 'MIT News',               url: 'https://news.mit.edu/rss/feed',               category: 'TECH' },
-      { name: 'The Verge',              url: 'https://www.theverge.com/rss/index.xml',      category: 'TECH' },
-    ],
-  },
-  {
-    id: 'news',
-    name: 'News Desk',
-    cats: 'News',
-    feeds: [
-      { name: 'Reuters',       url: 'https://news.google.com/rss/search?q=site:reuters.com&hl=en-US&gl=US&ceid=US:en', category: 'NEWS' },
-      { name: 'BBC News',      url: 'https://feeds.bbci.co.uk/news/rss.xml',                                           category: 'NEWS' },
-      { name: 'The Guardian',  url: 'https://www.theguardian.com/world/rss',                                           category: 'NEWS' },
-      { name: 'Repubblica.it', url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml',                               category: 'NEWS' },
-      { name: 'Adnkronos',     url: 'https://www.adnkronos.com/rss/ultimora',                                          category: 'NEWS' },
-    ],
-  },
-  {
-    id: 'culture',
-    name: 'Culture & Ideas',
-    cats: 'Culture · Podcast',
-    feeds: [
-      { name: 'Noema Magazine',      url: 'https://www.noemamag.com/?feed=noemarss',   category: 'SCIENCE' },
-      { name: 'The Ezra Klein Show', url: 'https://feeds.simplecast.com/82FI35Px',     category: 'PODCAST' },
-      { name: 'Guardian: Books',     url: 'https://www.theguardian.com/books/rss',     category: 'CULTURE' },
-      { name: 'Lex Fridman Podcast', url: 'https://lexfridman.com/feed/podcast/',      category: 'PODCAST' },
     ],
   },
 ];

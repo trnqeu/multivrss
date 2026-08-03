@@ -26,7 +26,7 @@ export default function SystemStrip({ lang, version }: Props) {
           <span className="inline-block w-[7px] h-[7px] bg-terracotta align-middle mr-[7px]" aria-hidden="true" />
           <b className="text-black/55">LIVE</b>
         </span>
-        <span>NODE_<b className="text-black/55">multivrss_alpha</b></span>
+        <span>NODE_<b className="text-black/55">multivrss_beta</b></span>
         <span>BUILD_<b className="text-black/55">{version}</b></span>
       </div>
       <div className="flex items-center gap-[9px]" role="group" aria-label="Language">

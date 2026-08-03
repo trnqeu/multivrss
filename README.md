@@ -33,6 +33,19 @@ Important Next.js conventions used here:
 - `next.config.ts` enables `cacheComponents: true`, so caching work must follow the Next.js 16 Cache Components model.
 - With Cache Components, use `"use cache"` only for cacheable output, keep request-specific/private data uncached or behind the appropriate runtime boundary, and use `connection()` when a route must defer to request time.
 
+## Local Development
+
+### Creating test users
+
+`scripts/create-test-users.ts` creates one or more users directly in the database, with `emailVerified` already set — so they can log in immediately without going through email verification.
+
+```bash
+npx ts-node --project tsconfig.test.json scripts/create-test-users.ts 5              # 5 users, default password
+npx ts-node --project tsconfig.test.json scripts/create-test-users.ts 5 MyPass1!      # custom password
+```
+
+Usernames/emails are generated as `testuser_<timestamp>_<n>@example.com`; the default password is `Test1234!`. Credentials are printed to the console. Requires the local Postgres container (`docker-compose up -d`) to be running.
+
 ## Product Vision
 
 MultivRSS is two things in one:
