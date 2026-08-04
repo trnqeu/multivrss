@@ -225,7 +225,7 @@ export const en: Dictionary = {
       { label: "Tips & tricks", slug: "tips" },
       { label: "FAQ", slug: "faq" },
       { label: "RSS feeds", href: "#" },
-      { label: "Changelog", href: "#" },
+      { label: "Changelog", slug: "changelog" },
       { label: "Status", href: "#" },
     ],
     legalLinks: [
