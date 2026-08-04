@@ -8,9 +8,10 @@ type Props = {
     label: string;
     count?: string;
     extraActivePrefixes?: string[];
+    dot?: boolean;
 };
 
-export default function SidebarNavLink({ href, label, count, extraActivePrefixes = [] }: Props) {
+export default function SidebarNavLink({ href, label, count, extraActivePrefixes = [], dot = false }: Props) {
     const pathname = usePathname();
     const isActive = pathname === href || extraActivePrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -25,6 +26,12 @@ export default function SidebarNavLink({ href, label, count, extraActivePrefixes
                 <span aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-[2px] bg-terracotta" />
             )}
             <span className="flex-1">{label}</span>
+            {dot && (
+                <>
+                    <span aria-hidden="true" className="w-[6px] h-[6px] bg-terracotta shrink-0" />
+                    <span className="sr-only"> — new post available</span>
+                </>
+            )}
             {count !== undefined && (
                 <span className="font-mono text-[9px] text-foreground/35 tabular-nums">{count}</span>
             )}

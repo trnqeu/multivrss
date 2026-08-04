@@ -29,6 +29,7 @@ export interface Dictionary {
     items: NavItem[];
     signIn: string;
     getStarted: string;
+    myFeed: string;
   };
   hero: {
     kicker: string;

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { getDictionary, isValidLang } from "@/lib/i18n";
+import MarkBlogSeen from "@/components/marketing/MarkBlogSeen";
 
 interface Props {
   params: Promise<{ lang: string }>;
@@ -32,6 +33,7 @@ export default async function BlogIndexPage({ params }: Props) {
 
   return (
     <>
+      <MarkBlogSeen latestPostDate={posts[0]?.date} />
       <header>
         <div className="bg-foreground text-background px-[34px] pt-[80px] pb-10 max-[920px]:px-[22px] max-[920px]:pt-14 max-[920px]:pb-8">
           <div className="max-w-[1200px] mx-auto">
