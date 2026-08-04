@@ -4,6 +4,8 @@ import { useState, useTransition, useCallback } from 'react';
 import Link from 'next/link';
 import { saveFeedItem, unsaveFeedItem, markAsRead } from '@/app/actions/feed-items';
 import { Bookmark } from '@/components/icons/Bookmark';
+import { TagIcon } from '@/components/icons/Tag';
+import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 
 type TagVM = { id: string; name: string };
@@ -56,24 +58,27 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
             >
                 <Bookmark
                     filled={saved}
-                    size={12}
+                    size={13}
                     className={saved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
                 />
+            </button>
+            <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                aria-label="Assign tags"
+                title="+ TAG"
+                className="bg-transparent border-0 px-0 py-0 cursor-pointer leading-none"
+            >
+                <TagIcon size={13} className="text-foreground/40 hover:text-terracotta" />
             </button>
             <Link
                 href={`/u/${username}/read/${itemId}`}
                 onClick={() => markAsRead(itemId)}
-                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/40 hover:text-foreground px-1 py-0.5 leading-none transition-colors whitespace-nowrap"
+                className="group inline-flex items-center gap-1.5 bg-terracotta text-background font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] px-3 py-1.5 leading-none whitespace-nowrap"
             >
-                READ
+                <Reader size={12} />
+                READ <span className="group-hover:underline">&rarr;</span>
             </Link>
-            <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="bg-transparent border border-current font-mono text-[9px] font-bold uppercase text-foreground/30 hover:text-foreground px-1 py-0.5 cursor-pointer leading-none transition-colors whitespace-nowrap"
-            >
-                + TAG
-            </button>
             {modalOpen && (
                 <AssignTagsModal
                     open={modalOpen}
