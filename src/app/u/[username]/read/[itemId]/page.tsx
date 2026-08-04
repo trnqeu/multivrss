@@ -5,8 +5,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getReaderArticle } from '@/app/actions/feed-items';
+import { getTags } from '@/app/actions/tags';
 import { getHost, slugify } from '@/lib/utils';
 import { ReaderContent } from './ReaderContent';
+import { ReaderActions } from './ReaderActions';
 
 interface Props {
     params: Promise<{ username: string; itemId: string }>;
@@ -28,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ReadPage({ params }: Props) {
     const { username, itemId } = await params;
-    const data = await getReaderArticle(itemId);
+    const [data, allTags] = await Promise.all([getReaderArticle(itemId), getTags()]);
 
     if (data.status === 'not-found') notFound();
 
@@ -36,13 +38,19 @@ export default async function ReadPage({ params }: Props) {
 
     return (
         <main className="flex-1 min-h-0 overflow-y-auto relative scroll-smooth bg-background">
-            <header className="p-6 md:p-10 border-b-2 border-foreground bg-background sticky top-0 z-10">
+            <header className="p-6 md:p-10 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4">
                 <Link
                     href={`/u/${username}`}
                     className="label-system text-[10px] hover:bg-foreground hover:text-background w-fit px-1 transition-all border border-foreground font-bold inline-block"
                 >
                     ← BACK_TO_FEED
                 </Link>
+                <ReaderActions
+                    itemId={item.id}
+                    initialSaved={!!item.savedAt}
+                    initialTags={item.tags}
+                    allTags={allTags}
+                />
             </header>
 
             <article className="px-6 md:px-12 py-10 max-w-[720px] mx-auto">

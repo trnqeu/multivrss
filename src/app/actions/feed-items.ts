@@ -223,6 +223,8 @@ export interface ReaderPageItem {
     title: string;
     link: string;
     sourceTitle: string | null;
+    savedAt: Date | null;
+    tags: { id: string; name: string }[];
 }
 
 export type ReaderPageData =
@@ -238,7 +240,14 @@ export async function getReaderArticle(itemId: string): Promise<ReaderPageData> 
 
     const item = await prisma.feedItem.findFirst({
         where: { id: itemId, source: { category: { userId: session.user.id } } },
-        select: { id: true, title: true, link: true, source: { select: { title: true } } },
+        select: {
+            id: true,
+            title: true,
+            link: true,
+            savedAt: true,
+            source: { select: { title: true } },
+            tags: { select: { tag: { select: { id: true, name: true } } } },
+        },
     });
     if (!item) return { status: 'not-found' };
 
@@ -247,6 +256,8 @@ export async function getReaderArticle(itemId: string): Promise<ReaderPageData> 
         title: item.title,
         link: item.link,
         sourceTitle: item.source.title,
+        savedAt: item.savedAt,
+        tags: item.tags.map(t => t.tag),
     };
 
     const withinLimit = await checkRateLimit(`reader:${session.user.id}`, { maxRequests: 20, windowMs: 60_000 });
