@@ -12,14 +12,6 @@ export type SuggestedCategory = {
 };
 
 export const SUGGESTED_FEEDS: SuggestedFeed[] = [
-  // BUSINESS
-  {
-    name: "NYT: Business",
-    url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
-    domain: "nytimes.com",
-    description: "Business and economic news from The New York Times.",
-    category: "BUSINESS",
-  },
   // CULTURE
   {
     name: "The Guardian: Books",
@@ -140,14 +132,6 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     domain: "architecturalrecord.com",
     description: "Architecture news, projects, and industry analysis from Architectural Record.",
     category: "DESIGN",
-  },
-  // HEALTH
-  {
-    name: "NYT: Health",
-    url: "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml",
-    domain: "nytimes.com",
-    description: "Health and medical news from The New York Times.",
-    category: "HEALTH",
   },
   // HUMOR
   {
@@ -327,6 +311,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Opinion columns from NYT's Thomas L. Friedman on foreign affairs and globalization.",
     category: "NEWS",
   },
+  {
+    name: "NYT: Business",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",
+    domain: "nytimes.com",
+    description: "Business and economic news from The New York Times.",
+    category: "NEWS",
+  },
   // PODCAST
   {
     name: "Dwarkesh Podcast",
@@ -390,6 +381,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     url: "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",
     domain: "nytimes.com",
     description: "Science news and discoveries from The New York Times.",
+    category: "SCIENCE",
+  },
+  {
+    name: "NYT: Health",
+    url: "https://rss.nytimes.com/services/xml/rss/nyt/Health.xml",
+    domain: "nytimes.com",
+    description: "Health and medical news from The New York Times.",
     category: "SCIENCE",
   },
   // SPORT
