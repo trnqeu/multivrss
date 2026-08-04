@@ -8,6 +8,7 @@ import MobileNavLink from "./MobileNavLink";
 import SidebarNavLink from "./SidebarNavLink";
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
+import { version } from "../../package.json";
 
 
 export default async function Sidebar({ username }: { username: string }) {
@@ -80,6 +81,19 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                 <SidebarCategories categories={categories} username={username} />
 
             </nav>
+
+            <div className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground px-[18px] py-[9px] border-t-2 border-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+                POWERED BY{" "}
+                <a
+                    href="https://trnq.eu/"
+                    target="_blank"
+                    rel="noopener"
+                    className="text-terracotta no-underline hover:underline"
+                >
+                    trnq.eu
+                </a>{" "}
+                <span className="text-foreground/35 text-[8px]">v{version}</span>
+            </div>
         </aside>
     );
 }
