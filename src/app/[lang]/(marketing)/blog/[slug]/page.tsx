@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getAllPosts, getPostBySlug, renderMarkdown } from "@/lib/blog";
 import { isValidLang, type Lang } from "@/lib/i18n";
 import BlogLangAlt from "@/components/marketing/BlogLangAlt";
+import MarkBlogSeen from "@/components/marketing/MarkBlogSeen";
 
 interface Props {
   params: Promise<{ lang: string; slug: string }>;
@@ -50,6 +51,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <MarkBlogSeen latestPostDate={getAllPosts(lang)[0]?.date} />
       <BlogLangAlt href={langAltHref} />
       <div className="px-[34px] py-[88px] max-[920px]:px-[26px] max-[920px]:py-16">
         <div className="max-w-[680px] mx-auto">

@@ -4,6 +4,8 @@ import { markAsRead, saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Bookmark } from '@/components/icons/Bookmark';
+import { TagIcon } from '@/components/icons/Tag';
+import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 
 interface Props {
@@ -101,27 +103,33 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
         <button
             onClick={handleSave}
             aria-label={isSaved ? 'Remove from saved' : 'Save'}
+            title={isSaved ? 'Remove from saved' : 'Save'}
             className="bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-2"
         >
             <Bookmark
                 filled={isSaved}
+                size={13}
                 className={isSaved ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
             />
+        </button>
+        <button
+            type="button"
+            onClick={openModal}
+            aria-label="Assign tags"
+            title="+ TAG"
+            className="bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-1.5"
+        >
+            <TagIcon size={13} className="text-foreground/40 hover:text-terracotta" />
         </button>
         <Link
             href={`/u/${username}/read/${item.id}`}
             onClick={handleClick}
-            className="ml-1 bg-transparent border border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 leading-none transition-colors"
+            aria-label="Read"
+            title="Read"
+            className="ml-1.5 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
         >
-            READ
+            <Reader size={13} />
         </Link>
-        <button
-            type="button"
-            onClick={openModal}
-            className="ml-1 bg-transparent border border-current font-mono text-[10px] font-bold uppercase text-foreground/40 hover:text-foreground px-1.5 py-0.5 cursor-pointer leading-none transition-colors"
-        >
-            + TAG
-        </button>
         {modalOpen && (
             <AssignTagsModal
                 open={modalOpen}

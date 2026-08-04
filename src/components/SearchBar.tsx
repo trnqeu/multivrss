@@ -9,6 +9,8 @@ import { markAsRead, markAsUnread, saveFeedItem, unsaveFeedItem, updateFeedItemD
 import { updateSavedLinkDetails } from '@/app/actions/saved-links';
 import { HIGHLIGHT_PRE, HIGHLIGHT_POST, type SearchHit, type SearchResult } from '@/lib/search-types';
 import { Bookmark } from '@/components/icons/Bookmark';
+import { TagIcon } from '@/components/icons/Tag';
+import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
@@ -250,7 +252,8 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     {item.read ? '\u25CF' : '\u25CB'}
                                 </button>
                             );
-                            const actions = (
+                            // Save/tag — small neutral icons, hover-revealed on desktop rows.
+                            const secondaryActions = (
                                 <>
                                     {tags.length > 0 && (
                                         <span className="inline-flex gap-1">
@@ -264,28 +267,16 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     {!isSavedLink && (
                                         <button
                                             onClick={() => toggleSave(item)}
+                                            aria-label={item.savedAt ? 'Remove from saved' : 'Save'}
                                             title={item.savedAt ? 'Remove from saved' : 'Save'}
                                             className="bg-transparent border-0 px-0 py-0 cursor-pointer"
                                         >
                                             <Bookmark
                                                 filled={!!item.savedAt}
+                                                size={13}
                                                 className={item.savedAt ? 'text-terracotta' : 'text-foreground/40 hover:text-terracotta'}
                                             />
                                         </button>
-                                    )}
-                                    {!isSavedLink && (
-                                        <Link
-                                            href={`/u/${username}/read/${item.id}`}
-                                            onClick={() => {
-                                                if (!(item.read ?? false)) {
-                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                    markAsRead(item.id);
-                                                }
-                                            }}
-                                            className="bg-transparent border border-current font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-1 py-0.5 leading-none transition-colors whitespace-nowrap"
-                                        >
-                                            READ
-                                        </Link>
                                     )}
                                     <button
                                         type="button"
@@ -293,11 +284,31 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             setTagModalItem({ id: item.id, isSavedLink });
                                             setTitleDraft(item.title ?? '');
                                         }}
-                                        className="bg-transparent border-0 font-mono text-[8.5px] font-extrabold uppercase tracking-[.12em] text-foreground/40 hover:text-terracotta px-0 py-0 cursor-pointer leading-none transition-colors whitespace-nowrap"
+                                        aria-label="Assign tags"
+                                        title="+ TAG"
+                                        className="bg-transparent border-0 px-0 py-0 cursor-pointer leading-none"
                                     >
-                                        TAG
+                                        <TagIcon size={13} className="text-foreground/40 hover:text-terracotta" />
                                     </button>
                                 </>
+                            );
+
+                            // Read — primary CTA pill, always visible (not hover-only).
+                            const readPill = !isSavedLink && (
+                                <Link
+                                    href={`/u/${username}/read/${item.id}`}
+                                    onClick={() => {
+                                        if (!(item.read ?? false)) {
+                                            setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                            markAsRead(item.id);
+                                        }
+                                    }}
+                                    aria-label="Read"
+                                    title="Read"
+                                    className="inline-flex items-center bg-terracotta text-background px-2 py-1.5 leading-none"
+                                >
+                                    <Reader size={13} />
+                                </Link>
                             );
 
                             return (
@@ -326,7 +337,8 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                                 {dateLabel}
                                             </span>
                                             <span className="ml-auto shrink-0 inline-flex items-center gap-2">
-                                                {actions}
+                                                {secondaryActions}
+                                                {readPill}
                                             </span>
                                         </div>
                                         <a
@@ -388,8 +400,11 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             )}
                                         </span>
 
-                                        <span className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-                                            {actions}
+                                        <span className="inline-flex items-center gap-2">
+                                            <span className="inline-flex items-center gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                                                {secondaryActions}
+                                            </span>
+                                            {readPill}
                                         </span>
                                     </div>
                                 </Fragment>
