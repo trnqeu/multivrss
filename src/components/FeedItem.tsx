@@ -124,10 +124,11 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
         <Link
             href={`/u/${username}/read/${item.id}`}
             onClick={handleClick}
-            className="group ml-1.5 inline-flex items-center gap-1.5 align-baseline bg-terracotta text-background font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] px-3 py-1.5 leading-none whitespace-nowrap"
+            aria-label="Read"
+            title="Read"
+            className="ml-1.5 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
         >
-            <Reader size={12} />
-            READ <span className="group-hover:underline">&rarr;</span>
+            <Reader size={13} />
         </Link>
         {modalOpen && (
             <AssignTagsModal

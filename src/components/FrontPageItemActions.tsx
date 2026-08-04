@@ -74,10 +74,11 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
             <Link
                 href={`/u/${username}/read/${itemId}`}
                 onClick={() => markAsRead(itemId)}
-                className="group inline-flex items-center gap-1.5 bg-terracotta text-background font-mono text-[9.5px] font-extrabold uppercase tracking-[.12em] px-3 py-1.5 leading-none whitespace-nowrap"
+                aria-label="Read"
+                title="Read"
+                className="inline-flex items-center bg-terracotta text-background px-2 py-1.5 leading-none"
             >
-                <Reader size={12} />
-                READ <span className="group-hover:underline">&rarr;</span>
+                <Reader size={13} />
             </Link>
             {modalOpen && (
                 <AssignTagsModal
