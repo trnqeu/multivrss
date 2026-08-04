@@ -11,6 +11,19 @@ export interface FooterLink {
   isAnchor?: boolean;
 }
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface FaqCategory {
+  /** Stable, untranslated key (e.g. "product") — used for DOM ids and the
+   *  <details name="…"> grouping attribute, never rendered as text. */
+  id: string;
+  title: string;
+  items: FaqItem[];
+}
+
 export interface Dictionary {
   nav: {
     items: NavItem[];
@@ -67,6 +80,13 @@ export interface Dictionary {
     closingHeadlineSuffix: string;
     closingBody: string;
     closingCta: string;
+  };
+  faqPage: {
+    kicker: string;
+    h1: string;
+    introBody: string;
+    aiDisclaimer: string;
+    categories: FaqCategory[];
   };
   closing: {
     kicker: string;

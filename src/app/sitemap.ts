@@ -9,6 +9,7 @@ const STATIC_PATHS: Array<{ path: string; priority: number }> = [
   { path: "/guide", priority: 0.8 },
   { path: "/sources", priority: 0.8 },
   { path: "/tips", priority: 0.7 },
+  { path: "/faq", priority: 0.7 },
   { path: "/blog", priority: 0.7 },
   { path: "/privacy", priority: 0.3 },
   { path: "/cookies", priority: 0.3 },
