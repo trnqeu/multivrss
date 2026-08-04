@@ -14,6 +14,8 @@ Le novità di MultivRSS, spiegate semplicemente.
 - I canali YouTube possono ora essere aggiunti come fonti
 - Una directory curata di feed suggeriti per trovare le prime fonti più velocemente
 - Elimina il tuo account e tutti i tuoi dati direttamente dalle Impostazioni, senza bisogno di scriverci
+- Importa / Esporta file csv con l'elenco dei tuoi feed o con l'elenco dei tuoi link salvati
+- Progressive Web App: installa il sito sul tuo telefono e usalo come una app
 
 **Miglioramenti**
 - La ricerca copre ora anche i link salvati, non solo i feed
