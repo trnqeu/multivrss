@@ -7,9 +7,11 @@ export const it: Dictionary = {
       { label: "GUIDA", slug: "guide" },
       { label: "FONTI", slug: "sources" },
       { label: "SUGGERIMENTI", slug: "tips" },
+      { label: "FAQ", slug: "faq" },
     ],
     signIn: "ACCEDI",
     getStarted: "INIZIA →",
+    myFeed: "IL MIO FEED →",
   },
   hero: {
     kicker: "I tuoi contenuti. E basta.",
@@ -67,6 +69,139 @@ export const it: Dictionary = {
       "Crea la tua reading room e importa tutte le fonti qui sopra in un solo passaggio, poi rendila tua: aggiungi, rimuovi, organizza per categoria.",
     closingCta: "→ INIZIA GRATIS",
   },
+  faqPage: {
+    kicker: "DOMANDE · RISPOSTE",
+    h1: "FAQ.",
+    introBody:
+      "Tutto quello che ci chiedono prima di iscriversi, in un unico posto: cosa fa MultivRSS, come gestiamo i tuoi dati, cosa è gratuito e come funzionano gli aspetti tecnici.",
+    aiDisclaimer:
+      "Questa pagina FAQ è stata redatta con l'aiuto dell'IA e rivista dal nostro team. Se qualcosa ti sembra impreciso o non aggiornato, faccelo sapere.",
+    categories: [
+      {
+        id: "product",
+        title: "Prodotto e funzionalità",
+        items: [
+          {
+            question: "Cos'è MultivRSS?",
+            answer:
+              "Un lettore RSS e una lista di lettura in un'unica dashboard: segui gli aggiornamenti dei tuoi feed, salva qualsiasi link da leggere più tardi e cerca tra entrambi.",
+          },
+          {
+            question: "Qual è la differenza tra Front Page e River?",
+            answer:
+              "La Front Page è un riepilogo personalizzato di ciò che vale la pena leggere ora. La River è il flusso cronologico completo di tutti gli aggiornamenti dei tuoi feed, dal più vecchio o dal più recente.",
+          },
+          {
+            question: "Come decide la Front Page cosa mostrarmi?",
+            answer:
+              "Si ricostruisce una volta al giorno. In cima trovi la striscia For You, poi il resto è raggruppato per categoria: per ogni categoria peschiamo prima gli articoli dalle fonti che hai letto o salvato di recente, poi completiamo con gli articoli non letti più freschi delle altre fonti della categoria, così non resta mai vuota. Non ripete mai qualcosa che ti ha già mostrato lì.",
+          },
+          {
+            question: "Come viene scelta la striscia For You?",
+            answer:
+              "For You guarda cosa hai letto e salvato davvero negli ultimi 30 giorni per capire quali fonti ti interessano di più: gli articoli salvati contano più di quelli semplicemente letti. Poi prende gli articoli non letti più freschi da quelle fonti, li ordina in base a quanto è forte questo segnale e mescola le prime scelte nella striscia, così non è sempre nello stesso ordine ogni giorno.",
+          },
+          {
+            question: "Cos'è la Modalità Lettura (Reader Mode)?",
+            answer:
+              "Una visualizzazione pulita dell'articolo completo, senza pubblicità né layout distraenti, estratta direttamente dalla pagina originale: non devi mai uscire da MultivRSS per leggere.",
+          },
+          {
+            question: "La ricerca copre anche i link salvati o solo i feed?",
+            answer:
+              "Entrambi. La ricerca è unificata tra tutto ciò che segui e tutto ciò che hai salvato, e puoi filtrare i risultati per categoria, intervallo di tempo, fonte o stato di lettura.",
+          },
+          {
+            question: "Con che frequenza si aggiornano i feed?",
+            answer:
+              "I feed si sincronizzano automaticamente in background. Se non vuoi aspettare, c'è anche un pulsante di sincronizzazione manuale che aggiorna tutto subito.",
+          },
+        ],
+      },
+      {
+        id: "account",
+        title: "Account e privacy",
+        items: [
+          {
+            question: "Come creo un account?",
+            answer:
+              "Con email e password (dovrai prima verificare l'email), oppure accedendo con il tuo account Google o GitHub.",
+          },
+          {
+            question: "Vendete o condividete i miei dati?",
+            answer:
+              "No. MultivRSS non usa pubblicità né tracker di analytics, e non vende né affitta i tuoi dati. Un numero ridotto di fornitori di servizi (come il nostro strumento di monitoraggio errori) ci aiuta a gestire il prodotto: l'elenco completo è nella Privacy Policy.",
+          },
+          {
+            question: "MultivRSS è open source? Posso auto-ospitarlo?",
+            answer:
+              "Non ancora. L'auto-hosting è qualcosa che stiamo valutando, non è ancora disponibile né deciso.",
+          },
+          {
+            question: "Posso eliminare il mio account e i miei dati?",
+            answer:
+              "Sì: vai su Impostazioni → Account nella dashboard e usa Elimina account nella danger zone. Il tuo account e tutti i tuoi dati vengono eliminati subito e non possono essere recuperati.",
+          },
+        ],
+      },
+      {
+        id: "pricing",
+        title: "Prezzi e limiti",
+        items: [
+          {
+            question: "Quanto costa MultivRSS?",
+            answer: "MultivRSS è gratuito. Non c'è nessun piano a pagamento oggi.",
+          },
+          {
+            question: "Ci sono limiti nel piano gratuito?",
+            answer:
+              "Due, e preferiamo dirtelo subito: un massimo di 200 feed per account, e gli articoli non salvati vengono rimossi automaticamente dopo 90 giorni. Tutto ciò che salvi nella lista di lettura resta per sempre.",
+          },
+          {
+            question: "Cosa succede a un articolo dopo 90 giorni?",
+            answer:
+              "Se non l'hai salvato nella lista di lettura, viene rimosso automaticamente per tenere tutto in ordine. Salvarlo in qualsiasi momento prima lo conserva per sempre.",
+          },
+          {
+            question: "Ci sarà un piano a pagamento in futuro?",
+            answer:
+              "Forse, ma per ora non c'è nulla di deciso o attivo: il piano gratuito non è una prova a tempo. Se cambierà, lo annunceremo chiaramente, qui e altrove.",
+          },
+        ],
+      },
+      {
+        id: "technical",
+        title: "Aspetti tecnici",
+        items: [
+          {
+            question: "A che tipo di feed posso iscrivermi?",
+            answer:
+              "Qualsiasi feed RSS o Atom standard. Molti siti senza un feed evidente ne espongono comunque uno: consulta la pagina Suggerimenti per i trucchi URL su Google News, Substack, Reddit, YouTube, Medium, WordPress, GitHub e altro.",
+          },
+          {
+            question: "Posso iscrivermi a un canale YouTube?",
+            answer:
+              "Sì: incolla l'URL del canale (o uno @handle) e MultivRSS lo risolve automaticamente nel feed video di quel canale.",
+          },
+          {
+            question: "Posso importare o esportare la mia lista di feed?",
+            answer:
+              "Sì, dalle Impostazioni: esporta tutte le tue fonti in CSV in qualsiasi momento, oppure importa un file CSV per aggiungere feed in blocco (è richiesta una colonna URL; categoria e titolo sono opzionali).",
+          },
+          {
+            question: "Esiste un'estensione per il browser?",
+            answer:
+              "Non ancora: è nella nostra roadmap. L'API che verrà usata per aggiungere feed e salvare articoli esiste già oggi.",
+          },
+          {
+            question: "Posso installare MultivRSS sul telefono o sul desktop?",
+            answer:
+              "Sì: MultivRSS è un'app installabile. Su Android e su Chrome o Edge desktop, cerca \"Installa\" nel menu del browser. Su iOS, usa il menu Condividi di Safari e scegli \"Aggiungi a Home\".",
+          },
+        ],
+      },
+    ],
+  },
   closing: {
     kicker: "END_OF_FEED",
     headlinePre: "Riprendi la tua ",
@@ -90,8 +225,9 @@ export const it: Dictionary = {
     resourceLinks: [
       { label: "Fonti curate", slug: "sources" },
       { label: "Suggerimenti", slug: "tips" },
+      { label: "FAQ", slug: "faq" },
       { label: "Feed RSS", href: "#" },
-      { label: "Changelog", href: "#" },
+      { label: "Changelog", slug: "changelog" },
       { label: "Stato", href: "#" },
     ],
     legalLinks: [

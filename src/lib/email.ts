@@ -14,6 +14,20 @@ export async function sendPasswordResetEmail(to: string, resetLink: string) {
     if (error) throw new Error(error.message);
 }
 
+export async function sendAccountDeletedEmail(to: string) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { error } = await resend.emails.send({
+        from: 'MultivRSS <noreply@multivrss.com>',
+        to: [to],
+        subject: 'Your MultivRSS account has been deleted',
+        html: `<p>Your MultivRSS account and all associated data (feeds, categories, saved links, tags, API keys) have just been permanently deleted.</p>
+               <p>This action cannot be undone. If you didn't request it, someone else had access to your account or password.</p>`,
+        text: "Your MultivRSS account and all associated data have just been permanently deleted. This action cannot be undone. If you didn't request it, someone else had access to your account or password.",
+    });
+
+    if (error) throw new Error(error.message);
+}
+
 export async function sendVerificationEmail(email: string, token: string, callbackUrl?: string) {
     const verifyUrl = callbackUrl
         ? `${process.env.NEXTAUTH_URL}/verify-email?token=${token}&callbackUrl=${encodeURIComponent(callbackUrl)}`

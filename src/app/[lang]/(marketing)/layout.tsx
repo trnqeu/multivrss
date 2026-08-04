@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getDictionary, isValidLang } from "@/lib/i18n";
 import MarketingNav from "@/components/marketing/MarketingNav";
+import MarketingNavAuth from "@/components/marketing/MarketingNavAuth";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import SystemStrip from "@/components/marketing/SystemStrip";
 import { LangAltProvider } from "@/components/marketing/LangAltContext";
@@ -32,7 +34,9 @@ export default async function MarketingLayout({ children, params }: Props) {
     <div className="bg-paper text-black font-sans min-h-screen flex flex-col">
       <LangAltProvider>
         <SystemStrip lang={lang} version={version} />
-        <MarketingNav lang={lang} dict={dict} />
+        <Suspense fallback={<MarketingNav lang={lang} dict={dict} />}>
+          <MarketingNavAuth lang={lang} dict={dict} />
+        </Suspense>
         <main id="main-content" className="flex-1">
           {children}
         </main>

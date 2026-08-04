@@ -217,6 +217,7 @@ For production the flow is identical but triggers on `main`.
 - [x] **REST API** — `GET /api/feeds/sources` (list feed sources) and `POST /api/feeds/sources` (subscribe) with CORS support for Chrome Extension; authenticated via NextAuth session cookie
 - [x] **API docs** — OpenAPI spec at `/api/openapi`; interactive Scalar UI at `/docs`
 - [x] **Mobile category filter (Option B)** — pinned `CAT` pill at the left of the telemetry row (mobile only, never scrolls away); taps to open a bottom-sheet listing all categories; writes `?cat=`; desktop inline dropdown unchanged
+- [x] **Self-service account deletion** — danger-zone flow at `/u/{username}/settings/account` (type-to-confirm + password re-check for credentials accounts); deletes immediately via the existing `onDelete: Cascade` chain on every `User` relation, no new schema needed; rate-limited, sends a courtesy "account deleted" email. Replaces the old "email us to delete" flow in the FAQ and Privacy Policy.
 
 ### Sync Performance & Scalability
 
@@ -317,6 +318,7 @@ Steps to make the repo public and let users run their own instance.
 
 ### Core features
 
+- [ ] **Reader Mode: copy text + download as Markdown** — buttons in the reader view (`/u/{username}/read/{itemId}`) to copy the extracted article text to clipboard and export it as a `.md` file. Requires adding a `markdown` field to `ReaderResult` (`src/lib/reader.ts`), computed server-side alongside the existing sanitized `contentHtml` (candidate: `turndown` for HTML→Markdown, run on the already-sanitized HTML — flag as new dependency per `CLAUDE.md`); client side is a small `ReaderActions` component with `navigator.clipboard.writeText()` + Blob download, both with `aria-live` feedback per the a11y checklist.
 - [ ] **Android app (Capacitor wrapper)** — wrap the existing Next.js PWA in a native WebView shell via [Capacitor](https://capacitorjs.com/); publishable to Google Play. Reuses the current frontend as-is; unlocks native plugins (push notifications, native share target replacing/augmenting `share-target/`) beyond what the web share-target endpoint can do. Key steps: add `@capacitor/core` + `@capacitor/android`, configure `capacitor.config.ts` to point at the deployed production URL (or bundle a local build), wire native push via `@capacitor/push-notifications` if adopted, sign and publish the APK/AAB.
 - [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click; save articles to reading list; REST API already in place
 - [ ] **Export as CSV** — two separate exports: (1) all feed sources (URL, category, title) for re-importing into another RSS reader; (2) all saved links (URL, title, tags, saved date) compatible with Instapaper/Pocket CSV format
@@ -348,6 +350,8 @@ Steps to make the repo public and let users run their own instance.
 
 - [ ] **Marketing site i18n** — multi-language support for the public marketing pages at `/` (hero, pricing, tips). Scope is marketing only — the authenticated dashboard stays English-only. Use Next.js 16 built-in i18n routing (`i18n` config in `next.config.ts`) with locale-prefixed URLs (e.g. `/it`, `/es`). Launch languages TBD; suggested starting pair: English (default) + Italian. Requires extracting all marketing copy into locale message files; `next-intl` is the recommended library for App Router.
 - [ ] **Privacy Policy & Cookie Policy pages** — `/privacy` and `/cookies` under the marketing site (i18n en/it), required before public launch for EU users. Must disclose: third-party sub-processors that process personal data (Sentry once enabled — IP address, user agent, stack traces, breadcrumbs), `localStorage` usage (theme preference), and any analytics added later. No cookies are set today (Sentry uses request headers for tracing, not cookies), but GDPR requires disclosing personal-data processing regardless of cookie use.
+- [x] **FAQ page** — `/faq` under the marketing site (i18n en/it), covering product & features, account & privacy, pricing & limits, and technical questions (feed types, YouTube, CSV import/export, browser extension status, PWA install). Content grounded in the confirmed free-tier limits (max 200 feeds/account, 90-day retention on unsaved articles) and honest, non-overclaiming answers on self-hosting/open-source status and pricing.
+- [x] **Public changelog page** — `/changelog` under the marketing site (i18n en/it), curated plain-language release notes separate from the dev-facing root `CHANGELOG.md`.
 - [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
 - [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
 - [ ] **OWASP secure development** — apply OWASP Top 10 across every feature:
@@ -365,6 +369,7 @@ Steps to make the repo public and let users run their own instance.
 - [ ] **Vector database** — TBD
 - [ ] **Markdown-driven home page** — allow updating marketing home page sections (hero copy, pillars, pricing, tips) by editing local `.md` files, without touching React components. Rendered server-side via `next-mdx-remote` or similar; hot-reloads in dev, statically included in production build.
 - [ ] **Blog section** — `/blog` public section (no auth required) driven by Markdown files stored in `content/blog/`. Each `.md` file becomes a post at `/blog/[slug]`. Index page lists posts sorted by date. No CMS or database required — content is versioned in Git.
+- [ ] **Public changelog page** — `/changelog` on the marketing site, Markdown-driven like the planned blog. Source of truth is repo-root `CHANGELOG.md` (Keep a Changelog format); render its entries instead of duplicating content. Hold until the blog's Markdown-rendering pattern is actually in use, then reuse it.
 
 ### Personalization
 

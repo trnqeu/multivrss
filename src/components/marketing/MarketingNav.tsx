@@ -10,9 +10,10 @@ import Wordmark from "@/components/Wordmark";
 interface Props {
   lang: Lang;
   dict: Dictionary;
+  username?: string;
 }
 
-export default function MarketingNav({ lang, dict }: Props) {
+export default function MarketingNav({ lang, dict, username }: Props) {
   const pathname = usePathname();
   const t = dict.nav;
 
@@ -60,18 +61,29 @@ export default function MarketingNav({ lang, dict }: Props) {
       </div>
 
       <div className="flex items-center gap-[8px] max-[920px]:gap-[6px]">
-        <Link
-          href="/login"
-          className="inline-flex border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
-        >
-          {t.signIn}
-        </Link>
-        <Link
-          href="/register"
-          className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
-        >
-          {t.getStarted}
-        </Link>
+        {username ? (
+          <Link
+            href={`/u/${username}`}
+            className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
+          >
+            {t.myFeed}
+          </Link>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className="inline-flex border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
+            >
+              {t.signIn}
+            </Link>
+            <Link
+              href="/register"
+              className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
+            >
+              {t.getStarted}
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

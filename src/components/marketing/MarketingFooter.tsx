@@ -69,7 +69,18 @@ export default function MarketingFooter({ lang, dict }: Props) {
             </Link>
           ))}
         </div>
-        <span>v{version}</span>
+        <span>
+          Powered by{" "}
+          <a
+            href="https://trnq.eu/"
+            target="_blank"
+            rel="noopener"
+            className="text-black/55 font-bold hover:text-terracotta transition-colors"
+          >
+            trnq.eu
+          </a>{" "}
+          <b className="text-black/30 font-semibold text-[9px]">v{version}</b>
+        </span>
       </div>
     </footer>
   );

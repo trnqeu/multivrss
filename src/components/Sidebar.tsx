@@ -3,11 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
+import { getAllPosts } from '@/lib/blog';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 import SidebarNavLink from "./SidebarNavLink";
+import BlogNavLink from "./BlogNavLink";
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
+import { version } from "../../package.json";
 
 
 export default async function Sidebar({ username }: { username: string }) {
@@ -34,6 +37,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
         prisma.savedLink.count({ where: { userId } }),
     ]);
     const savedCount = savedFeedCount + savedLinkCount;
+    const latestPost = getAllPosts('en')[0];
 
     return (
         <aside className="w-full shrink-0 border-r-2 border-foreground flex flex-col bg-background h-full">
@@ -74,12 +78,30 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                     href={`/u/${username}/suggested`}
                     label="Suggested"
                 />
+                <BlogNavLink
+                    href="/en/blog"
+                    label="Blog"
+                    latestPostDate={latestPost?.date}
+                />
 
                 {/* Categories as Modules */}
                 <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground/35 px-1 mt-[10px]">CATEGORIES</span>
                 <SidebarCategories categories={categories} username={username} />
 
             </nav>
+
+            <div className="font-mono text-[9px] font-extrabold uppercase tracking-[.2em] text-foreground px-[18px] py-[9px] border-t-2 border-foreground whitespace-nowrap overflow-hidden text-ellipsis">
+                POWERED BY{" "}
+                <a
+                    href="https://trnq.eu/"
+                    target="_blank"
+                    rel="noopener"
+                    className="text-terracotta no-underline hover:underline"
+                >
+                    trnq.eu
+                </a>{" "}
+                <span className="text-foreground/35 text-[8px]">v{version}</span>
+            </div>
         </aside>
     );
 }
