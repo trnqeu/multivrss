@@ -511,7 +511,14 @@ describe('getReaderArticle', () => {
         expect(result).toEqual({ status: 'not-found' });
         expect(mockedPrisma.feedItem.findFirst).toHaveBeenCalledWith({
             where: { id: 'item_1', source: { category: { userId: 'user_1' } } },
-            select: { id: true, title: true, link: true, source: { select: { title: true } } },
+            select: {
+                id: true,
+                title: true,
+                link: true,
+                savedAt: true,
+                source: { select: { title: true } },
+                tags: { select: { tag: { select: { id: true, name: true } } } },
+            },
         });
     });
 
@@ -521,7 +528,7 @@ describe('getReaderArticle', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedItem.findFirst.mockResolvedValue({
-            id: 'item_1', title: 'Title', link: 'https://example.com/a', source: { title: 'Source' },
+            id: 'item_1', title: 'Title', link: 'https://example.com/a', savedAt: null, source: { title: 'Source' }, tags: [],
         } as any);
         mockedCheckRateLimit.mockResolvedValue(false);
 
@@ -531,7 +538,7 @@ describe('getReaderArticle', () => {
 
         expect(result).toEqual({
             status: 'rate-limited',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source' },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
         });
         expect(getReadableArticle).not.toHaveBeenCalled();
     });
@@ -542,7 +549,7 @@ describe('getReaderArticle', () => {
             expires: new Date(Date.now() + 1000).toISOString(),
         });
         mockedPrisma.feedItem.findFirst.mockResolvedValue({
-            id: 'item_1', title: 'Title', link: 'https://example.com/a', source: { title: 'Source' },
+            id: 'item_1', title: 'Title', link: 'https://example.com/a', savedAt: null, source: { title: 'Source' }, tags: [],
         } as any);
         const { getReaderArticle } = await import('@/app/actions/feed-items');
         const { getReadableArticle } = await import('@/lib/reader');
@@ -553,7 +560,7 @@ describe('getReaderArticle', () => {
         expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
         expect(result).toEqual({
             status: 'ready',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source' },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
             result: { ok: false, reason: 'extraction-empty' },
         });
     });
