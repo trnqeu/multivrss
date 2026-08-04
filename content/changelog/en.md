@@ -13,6 +13,7 @@ What's new in MultivRSS, in plain language.
 - Save any link from anywhere on the web, not just your feeds, and tag it for later
 - YouTube channels can now be added as feed sources
 - A curated directory of suggested feeds to help you find your first sources
+- Delete your account and all your data yourself from Settings, no need to email us
 
 
 **Improved**

@@ -139,7 +139,7 @@ export const it: Dictionary = {
           {
             question: "Posso eliminare il mio account e i miei dati?",
             answer:
-              "Sì: non è ancora self-service dalla dashboard, quindi scrivi a privacy@multivrss.com e cancelleremo il tuo account e i tuoi dati entro 30 giorni.",
+              "Sì: vai su Impostazioni → Account nella dashboard e usa Elimina account nella danger zone. Il tuo account e tutti i tuoi dati vengono eliminati subito e non possono essere recuperati.",
           },
         ],
       },

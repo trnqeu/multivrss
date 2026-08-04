@@ -217,6 +217,7 @@ For production the flow is identical but triggers on `main`.
 - [x] **REST API** — `GET /api/feeds/sources` (list feed sources) and `POST /api/feeds/sources` (subscribe) with CORS support for Chrome Extension; authenticated via NextAuth session cookie
 - [x] **API docs** — OpenAPI spec at `/api/openapi`; interactive Scalar UI at `/docs`
 - [x] **Mobile category filter (Option B)** — pinned `CAT` pill at the left of the telemetry row (mobile only, never scrolls away); taps to open a bottom-sheet listing all categories; writes `?cat=`; desktop inline dropdown unchanged
+- [x] **Self-service account deletion** — danger-zone flow at `/u/{username}/settings/account` (type-to-confirm + password re-check for credentials accounts); deletes immediately via the existing `onDelete: Cascade` chain on every `User` relation, no new schema needed; rate-limited, sends a courtesy "account deleted" email. Replaces the old "email us to delete" flow in the FAQ and Privacy Policy.
 
 ### Sync Performance & Scalability
 
