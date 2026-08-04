@@ -49,7 +49,7 @@ describe('getReadableArticle', () => {
 
     it('returns the cached article without fetching when a success entry exists', async () => {
         const cached: ExtractedArticle = {
-            title: 'Cached', byline: null, contentHtml: '<p>cached</p>', textLength: 6, extractedAt: 1,
+            title: 'Cached', byline: null, contentHtml: '<p>cached</p>', markdown: '# Cached\n\ncached', textLength: 6, extractedAt: 1,
         };
         mockGet.mockImplementation((key: string) => Promise.resolve(key.includes(':fail:') ? null : JSON.stringify(cached)));
 
@@ -134,6 +134,13 @@ describe('getReadableArticle', () => {
 
         // Every image gets an alt attribute even when the source had none.
         expect(result.article.contentHtml).toMatch(/<img[^>]*alt="/);
+
+        // The Markdown export is built from the sanitized HTML: title as a heading,
+        // the source link, and the body converted to Markdown (no leftover HTML tags).
+        expect(result.article.markdown).toContain('# The Rise of Article Extraction');
+        expect(result.article.markdown).toContain(`Source: <${LINK}>`);
+        expect(result.article.markdown).toContain('### Why It Matters');
+        expect(result.article.markdown).not.toContain('<p>');
 
         expect(mockSet).toHaveBeenCalledWith(
             expect.not.stringContaining(':fail:'),

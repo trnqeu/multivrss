@@ -2,6 +2,7 @@ import { createHash } from 'crypto';
 import { parseHTML } from 'linkedom';
 import { Readability } from '@mozilla/readability';
 import sanitizeHtml from 'sanitize-html';
+import TurndownService from 'turndown';
 import { redis } from '@/lib/redis';
 import { validateFeedUrl, safeFetchText } from '@/lib/rss';
 
@@ -9,12 +10,30 @@ const SUCCESS_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days — bounds cache size to
 const FAILURE_TTL_SECONDS = 60 * 10; // 10 minutes — avoids hammering a currently-broken source
 const MIN_EXTRACTED_CHARS = 250;
 
+// Singleton — construction is cheap but there is no reason to rebuild it per request.
+const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+
 export interface ExtractedArticle {
     title: string | null;
     byline: string | null;
     contentHtml: string;
+    markdown: string;
     textLength: number;
     extractedAt: number;
+}
+
+// Builds a small standalone Markdown document (title + byline + source link + body)
+// from the already-sanitized contentHtml, so the reader page can offer it as a
+// download without any further client-side conversion. Runs on the sanitized HTML,
+// not Readability's raw output, so it inherits the same XSS-safe tag allowlist.
+function toMarkdown(article: { title: string | null; byline: string | null; contentHtml: string }, sourceLink: string): string {
+    const parts: string[] = [];
+    if (article.title) parts.push(`# ${article.title}`);
+    if (article.byline) parts.push(article.byline);
+    parts.push(`Source: <${sourceLink}>`);
+    parts.push('---');
+    parts.push(turndownService.turndown(article.contentHtml));
+    return parts.join('\n\n');
 }
 
 export type ReaderFailureReason = 'ssrf-blocked' | 'fetch-failed' | 'not-html' | 'extraction-empty';
@@ -24,7 +43,9 @@ export type ReaderResult =
     | { ok: false; reason: ReaderFailureReason };
 
 function cacheKey(link: string): string {
-    return `reader:v1:${createHash('sha256').update(link).digest('hex')}`;
+    // v2: ExtractedArticle gained a required `markdown` field — bumped so stale v1
+    // cache entries (missing it) don't get served as if they were complete.
+    return `reader:v2:${createHash('sha256').update(link).digest('hex')}`;
 }
 
 function failureCacheKey(link: string): string {
@@ -164,10 +185,12 @@ export async function getReadableArticle(link: string): Promise<ReaderResult> {
         return fail('extraction-empty');
     }
 
+    const contentHtml = sanitizeHtml(parsed.content, sanitizeOptions(fetched.finalUrl));
     const article: ExtractedArticle = {
         title: parsed.title ?? null,
         byline: parsed.byline ?? null,
-        contentHtml: sanitizeHtml(parsed.content, sanitizeOptions(fetched.finalUrl)),
+        contentHtml,
+        markdown: toMarkdown({ title: parsed.title ?? null, byline: parsed.byline ?? null, contentHtml }, fetched.finalUrl),
         textLength: textContent.length,
         extractedAt: Date.now(),
     };

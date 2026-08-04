@@ -5,7 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getReaderArticle } from '@/app/actions/feed-items';
-import { getHost } from '@/lib/utils';
+import { getHost, slugify } from '@/lib/utils';
+import { ReaderContent } from './ReaderContent';
 
 interface Props {
     params: Promise<{ username: string; itemId: string }>;
@@ -82,7 +83,11 @@ export default async function ReadPage({ params }: Props) {
                                 View original on {getHost(item.link)} ↗
                             </a>
                         </p>
-                        <div className="reader-prose" dangerouslySetInnerHTML={{ __html: data.result.article.contentHtml }} />
+                        <ReaderContent
+                            contentHtml={data.result.article.contentHtml}
+                            markdown={data.result.article.markdown}
+                            filenameBase={slugify(data.result.article.title ?? item.title)}
+                        />
                     </>
                 )}
             </article>
