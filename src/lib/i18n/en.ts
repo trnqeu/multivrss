@@ -11,6 +11,7 @@ export const en: Dictionary = {
     ],
     signIn: "SIGN IN",
     getStarted: "GET STARTED →",
+    myFeed: "MY FEED →",
   },
   hero: {
     kicker: "Read the web. Skip the noise.",

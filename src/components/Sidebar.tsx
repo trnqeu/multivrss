@@ -3,9 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
+import { getAllPosts } from '@/lib/blog';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 import SidebarNavLink from "./SidebarNavLink";
+import BlogNavLink from "./BlogNavLink";
 import SpinningWrapper from "./SpinningWrapper";
 import SyncBadge from "./SyncBadge";
 import { version } from "../../package.json";
@@ -35,6 +37,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
         prisma.savedLink.count({ where: { userId } }),
     ]);
     const savedCount = savedFeedCount + savedLinkCount;
+    const latestPost = getAllPosts('en')[0];
 
     return (
         <aside className="w-full shrink-0 border-r-2 border-foreground flex flex-col bg-background h-full">
@@ -74,6 +77,11 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                 <SidebarNavLink
                     href={`/u/${username}/suggested`}
                     label="Suggested"
+                />
+                <BlogNavLink
+                    href="/en/blog"
+                    label="Blog"
+                    latestPostDate={latestPost?.date}
                 />
 
                 {/* Categories as Modules */}

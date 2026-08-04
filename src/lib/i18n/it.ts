@@ -11,6 +11,7 @@ export const it: Dictionary = {
     ],
     signIn: "ACCEDI",
     getStarted: "INIZIA →",
+    myFeed: "IL MIO FEED →",
   },
   hero: {
     kicker: "I tuoi contenuti. E basta.",
