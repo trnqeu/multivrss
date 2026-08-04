@@ -18,6 +18,8 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Suggested feeds directory with search, category filters, and bulk-add
 - Sources page with search, category filters, and bulk-add
 - FAQ page on the marketing site (en/it)
+- Self-service account deletion (Settings → Account danger zone): type-to-confirm
+  plus password re-check, deletes immediately via existing cascade relations
 
 ### Changed
 - Migrated full-text search from Meilisearch to native Postgres full-text search

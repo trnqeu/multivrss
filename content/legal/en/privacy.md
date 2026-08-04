@@ -40,7 +40,7 @@ Feed sources, saved links, categories, tags, and search are handled entirely on 
 
 ## How long we keep it
 
-Account data and content are kept for as long as your account is active. If you ask us to delete your account (write to privacy@multivrss.com), we'll delete your account data and content within 30 days, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
+Account data and content are kept for as long as your account is active. You can permanently delete your account and all its data at any time from Settings → Account in the dashboard; deletion happens immediately, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
 
 ## Your rights
 

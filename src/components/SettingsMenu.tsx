@@ -107,6 +107,13 @@ export default function SettingsMenu({
                         >
                             ⚿ API KEYS
                         </Link>
+                        <Link
+                            href={`/u/${username}/settings/account`}
+                            onClick={() => setOpen(false)}
+                            className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                        >
+                            ⚙ ACCOUNT
+                        </Link>
                         <button
                             onClick={handleExport}
                             className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"

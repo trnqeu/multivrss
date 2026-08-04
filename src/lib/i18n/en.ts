@@ -139,7 +139,7 @@ export const en: Dictionary = {
           {
             question: "Can I delete my account and my data?",
             answer:
-              "Yes — it's not self-service in the dashboard yet, so email privacy@multivrss.com and we'll delete your account and its data within 30 days.",
+              "Yes: go to Settings → Account in the dashboard and use Delete account in the danger zone. Your account and all its data are deleted immediately and cannot be recovered.",
           },
         ],
       },

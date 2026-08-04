@@ -13,6 +13,7 @@ Le novità di MultivRSS, spiegate semplicemente.
 - Salva qualsiasi link dal web, non solo dai tuoi feed, ed etichettalo per dopo
 - I canali YouTube possono ora essere aggiunti come fonti
 - Una directory curata di feed suggeriti per trovare le prime fonti più velocemente
+- Elimina il tuo account e tutti i tuoi dati direttamente dalle Impostazioni, senza bisogno di scriverci
 
 **Miglioramenti**
 - La ricerca copre ora anche i link salvati, non solo i feed
