@@ -17,3 +17,10 @@ export function getDictionary(lang: Lang): Dictionary {
 export function isValidLang(lang: string): lang is Lang {
   return SUPPORTED_LANGS.includes(lang as Lang);
 }
+
+// Best-effort language detection from a raw Accept-Language header value.
+// Used where no stored per-user language preference exists (there is no
+// User.locale column or locale cookie in this app).
+export function detectLangFromHeader(acceptLanguage: string): Lang {
+  return acceptLanguage.toLowerCase().includes("it") ? "it" : DEFAULT_LANG;
+}
