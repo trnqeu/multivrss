@@ -1,9 +1,11 @@
 import Image from 'next/image';
+import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cacheLife, cacheTag } from 'next/cache';
 import { getAllPosts } from '@/lib/blog';
+import { detectLangFromHeader, type Lang } from '@/lib/i18n';
 import SidebarCategories from "./SidebarCategories";
 import MobileNavLink from "./MobileNavLink";
 import SidebarNavLink from "./SidebarNavLink";
@@ -15,10 +17,12 @@ import { version } from "../../package.json";
 
 export default async function Sidebar({ username }: { username: string }) {
     const session = await getServerSession(authOptions);
-    return <CachedSidebar username={username} userId={session?.user.id} />;
+    const requestHeaders = await headers();
+    const lang = detectLangFromHeader(requestHeaders.get('accept-language') ?? '');
+    return <CachedSidebar username={username} userId={session?.user.id} lang={lang} />;
 }
 
-async function CachedSidebar({ username, userId }: { username: string; userId?: string }) {
+async function CachedSidebar({ username, userId, lang }: { username: string; userId?: string; lang: Lang }) {
     'use cache';
     cacheLife('minutes');
     cacheTag(`sidebar:${userId}`);
@@ -37,7 +41,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
         prisma.savedLink.count({ where: { userId } }),
     ]);
     const savedCount = savedFeedCount + savedLinkCount;
-    const latestPost = getAllPosts('en')[0];
+    const latestPost = getAllPosts(lang)[0];
 
     return (
         <aside className="w-full shrink-0 border-r-2 border-foreground flex flex-col bg-background h-full">
@@ -79,7 +83,7 @@ async function CachedSidebar({ username, userId }: { username: string; userId?: 
                     label="Suggested"
                 />
                 <BlogNavLink
-                    href="/en/blog"
+                    href={`/${lang}/blog`}
                     label="Blog"
                     latestPostDate={latestPost?.date}
                 />

@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -9,6 +8,7 @@ import { getTags } from '@/app/actions/tags';
 import { getHost, slugify } from '@/lib/utils';
 import { ReaderContent } from './ReaderContent';
 import { ReaderActions } from './ReaderActions';
+import SmartBackLink from '@/components/SmartBackLink';
 
 interface Props {
     params: Promise<{ username: string; itemId: string }>;
@@ -39,12 +39,12 @@ export default async function ReadPage({ params }: Props) {
     return (
         <main className="flex-1 min-h-0 overflow-y-auto relative scroll-smooth bg-background">
             <header className="p-6 md:p-10 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-wrap items-center justify-between gap-4">
-                <Link
-                    href={`/u/${username}`}
+                <SmartBackLink
+                    fallbackHref={`/u/${username}`}
                     className="label-system text-[10px] hover:bg-foreground hover:text-background w-fit px-1 transition-all border border-foreground font-bold inline-block"
                 >
                     ← BACK_TO_FEED
-                </Link>
+                </SmartBackLink>
                 <ReaderActions
                     itemId={item.id}
                     initialSaved={!!item.savedAt}
