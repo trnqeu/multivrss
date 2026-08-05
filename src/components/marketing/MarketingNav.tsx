@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { Lang } from "@/lib/i18n";
 import type { Dictionary } from "@/lib/i18n";
 import Wordmark from "@/components/Wordmark";
+import SmartBackLink from "@/components/SmartBackLink";
 
 interface Props {
   lang: Lang;
@@ -62,12 +63,12 @@ export default function MarketingNav({ lang, dict, username }: Props) {
 
       <div className="flex items-center gap-[8px] max-[920px]:gap-[6px]">
         {username ? (
-          <Link
-            href={`/u/${username}`}
+          <SmartBackLink
+            fallbackHref={`/u/${username}`}
             className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
           >
             {t.myFeed}
-          </Link>
+          </SmartBackLink>
         ) : (
           <>
             <Link

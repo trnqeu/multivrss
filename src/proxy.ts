@@ -1,12 +1,11 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import { DEFAULT_LANG } from "@/lib/i18n";
+import { detectLangFromHeader } from "@/lib/i18n";
 
 const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/reset-password'];
 
 function detectLang(req: NextRequest): string {
-  const acceptLanguage = req.headers.get("accept-language") ?? "";
-  return acceptLanguage.toLowerCase().includes("it") ? "it" : DEFAULT_LANG;
+  return detectLangFromHeader(req.headers.get("accept-language") ?? "");
 }
 
 export async function proxy(req: NextRequest) {

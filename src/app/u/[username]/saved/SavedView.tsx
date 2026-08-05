@@ -3,6 +3,8 @@
 import { useState, useCallback, Fragment } from 'react';
 import Link from 'next/link';
 import { Bookmark } from '@/components/icons/Bookmark';
+import { Reader } from '@/components/icons/Reader';
+import { Pencil } from '@/components/icons/Pencil';
 import { dayBucket } from '@/lib/utils';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { updateFeedItemDetails } from '@/app/actions/feed-items';
@@ -184,28 +186,28 @@ export default function SavedView({
                                     )}
                                     {/* Read in-app (Reader Mode is only available for feed items, not external links) */}
                                     {!item.isExternal && (
-                                        <span className="ml-2">
-                                            <Link
-                                                href={`/u/${username}/read/${item.id}`}
-                                                className="border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
-                                            >
-                                                READ
-                                            </Link>
-                                        </span>
+                                        <Link
+                                            href={`/u/${username}/read/${item.id}`}
+                                            aria-label="Read"
+                                            title="Read"
+                                            className="ml-2 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
+                                        >
+                                            <Reader size={13} />
+                                        </Link>
                                     )}
                                     {/* Edit title / tags button */}
-                                    <span className="ml-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal });
-                                                setTitleDraft(item.title);
-                                            }}
-                                            className="bg-transparent border-2 border-foreground/30 px-1.5 py-0.5 text-[9px] uppercase tracking-widest cursor-pointer text-foreground/50 hover:text-foreground hover:border-foreground transition-colors"
-                                        >
-                                            EDIT
-                                        </button>
-                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal });
+                                            setTitleDraft(item.title);
+                                        }}
+                                        aria-label="Edit title or tags"
+                                        title="Edit"
+                                        className="bg-transparent border-0 px-0 py-0 cursor-pointer align-baseline ml-1.5 text-foreground/40 hover:text-terracotta transition-colors"
+                                    >
+                                        <Pencil size={13} />
+                                    </button>
                                     <button
                                         onClick={() => item.isExternal ? onRemoveLink(item.id) : onRemoveArticle(item.id)}
                                         title="Remove from saved"

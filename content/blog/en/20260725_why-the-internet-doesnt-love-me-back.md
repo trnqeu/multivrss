@@ -2,7 +2,7 @@
 title: "Why the internet doesn't love me back?"
 category: "MANIFESTO"
 date: "25 JUL 2026"
-translationSlug: "perche-internet-mi-odia"
+translationSlug: "20260725_perche-internet-mi-odia"
 featured: true
 author: "Stefano Trinchero"
 excerpt: "The internet used to be good, remember? Now it ain't, and I want the good internet back."
