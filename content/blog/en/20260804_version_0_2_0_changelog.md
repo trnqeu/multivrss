@@ -8,8 +8,6 @@ author: "Stefano Trinchero"
 excerpt: "In my original plan, multivrss.com was supposed to be simple and minimal, but how can a Product Manager resist the temptation to add a ton of useless features?"
 ---
 
-# Multivrss 0.2.0 up close: Changelog and version tracking
-
 *Translated from the original Italian with the help of AI — if a sentence sounds a bit off, that's probably why.*
 
 When I started this project I told myself: Stefano, please, keep it simple. Few features, let's go *live* with an ultra-minimal version. It has to do very few things, and ideally do them without breaking: track *RSS feeds* and save URLs. That's it.

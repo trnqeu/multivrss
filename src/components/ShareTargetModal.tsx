@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition, useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
 import AssignTagsModal from "./AssignTagsModal";
+import { useCloseOnNavigate } from "./useCloseOnNavigate";
 import { saveExternalLink, updateSavedLinkDetails, type SaveExternalLinkState } from "@/app/actions/saved-links";
 import type { TagData } from "@/app/actions/tags";
 import { useSavedLinksSync } from "./SavedLinksSyncContext";
@@ -25,6 +26,7 @@ export default function ShareTargetModal({ categories, tags, url, title, onClose
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, initialState);
     const [, startTransition] = useTransition();
     const { notifyLinkSaved, notifyLinkDetailsSaved } = useSavedLinksSync();
+    useCloseOnNavigate(() => setSavedLinkId(null));
 
     useEffect(() => {
         if (saveState?.success && saveState.link) {

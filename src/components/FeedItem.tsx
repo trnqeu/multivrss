@@ -7,6 +7,7 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
+import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 
 interface Props {
     item: {
@@ -32,6 +33,7 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
     const [title, setTitle] = useState(item.title);
     const [titleDraft, setTitleDraft] = useState(item.title);
     const [modalOpen, setModalOpen] = useState(false);
+    useCloseOnNavigate(() => setModalOpen(false));
     async function handleClick() {
         if (isRead) return;
         setIsRead(true);

@@ -8,6 +8,7 @@ import AssignTagsModal from "./AssignTagsModal";
 import { saveExternalLink, updateSavedLinkDetails, type SavedLinkData } from "@/app/actions/saved-links";
 import type { TagData } from "@/app/actions/tags";
 import { useSavedLinksSync } from "./SavedLinksSyncContext";
+import { useCloseOnNavigate } from "./useCloseOnNavigate";
 import { Bookmark } from "./icons/Bookmark";
 import type { Category } from "@prisma/client";
 
@@ -38,6 +39,8 @@ export default function AddPopover({ categories, tags }: Props) {
         setOpen(false);
         setUrl("");
     }, []);
+
+    useCloseOnNavigate(() => setSavedLink(null));
 
     // Focus input when popover opens
     useEffect(() => {
