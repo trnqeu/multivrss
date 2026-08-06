@@ -93,9 +93,18 @@ jobs:
             # Login to GHCR
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
-            # Pull new images
-            docker pull "$IMAGE:$SHA-migrator"
-            docker pull "$IMAGE:$SHA"
+            # Pull new images (retry: GHCR can briefly return "denied" for a
+            # manifest the build job just pushed, before it's fully propagated)
+            pull_with_retry() {
+              for i in $(seq 1 6); do
+                docker pull "$1" && return 0
+                echo "Pull of $1 failed (attempt $i/6), retrying in 10s..."
+                sleep 10
+              done
+              return 1
+            }
+            pull_with_retry "$IMAGE:$SHA-migrator"
+            pull_with_retry "$IMAGE:$SHA"
 
             # Remove any manually-created network to avoid label mismatch
             docker network rm multivrss-prod_internal 2>/dev/null || true
