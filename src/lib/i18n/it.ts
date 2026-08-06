@@ -29,9 +29,9 @@ export const it: Dictionary = {
   },
   blog: {
     kicker: "DIARIO",
-    title: "Pensieri dal MultivRSS.",
+    title: "Pensieri dal MultivRSSo.",
     subtitle:
-      "Guide, note di prodotto e manuali brevi, scritti in Markdown, distribuiti in formato aperto.",
+      "Guide, note di prodotto e manuali brevi.",
     feedLabel: "Iscriviti al feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
     seeAll: "VEDI TUTTI I POST →",

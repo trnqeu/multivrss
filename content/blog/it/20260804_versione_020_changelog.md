@@ -8,8 +8,6 @@ author: "Stefano Trinchero"
 excerpt: "Nel mio progetto iniziale multivrss.com avrebbe dovuto essere semplice e minimale, ma come può un Product Manager resistere alla tentazione di aggiungere un sacco di features inutili?"
 ---
 
-# Multivrss 0.2.0 vista da vicino: Changelog e tracciamento delle versioni
-
 Quando ho iniziato questo progetto mi sono detto: Stefano, mi raccomando, manteniamolo semplice. Poche funzionalità, andiamo *online* con una versione ultraminimale. Deve fare pochissime cose e possibilmente farle senza rompersi: tracciare *feed RSS* e salvare degli URL. E basta.
 
 Poi le cose sono andate molto diversamente. Essendo l'unico sviluppatore e anche l'unico utente del servizio, il me-stesso-utente ha iniziato a infastidire il me-stesso-sviluppatore segnalando continuamente bug e suggerendo nuove funzionalità.

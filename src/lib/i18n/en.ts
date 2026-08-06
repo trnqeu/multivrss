@@ -31,7 +31,7 @@ export const en: Dictionary = {
     kicker: "JOURNAL",
     title: "Thoughts from the MultivRSS.",
     subtitle:
-      "Guides, product notes and short field manuals, written in Markdown, shipped in open format.",
+      "Guides, product notes and short field manuals.",
     feedLabel: "Subscribe to feed",
     feedHint: "FEED: /blog/en.xml · /blog/it.xml",
     seeAll: "SEE ALL POSTS →",
