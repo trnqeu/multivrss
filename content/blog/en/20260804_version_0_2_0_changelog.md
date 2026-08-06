@@ -3,7 +3,7 @@ title: "Multivrss 0.2.0 up close: the changelog"
 category: "PRODUCT DESIGN"
 date: "05 AUG 2026"
 translationSlug: "20260804_versione_020_changelog"
-featured: true
+featured: false
 author: "Stefano Trinchero"
 excerpt: "In my original plan, multivrss.com was supposed to be simple and minimal, but how can a Product Manager resist the temptation to add a ton of useless features?"
 ---
