@@ -7,6 +7,7 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
+import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 
 type TagVM = { id: string; name: string };
 
@@ -21,6 +22,7 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
     const [tags, setTags] = useState<TagVM[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [, startTransition] = useTransition();
+    useCloseOnNavigate(() => setModalOpen(false));
 
     function handleSave() {
         const next = !saved;

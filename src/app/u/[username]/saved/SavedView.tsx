@@ -7,6 +7,7 @@ import { Reader } from '@/components/icons/Reader';
 import { Pencil } from '@/components/icons/Pencil';
 import { dayBucket } from '@/lib/utils';
 import AssignTagsModal from '@/components/AssignTagsModal';
+import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 import { updateFeedItemDetails } from '@/app/actions/feed-items';
 import { updateSavedLinkDetails } from '@/app/actions/saved-links';
 import EmptyStream from '@/components/EmptyStream';
@@ -107,6 +108,7 @@ export default function SavedView({
 
     const [modalItem, setModalItem] = useState<ModalItem | null>(null);
     const [titleDraft, setTitleDraft] = useState('');
+    useCloseOnNavigate(() => setModalItem(null));
 
     const handleModalSave = useCallback(async (id: string, tagIds: string[], title?: string) => {
         if (!modalItem) return { success: false };

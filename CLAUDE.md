@@ -246,6 +246,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - Untracked `.codex` path exists — do not delete or modify.
 - `content/blog` (read by `src/lib/blog.ts`) does not exist on disk yet — the `/blog` route currently renders empty until posts are added.
 - **`prisma migrate dev` reliably corrupts on every run** because of `FeedItem.searchVector`/`SavedLink.searchVector` (`Unsupported("tsvector")`, `GENERATED ALWAYS AS (...) STORED`, hand-written in `prisma/migrations/*_add_fulltext_search`). Prisma's diff engine always proposes `DROP INDEX "FeedItem_searchVector_idx"` / `DROP INDEX "SavedLink_searchVector_idx"` + `ALTER TABLE ... ALTER COLUMN "searchVector" DROP DEFAULT` — this fires even when the schema change is unrelated to search, and even on a second `migrate dev` run right after a clean apply. Postgres rejects the `DROP DEFAULT` on a generated column (error `42601`), but the `DROP INDEX` statements are NOT protected by that failure and commit for real, silently deleting the GIN indexes backing full-text search. Always run `prisma migrate dev --create-only --name <name>` first, delete the spurious `DropIndex`/`AlterTable searchVector` lines from the generated `migration.sql` by hand, then run `prisma migrate dev` (no args) to apply. If the indexes do get dropped, recreate them manually (exact SQL in `prisma/migrations/*_add_fulltext_search/migration.sql`) — do not reach for `prisma migrate reset`, it wipes all local data and is never necessary for this issue.
+- **Browser/router back-forward navigation can resurrect stale modal state.** Next.js always reuses a route segment's cached client render on back/forward navigation (`router.back()`, or the browser's own back button) to preserve scroll position — this is undocumented-but-real behavior distinct from `staleTimes`, which only governs *forward* navigation freshness (see `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/staleTimes.md` and the `04-glossary.md` "Client Cache" entry). Any modal/popover whose visibility is local `useState` (not tied to the URL) can therefore reappear after navigating away and back, even though it was explicitly closed before leaving. Fix: call `useCloseOnNavigate(closeFn)` (`src/components/useCloseOnNavigate.ts`) in any component that owns that kind of visibility state — it force-closes on every pathname change. Already applied everywhere `AssignTagsModal` is rendered from local state (`AddPopover`, `FeedItem`, `FrontPageItemActions`, `SavedView`, `SearchBar`, `ReaderActions`, `ShareTargetModal`); apply it to any new modal built the same way.
 
 ## Docker
 
@@ -262,6 +263,21 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - Adminer: `docker compose -f docker-compose.prod.yml --profile tools up -d adminer`
 
 **CI/CD pipeline:** push to `dev` → single workflow run: quality-gate (tsc, lint, test, audit) → Docker build → GHCR push → SSH deploy (sync compose file from git, prisma migrate, docker compose pull + up --force-recreate, health check on `localhost:3001`, auto-rollback on failure). Push to `main` runs the same pipeline targeting production. PRs trigger quality-gate only (no deploy).
+
+## Versioning & Changelog
+
+Versioning is manual — `release-please` was tried and removed (repo policy blocks GitHub Actions from opening PRs), so don't re-propose CI-based auto-bumping/auto-changelog without solving that constraint first.
+
+Commit messages should start with a Conventional Commits prefix (`feat:`, `fix:`, `chore:`, etc.) — `scripts/changelog-draft.sh` groups commits by this prefix (`feat`→Added, `fix`→Fixed, everything else→Changed); non-conventional commits all fall into the Changed catch-all.
+
+**Release checklist**, in order:
+
+1. Bump `version` in `package.json`, commit it (with any other final release changes).
+2. Run `npm run changelog:draft` (defaults to since the last `multivrss-v*` tag → `HEAD`; pass explicit refs only if no tag exists yet).
+3. Review/edit the printed draft, paste it into `CHANGELOG.md` under a new `## [X.Y.Z] - YYYY-MM-DD` heading.
+4. Rewrite the same changes in plain, non-technical language under a new `## vX.Y.Z — Month Year` heading in `content/changelog/en.md` and `content/changelog/it.md` (`**New**` / `**Improved**` bullet groups).
+5. Optional, for notable releases: write a narrative announcement post in `content/blog/en/` and `content/blog/it/` (see the `0.2.0` posts for the format — matching `translationSlug` frontmatter links the two languages).
+6. Commit the changelog/content updates, then tag the release: `git tag multivrss-vX.Y.Z && git push origin multivrss-vX.Y.Z` — this is what keeps step 2 automatic (no manual ref) for the next release.
 
 ## Environment Variables
 

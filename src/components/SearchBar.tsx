@@ -12,6 +12,7 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
+import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
 import TelemetryDropdown from './TelemetryDropdown';
@@ -69,6 +70,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
     const [tagModalItem, setTagModalItem] = useState<{ id: string; isSavedLink: boolean } | null>(null);
     const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
     const [titleDraft, setTitleDraft] = useState('');
+    useCloseOnNavigate(() => setTagModalItem(null));
 
 
     useEffect(() => {

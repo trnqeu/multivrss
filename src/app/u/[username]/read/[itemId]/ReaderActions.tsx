@@ -5,6 +5,7 @@ import { saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import AssignTagsModal from '@/components/AssignTagsModal';
+import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 
 interface TagVM {
     id: string;
@@ -26,6 +27,7 @@ export function ReaderActions({ itemId, initialSaved, initialTags, allTags }: Re
     const [tags, setTags] = useState<TagVM[]>(initialTags);
     const [modalOpen, setModalOpen] = useState(false);
     const [announcement, setAnnouncement] = useState('');
+    useCloseOnNavigate(() => setModalOpen(false));
 
     useEffect(() => {
         if (!announcement) return;
