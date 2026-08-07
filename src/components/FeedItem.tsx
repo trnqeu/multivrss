@@ -125,6 +125,7 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
         </button>
         <Link
             href={`/u/${username}/read/${item.id}`}
+            prefetch={false}
             onClick={handleClick}
             aria-label="Read"
             title="Read"
