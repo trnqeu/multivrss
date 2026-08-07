@@ -20,6 +20,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${dict.blog.title} · MultivRSS`,
     description: dict.blog.subtitle,
+    alternates: {
+      canonical: `/${lang}/blog`,
+      languages: {
+        en: "/en/blog",
+        it: "/it/blog",
+      },
+    },
   };
 }
 

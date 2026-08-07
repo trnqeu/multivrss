@@ -21,6 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://multivrss.com"),
   title: "MultivRSS",
   description: "A future-proof RSS aggregator",
   icons: {
