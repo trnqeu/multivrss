@@ -8,6 +8,7 @@ type FrontPageBaseItem = {
     pubDate: number | null;
     content?: string;
     sourceTitle?: string;
+    sourceSlug?: string;
 };
 
 export type FrontPageItem = FrontPageBaseItem & {
@@ -38,7 +39,7 @@ async function getSourcesForUser(userId: string) {
     cacheTag(`sources:${userId}`);
     return prisma.feedSource.findMany({
         where: { category: { userId } },
-        select: { id: true, title: true, lastSync: true, category: { select: { name: true } } },
+        select: { id: true, title: true, slug: true, lastSync: true, category: { select: { name: true } } },
     });
 }
 
@@ -62,6 +63,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
 
     const sourceIds = sources.map(s => s.id);
     const sourceName = new Map(sources.map(s => [s.id, s.title ?? '']));
+    const sourceSlug = new Map(sources.map(s => [s.id, s.slug]));
     const sourceCat = new Map(sources.map(s => [s.id, s.category.name]));
     const since = Date.now() - RECO_LOOKBACK_DAYS * 86_400_000;
 
@@ -109,7 +111,8 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
             pick.set(f.id, {
                 id: f.id, link: f.link, title: f.title, content: f.content ?? undefined,
                 pubDate: f.pubDate ? f.pubDate.getTime() : null,
-                sourceTitle: sourceName.get(sid) ?? undefined, categoryName: sourceCat.get(sid) ?? '—',
+                sourceTitle: sourceName.get(sid) ?? undefined, sourceSlug: sourceSlug.get(sid),
+                categoryName: sourceCat.get(sid) ?? '—',
                 read: false, savedAt: null,
                 reasonType: 'source',
                 reason: savedFromSrc > 0
@@ -185,6 +188,7 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
                     id: f.id, link: f.link, title: f.title, content: f.content ?? undefined,
                     pubDate: f.pubDate ? f.pubDate.getTime() : null,
                     sourceTitle: sourceName.get(f.sourceId) ?? undefined,
+                    sourceSlug: sourceSlug.get(f.sourceId),
                     categoryName: cat,
                     read: false, savedAt: null,
                     reasonType: 'source',

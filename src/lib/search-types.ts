@@ -17,6 +17,7 @@ export type SearchHit = {
     content?: string | null;
     description?: string | null;
     sourceTitle?: string;
+    sourceSlug?: string;
     categoryName?: string;
     read?: boolean;
     savedAt?: number | null;
