@@ -26,9 +26,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLang(lang)) return {};
   const post = getPostBySlug(slug, lang);
   if (!post) return {};
+
+  const otherLang: Lang = lang === "it" ? "en" : "it";
+  const translatedPost = post.translationSlug
+    ? getPostBySlug(post.translationSlug, otherLang)
+    : null;
+
   return {
     title: `${post.title} · MultivRSS`,
     description: post.excerpt,
+    alternates: {
+      canonical: `/${lang}/blog/${slug}`,
+      languages: {
+        [lang]: `/${lang}/blog/${slug}`,
+        ...(translatedPost && {
+          [otherLang]: `/${otherLang}/blog/${translatedPost.slug}`,
+        }),
+      },
+    },
   };
 }
 
