@@ -50,21 +50,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <>
             <PageHeader categories={categories} tags={tags} username={session.user.username} />
             <main className="flex-1 min-h-0 overflow-y-auto relative scroll-smooth bg-background">
-                <header className="px-6 py-3 md:px-10 md:py-4 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-1.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                        <Link
-                            href={`/u/${session.user.username}`}
-                            className="label-system shrink-0 hover:bg-foreground hover:text-background px-1 transition-all border border-foreground font-bold"
-                        >
-                            ← BACK_TO_ALL
-                        </Link>
-                        <h1 className="min-w-0 truncate text-sm md:text-base tracking-[0.15em] text-terracotta font-bold">
-                            CATEGORY // {category.name.toUpperCase()}
-                        </h1>
-                    </div>
-                    <p className="text-foreground/40 text-[10px] font-bold leading-relaxed uppercase tracking-widest">
-                        SOURCES: {category._count.sources.toString().padStart(2, '0')}
-                    </p>
+                <header className="px-6 py-3 md:px-10 md:py-4 border-b-2 border-foreground bg-background sticky top-0 z-10 flex items-center gap-3">
+                    <Link
+                        href={`/u/${session.user.username}`}
+                        className="label-system shrink-0 hover:bg-foreground hover:text-background px-1 transition-all border border-foreground font-bold"
+                    >
+                        ← BACK_TO_ALL
+                    </Link>
+                    <span className="label-system shrink-0 text-terracotta">CATEGORY</span>
+                    <h1 className="min-w-0 flex-1 truncate text-lg md:text-xl font-bold normal-case tracking-normal text-foreground">
+                        {category.name}
+                    </h1>
+                    <span className="hidden sm:inline-flex items-baseline gap-1.5 shrink-0 text-foreground/40 text-[10px] font-bold uppercase tracking-widest">
+                        SOURCES
+                        <span className="font-mono text-foreground/50">{category._count.sources.toString().padStart(2, '0')}</span>
+                    </span>
                 </header>
 
                 <FeedList categoryName={category.name} />
