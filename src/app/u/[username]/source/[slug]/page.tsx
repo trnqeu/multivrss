@@ -45,7 +45,7 @@ export default async function SourcePage({ params }: SourcePageProps) {
                     
                     <div className="flex flex-col gap-1">
                         <h1 className="tracking-[0.2em] text-terracotta font-bold">
-                            SOURCE_ID // {source.title?.toUpperCase() || 'UNTITLED'}
+                            SOURCE // {source.title?.toUpperCase() || 'UNTITLED'}
                         </h1>
                         <p className="text-foreground max-w-xl text-[11px] font-bold leading-relaxed uppercase tracking-widest break-all">
                             SYNC_PATH: {source.url}

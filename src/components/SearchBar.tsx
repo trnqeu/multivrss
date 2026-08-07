@@ -243,6 +243,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                             const rawPreview = isSavedLink ? item.description : item.content;
                             const preview = formattedPreview ?? (rawPreview ? clipPreview(rawPreview) : rawPreview);
                             const sourceLabel = isSavedLink ? getHost(item.link).toUpperCase() : item.sourceTitle;
+                            const sourceHref = !isSavedLink && item.sourceSlug ? `/u/${username}/source/${item.sourceSlug}` : null;
                             const tags = itemTags.get(item.id) ?? [];
 
                             const readToggle = isSavedLink ? null : (
@@ -331,9 +332,18 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     >
                                         <div className="flex items-center gap-2">
                                             {readToggle}
-                                            <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta truncate">
-                                                {sourceLabel}
-                                            </span>
+                                            {sourceHref ? (
+                                                <Link
+                                                    href={sourceHref}
+                                                    className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta truncate hover:underline"
+                                                >
+                                                    {sourceLabel}
+                                                </Link>
+                                            ) : (
+                                                <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta truncate">
+                                                    {sourceLabel}
+                                                </span>
+                                            )}
                                             <span aria-hidden="true" className="text-foreground/25">·</span>
                                             <span className="font-mono text-[9px] text-foreground/35 whitespace-nowrap">
                                                 {dateLabel}
@@ -371,9 +381,18 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     >
                                         {readToggle}
 
-                                        <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
-                                            {sourceLabel}
-                                        </span>
+                                        {sourceHref ? (
+                                            <Link
+                                                href={sourceHref}
+                                                className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis hover:underline"
+                                            >
+                                                {sourceLabel}
+                                            </Link>
+                                        ) : (
+                                            <span className="font-mono text-[9px] font-extrabold uppercase tracking-[.1em] text-terracotta whitespace-nowrap overflow-hidden text-ellipsis">
+                                                {sourceLabel}
+                                            </span>
+                                        )}
 
                                         <span className="font-mono text-[9.5px] text-foreground/35 whitespace-nowrap">
                                             {dateLabel}

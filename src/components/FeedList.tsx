@@ -37,7 +37,7 @@ async function CachedFeedContent({
         pubDate: hit.pubDate ? new Date(hit.pubDate) : null,
         read: hit.read ?? false,
         savedAt: hit.savedAt ? new Date(hit.savedAt) : null,
-        source: { title: hit.sourceTitle ?? null },
+        source: { title: hit.sourceTitle ?? null, slug: hit.sourceSlug ?? null },
     }));
 
     if (items.length === 0) {
