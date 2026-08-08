@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import AppNavigationTracker from "@/components/AppNavigationTracker";
 import { THEME_INIT_SCRIPT } from "@/lib/theme-script";
 
 const inter = Inter({
@@ -52,6 +54,12 @@ export default function RootLayout({
         </a>
         {/* FLW Detail: Structural Roofline */}
         <div className="h-1 w-full bg-black sticky top-0 z-50" />
+        {/* usePathname() needs the request's actual URL, which cacheComponents
+            treats as dynamic — Suspense keeps that off the static shell instead
+            of forcing every route through this layout to render dynamically. */}
+        <Suspense fallback={null}>
+          <AppNavigationTracker />
+        </Suspense>
         <Providers>
           {children}
         </Providers>
