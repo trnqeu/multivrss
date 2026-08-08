@@ -61,3 +61,37 @@ export function getPostBySlug(slug: string, lang: Lang): BlogPost | null {
 export function renderMarkdown(content: string): string {
   return marked.parse(content) as string;
 }
+
+export interface AuthorInfo {
+  name: string;
+  url: string;
+  sameAs: string[];
+}
+
+// Known authors, keyed by the exact `author` string used in post frontmatter.
+// Used to attach a real Person entity (site + social profiles) to blog posts
+// for structured data and byline links, instead of a bare name string.
+const AUTHORS: Record<string, AuthorInfo> = {
+  "Stefano Trinchero": {
+    name: "Stefano Trinchero",
+    url: "https://trnq.eu",
+    sameAs: [
+      "https://github.com/trnqeu",
+      "https://linkedin.com/in/stefano-trinchero-8569316/",
+      "https://bsky.app/profile/trnqeu.bsky.social",
+    ],
+  },
+};
+
+export function getAuthorInfo(name?: string): AuthorInfo | undefined {
+  return name ? AUTHORS[name] : undefined;
+}
+
+// Posts are filed as `YYYYMMDD_slug.md`; derive a canonical ISO date from the
+// slug rather than parsing the human-readable `date` frontmatter field.
+export function isoDateFromSlug(slug: string): string | undefined {
+  const match = slug.match(/^(\d{4})(\d{2})(\d{2})_/);
+  if (!match) return undefined;
+  const [, y, m, d] = match;
+  return `${y}-${m}-${d}`;
+}

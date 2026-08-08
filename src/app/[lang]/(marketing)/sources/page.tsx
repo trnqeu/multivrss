@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getDictionary, isValidLang } from "@/lib/i18n";
+import { getDictionary, isValidLang, localizedAlternates } from "@/lib/i18n";
 import { getSuggestedByCategory } from "@/lib/suggested-feeds";
 import MarketingSourcesFinder from "@/components/marketing/MarketingSourcesFinder";
 
@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${dict.sourcesPage.h1} · MultivRSS`,
     description: dict.sourcesPage.introBody,
+    alternates: localizedAlternates(lang, "/sources"),
   };
 }
 

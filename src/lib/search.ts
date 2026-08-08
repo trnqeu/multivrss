@@ -32,6 +32,7 @@ type RawRow = {
     description: string | null;
     description_hl: string | null;
     source_title: string | null;
+    source_slug: string | null;
     category_name: string | null;
     source_id: string | null;
     read: boolean | null;
@@ -66,7 +67,7 @@ function feedItemBranch(userId: string, query: string): Prisma.Sql {
                 ? Prisma.sql`ts_headline('simple', COALESCE(fi.content, ''), websearch_to_tsquery('simple', ${query}), ${HEADLINE_OPTIONS})`
                 : Prisma.sql`NULL::text`} AS content_hl,
             NULL::text AS description, NULL::text AS description_hl,
-            fs.title AS source_title, c.name AS category_name, fi."sourceId" AS source_id,
+            fs.title AS source_title, fs.slug AS source_slug, c.name AS category_name, fi."sourceId" AS source_id,
             fi.read, fi."savedAt" AS saved_at, fi."pubDate" AS pub_date,
             ${hasQuery
                 ? Prisma.sql`ts_rank_cd(fi."searchVector", websearch_to_tsquery('simple', ${query}))`
@@ -94,7 +95,7 @@ function savedLinkBranch(userId: string, query: string): Prisma.Sql {
             ${hasQuery
                 ? Prisma.sql`ts_headline('simple', COALESCE(sl.description, ''), websearch_to_tsquery('simple', ${query}), ${HEADLINE_OPTIONS})`
                 : Prisma.sql`NULL::text`} AS description_hl,
-            NULL::text AS source_title, NULL::text AS category_name, NULL::text AS source_id,
+            NULL::text AS source_title, NULL::text AS source_slug, NULL::text AS category_name, NULL::text AS source_id,
             NULL::boolean AS read, sl."createdAt" AS saved_at, sl."createdAt" AS pub_date,
             ${hasQuery
                 ? Prisma.sql`ts_rank_cd(sl."searchVector", websearch_to_tsquery('simple', ${query}))`
@@ -170,6 +171,7 @@ export async function searchAllForUser(
             content: row.content,
             description: row.description,
             sourceTitle: row.source_title ?? undefined,
+            sourceSlug: row.source_slug ?? undefined,
             categoryName: row.category_name ?? undefined,
             read: row.read ?? undefined,
             savedAt: row.saved_at ? row.saved_at.getTime() : null,

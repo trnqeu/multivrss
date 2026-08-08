@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getDictionary, isValidLang } from "@/lib/i18n";
+import { getDictionary, isValidLang, localizedAlternates } from "@/lib/i18n";
 import MarketingClosing from "@/components/marketing/MarketingClosing";
 
 interface Props {
@@ -14,6 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${dict.faqPage.h1} · MultivRSS`,
     description: dict.faqPage.introBody,
+    alternates: localizedAlternates(lang, "/faq"),
   };
 }
 

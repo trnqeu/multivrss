@@ -50,22 +50,21 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <>
             <PageHeader categories={categories} tags={tags} username={session.user.username} />
             <main className="flex-1 min-h-0 overflow-y-auto relative scroll-smooth bg-background">
-                <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
+                <header className="px-6 py-3 md:px-10 md:py-4 border-b-2 border-foreground bg-background sticky top-0 z-10 flex items-center gap-3">
                     <Link
                         href={`/u/${session.user.username}`}
-                        className="label-system text-[10px] hover:bg-foreground hover:text-background w-fit px-1 transition-all border border-foreground font-bold"
+                        className="label-system shrink-0 hover:bg-foreground hover:text-background px-1 transition-all border border-foreground font-bold"
                     >
                         ← BACK_TO_ALL
                     </Link>
-
-                    <div className="flex flex-col gap-1">
-                        <h1 className="tracking-[0.2em] text-terracotta font-bold">
-                            CATEGORY // {category.name.toUpperCase()}
-                        </h1>
-                        <p className="text-foreground max-w-xl text-[11px] font-bold leading-relaxed uppercase tracking-widest">
-                            SOURCES: {category._count.sources.toString().padStart(2, '0')}
-                        </p>
-                    </div>
+                    <span className="label-system shrink-0 text-terracotta">CATEGORY</span>
+                    <h1 className="min-w-0 flex-1 truncate text-lg md:text-xl font-bold normal-case tracking-normal text-foreground">
+                        {category.name}
+                    </h1>
+                    <span className="hidden sm:inline-flex items-baseline gap-1.5 shrink-0 text-foreground/40 text-[10px] font-bold uppercase tracking-widest">
+                        SOURCES
+                        <span className="font-mono text-foreground/50">{category._count.sources.toString().padStart(2, '0')}</span>
+                    </span>
                 </header>
 
                 <FeedList categoryName={category.name} />

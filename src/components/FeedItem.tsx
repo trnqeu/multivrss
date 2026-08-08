@@ -18,7 +18,7 @@ interface Props {
         pubDate: Date | null;
         read: boolean;
         savedAt: Date | null;
-        source: { title: string | null };
+        source: { title: string | null; slug: string | null };
         tags: { id: string; name: string }[];
     };
     isLast: boolean;
@@ -60,6 +60,23 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
     }
     return (
     <span role="listitem" className="group/item">
+        {!isRead && (
+            <span className="text-terracotta mr-1.5 select-none">●</span>
+        )}
+        {item.source.slug ? (
+            <Link
+                href={`/u/${username}/source/${item.source.slug}`}
+                prefetch={false}
+                className={`text-terracotta text-[10px] font-bold uppercase tracking-widest hover:underline ${isRead ? 'opacity-30' : ''}`}
+            >
+                {item.source.title}
+            </Link>
+        ) : (
+            <span className={`text-terracotta text-[10px] font-bold uppercase tracking-widest ${isRead ? 'opacity-30' : ''}`}>
+                {item.source.title}
+            </span>
+        )}
+        <span className={`text-foreground/40 mx-2 ${isRead ? 'opacity-30' : ''}`}>·</span>
         <a
             href={item.link}
             target="_blank"
@@ -67,13 +84,6 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
             className={`hover:text-terracotta transition-colors ${isRead ? 'opacity-30' : ''}`}
             onClick={handleClick}
         >
-            {!isRead && (
-                <span className="text-terracotta mr-1.5 select-none">●</span>
-            )}
-            <span className="text-terracotta text-[10px] font-bold uppercase tracking-widest">
-                {item.source.title}
-            </span>
-            <span className="text-foreground/40 mx-2">·</span>
             <span className="text-foreground/50 text-xs">
                 {item.pubDate
                     ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -125,6 +135,7 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
         </button>
         <Link
             href={`/u/${username}/read/${item.id}`}
+            prefetch={false}
             onClick={handleClick}
             aria-label="Read"
             title="Read"

@@ -75,6 +75,7 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
             </button>
             <Link
                 href={`/u/${username}/read/${itemId}`}
+                prefetch={false}
                 onClick={() => markAsRead(itemId)}
                 aria-label="Read"
                 title="Read"

@@ -32,12 +32,23 @@ function PubDate({ ts }: { ts: number | null | undefined }) {
 }
 
 // ── Source · date meta line ──
-function Meta({ item }: { item: FrontPageItem }) {
+function Meta({ item, username }: { item: FrontPageItem; username: string }) {
+    const sourceClass = 'text-[9.5px] font-bold uppercase tracking-[.1em] text-foreground/45 truncate';
     return (
         <span className="flex items-center gap-[7px] min-w-0 flex-1 font-mono">
-            <span className="text-[9.5px] font-bold uppercase tracking-[.1em] text-foreground/45 truncate">
-                {item.sourceTitle}
-            </span>
+            {item.sourceSlug ? (
+                <Link
+                    href={`/u/${username}/source/${item.sourceSlug}`}
+                    title={item.sourceTitle}
+                    className={`${sourceClass} hover:text-terracotta transition-colors`}
+                >
+                    {item.sourceTitle}
+                </Link>
+            ) : (
+                <span title={item.sourceTitle} className={sourceClass}>
+                    {item.sourceTitle}
+                </span>
+            )}
             <span aria-hidden="true" className="text-[9px] text-foreground/22">·</span>
             <PubDate ts={item.pubDate} />
         </span>
@@ -118,8 +129,8 @@ function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageIte
             >
                 {item.title}
             </FrontPageLink>
-            <div className="flex items-center gap-2.5 mt-auto pt-1 min-h-[20px]">
-                <Meta item={item} />
+            <div className="flex flex-col gap-1.5 mt-auto pt-1">
+                <Meta item={item} username={username} />
                 <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </article>
@@ -188,7 +199,7 @@ function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; all
                 </p>
             )}
             <div className="flex items-center gap-3 mt-0.5 w-full min-h-[20px]">
-                <Meta item={item} />
+                <Meta item={item} username={username} />
                 <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </article>
@@ -209,7 +220,7 @@ function Row({ item, allTags, onDismiss, username }: { item: FrontPageItem; allT
                 {item.title}
             </FrontPageLink>
             <div className="flex items-center gap-3 min-h-[18px]">
-                <Meta item={item} />
+                <Meta item={item} username={username} />
                 <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
             </div>
         </li>

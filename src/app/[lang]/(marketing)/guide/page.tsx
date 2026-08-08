@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isValidLang, type Lang } from "@/lib/i18n";
+import { isValidLang, localizedAlternates, type Lang } from "@/lib/i18n";
 
 interface Props {
   params: Promise<{ lang: string }>;
@@ -11,17 +11,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   if (!isValidLang(lang)) return {};
 
-  return lang === "it"
-    ? {
-        title: "Come funziona · MultivRSS",
-        description:
-          "Tutto quello che fa MultivRSS, in otto piccole mosse. Uno screenshot e un soffio di testo per ogni passo.",
-      }
-    : {
-        title: "How it works · MultivRSS",
-        description:
-          "Everything MultivRSS does, in eight small moves. One screenshot and one breath of text per step.",
-      };
+  const copy =
+    lang === "it"
+      ? {
+          title: "Come funziona · MultivRSS",
+          description:
+            "Tutto quello che fa MultivRSS, in otto piccole mosse. Uno screenshot e un soffio di testo per ogni passo.",
+        }
+      : {
+          title: "How it works · MultivRSS",
+          description:
+            "Everything MultivRSS does, in eight small moves. One screenshot and one breath of text per step.",
+        };
+
+  return { ...copy, alternates: localizedAlternates(lang, "/guide") };
 }
 
 // ─── Shared primitives ───────────────────────────────────────────────────────
