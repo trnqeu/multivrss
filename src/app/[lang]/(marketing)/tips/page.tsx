@@ -2,9 +2,18 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+// This page has no Italian translation — the same English content is served
+// at both /en/tips and /it/tips. Point the canonical at the one real URL so
+// Google consolidates the two instead of flagging an unresolved duplicate.
+// Do not add a `languages` hreflang entry here: there is no distinct
+// Italian version to declare (see localizedAlternates() in src/lib/i18n for
+// pages that do have one).
 export const metadata: Metadata = {
   title: "Tips & Tricks · MultivRSS",
   description: "A field manual of RSS URL tricks to turn almost any site into a feed.",
+  alternates: {
+    canonical: "/en/tips",
+  },
 };
 
 type TipData = {

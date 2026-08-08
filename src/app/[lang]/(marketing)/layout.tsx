@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getDictionary, isValidLang } from "@/lib/i18n";
+import { getDictionary, isValidLang, localizedAlternates } from "@/lib/i18n";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingNavAuth from "@/components/marketing/MarketingNavAuth";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   return {
     title: dict.meta.home.title,
     description: dict.meta.home.description,
+    alternates: localizedAlternates(lang, ""),
   };
 }
 
