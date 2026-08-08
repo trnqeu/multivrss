@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPosts, getPostBySlug, renderMarkdown } from "@/lib/blog";
+import { getAllPosts, getAuthorInfo, getPostBySlug, isoDateFromSlug, renderMarkdown } from "@/lib/blog";
 import { isValidLang, type Lang } from "@/lib/i18n";
 import BlogLangAlt from "@/components/marketing/BlogLangAlt";
 import MarkBlogSeen from "@/components/marketing/MarkBlogSeen";
+
+const BASE_URL = "https://multivrss.com";
 
 interface Props {
   params: Promise<{ lang: string; slug: string }>;
@@ -31,10 +33,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const translatedPost = post.translationSlug
     ? getPostBySlug(post.translationSlug, otherLang)
     : null;
+  const authorInfo = getAuthorInfo(post.author);
 
   return {
     title: `${post.title} · MultivRSS`,
     description: post.excerpt,
+    authors: authorInfo ? [{ name: authorInfo.name, url: authorInfo.url }] : undefined,
     alternates: {
       canonical: `/${lang}/blog/${slug}`,
       languages: {
@@ -64,8 +68,35 @@ export default async function BlogPostPage({ params }: Props) {
     ? `/${otherLang}/blog/${translatedPost.slug}`
     : `/${otherLang}/blog`;
 
+  const authorInfo = getAuthorInfo(post.author);
+  const pageUrl = `${BASE_URL}/${lang}/blog/${slug}`;
+  const datePublished = isoDateFromSlug(slug);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    inLanguage: lang,
+    ...(datePublished && { datePublished }),
+    ...(authorInfo && {
+      author: {
+        "@type": "Person",
+        name: authorInfo.name,
+        url: authorInfo.url,
+        sameAs: authorInfo.sameAs,
+      },
+    }),
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <MarkBlogSeen latestPostDate={getAllPosts(lang)[0]?.date} />
       <BlogLangAlt href={langAltHref} />
       <div className="px-[34px] py-[88px] max-[920px]:px-[26px] max-[920px]:py-16">
@@ -89,7 +120,17 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="flex items-center gap-3 font-mono text-[10px] font-semibold tracking-[0.1em] text-black/30 uppercase">
               {post.author && (
                 <>
-                  <span>{post.author}</span>
+                  {authorInfo ? (
+                    <a
+                      href={authorInfo.url}
+                      rel="author"
+                      className="hover:text-terracotta transition-colors"
+                    >
+                      {post.author}
+                    </a>
+                  ) : (
+                    <span>{post.author}</span>
+                  )}
                   <span className="text-black/12">·</span>
                 </>
               )}
