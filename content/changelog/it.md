@@ -1,9 +1,22 @@
 ---
 title: Changelog
-updated: "2026-08-04"
+updated: "2026-08-08"
 ---
 
 Le novità di MultivRSS, spiegate semplicemente.
+
+## v0.2.1 — Agosto 2026
+
+**Novità**
+- Salva ed etichetta gli articoli direttamente dalla Modalità Lettura
+- Copia il testo dell'articolo o scaricalo come file Markdown dalla Modalità Lettura
+- Questa pagina changelog, per vedere le novità senza dover cercare tra le note di rilascio
+- Un indicatore segnala quando c'è un nuovo articolo del blog non ancora letto
+
+**Miglioramenti**
+- I nomi delle fonti nel tuo feed sono ora cliccabili, e ti portano direttamente alla pagina della fonte
+- La navigazione "indietro" è più affidabile, anche quando MultivRSS è installato come app sul telefono
+- Sistemato il layout delle pagine fonte e categoria
 
 ## v0.2.0 — Agosto 2026
 
