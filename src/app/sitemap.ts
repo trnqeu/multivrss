@@ -4,11 +4,15 @@ import { getAllPosts } from "@/lib/blog";
 
 const BASE_URL = "https://multivrss.com";
 
-const STATIC_PATHS: Array<{ path: string; priority: number }> = [
+// `langs` defaults to every supported language. Override it for a path that
+// has no real translation (e.g. `/tips`, see its page.tsx) so the sitemap
+// doesn't declare an hreflang alternate for a language version that isn't
+// actually distinct — that page's own canonical points at a single URL.
+const STATIC_PATHS: Array<{ path: string; priority: number; langs?: readonly string[] }> = [
   { path: "", priority: 1 },
   { path: "/guide", priority: 0.8 },
   { path: "/sources", priority: 0.8 },
-  { path: "/tips", priority: 0.7 },
+  { path: "/tips", priority: 0.7, langs: ["en"] },
   { path: "/faq", priority: 0.7 },
   { path: "/changelog", priority: 0.5 },
   { path: "/blog", priority: 0.7 },
@@ -21,13 +25,11 @@ function localizedUrl(lang: string, path: string): string {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map(({ path, priority }) => ({
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map(({ path, priority, langs = SUPPORTED_LANGS }) => ({
     url: localizedUrl(SUPPORTED_LANGS[0], path),
     priority,
     alternates: {
-      languages: Object.fromEntries(
-        SUPPORTED_LANGS.map((lang) => [lang, localizedUrl(lang, path)])
-      ),
+      languages: Object.fromEntries(langs.map((lang) => [lang, localizedUrl(lang, path)])),
     },
   }));
 

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getLegalDoc } from "@/lib/legal";
 import { renderMarkdown } from "@/lib/blog";
-import { isValidLang } from "@/lib/i18n";
+import { isValidLang, localizedAlternates } from "@/lib/i18n";
 
 interface Props {
   params: Promise<{ lang: string }>;
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!isValidLang(lang)) return {};
   const doc = getLegalDoc("privacy", lang);
   if (!doc) return {};
-  return { title: `${doc.title} · MultivRSS` };
+  return { title: `${doc.title} · MultivRSS`, alternates: localizedAlternates(lang, "/privacy") };
 }
 
 export default async function PrivacyPolicyPage({ params }: Props) {
