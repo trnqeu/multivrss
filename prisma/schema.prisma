@@ -127,6 +127,7 @@ model FeedItem {
   @@unique([sourceId, externalId])
   @@index([sourceId])
   @@index([pubDate])
+  @@index([savedAt])
 }
 
 model PasswordResetToken {
@@ -161,6 +162,7 @@ model SavedLink {
   searchVector Unsupported("tsvector")?
 
   @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model Tag {
