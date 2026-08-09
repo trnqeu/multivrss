@@ -11,6 +11,9 @@ and this project follows [Semantic Versioning](https://semver.org/).
 - Import saved links from CSV (Instapaper, Pocket, or any generic URL/title/tags CSV)
 - Export saved links as CSV
 
+### Fixed
+- Raised the Server Actions body size limit to 10MB so larger CSV imports (Pocket/Instapaper exports) no longer fail with "Body exceeded 1 MB limit"
+
 ## [0.2.1] - 2026-08-08
 
 ### Added
