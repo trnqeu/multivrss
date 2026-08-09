@@ -4,10 +4,73 @@ import { useRef, useState, useEffect } from 'react';
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
-import { exportFeedsCsv, importFeedsCsv } from '@/app/actions/csv';
+import { exportFeedsCsv, importFeedsCsv, exportSavedLinksCsv, importSavedLinksCsv } from '@/app/actions/csv';
 import type { ActionState } from '@/app/actions/types';
 
 const initialState: ActionState = { success: false };
+
+function ImportOverlay({
+    verb,
+    isPending,
+    fileName,
+    state,
+    onDismiss,
+}: {
+    verb: string;
+    isPending: boolean;
+    fileName: string;
+    state: ActionState;
+    onDismiss: () => void;
+}) {
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-start justify-center pt-32 px-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
+            onClick={() => { if (!isPending) onDismiss(); }}
+        >
+            <div
+                className="w-full max-w-lg border-2 border-foreground bg-background"
+                onClick={e => e.stopPropagation()}
+            >
+                {isPending ? (
+                    <div className="flex flex-col items-center gap-5 py-20 px-8">
+                        <span
+                            role="status"
+                            aria-live="polite"
+                            className="text-terracotta text-[11px] font-mono uppercase tracking-widest animate-pulse"
+                        >
+                            {verb}&hellip;
+                        </span>
+                        {fileName && (
+                            <span className="text-white/40 text-[10px] font-mono">
+                                {fileName}
+                            </span>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-5 py-10 px-8" role="alert">
+                        <span
+                            className={`text-[11px] font-mono uppercase tracking-widest ${
+                                state?.success ? 'text-green-400/70' : 'text-terracotta'
+                            }`}
+                        >
+                            {state?.success ? 'IMPORT COMPLETE' : 'IMPORT FAILED'}
+                        </span>
+                        <p className="font-mono text-[13px] text-foreground whitespace-pre-wrap leading-relaxed">
+                            {state?.message}
+                        </p>
+                        <button
+                            onClick={onDismiss}
+                            className="self-start mt-2 px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-widest border-2 border-foreground bg-foreground text-background hover:bg-background hover:text-foreground transition-colors cursor-pointer"
+                        >
+                            DISMISS
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
 
 export default function SettingsMenu({
     username,
@@ -18,11 +81,20 @@ export default function SettingsMenu({
 }) {
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const formRef = useRef<HTMLFormElement>(null);
-    const [state, formAction, isPending] = useActionState(importFeedsCsv, initialState);
-    const [overlay, setOverlay] = useState(false);
-    const [fileName, setFileName] = useState('');
+
+    // Feed list CSV import
+    const feedFileInputRef = useRef<HTMLInputElement>(null);
+    const feedFormRef = useRef<HTMLFormElement>(null);
+    const [feedState, feedFormAction, feedIsPending] = useActionState(importFeedsCsv, initialState);
+    const [feedOverlay, setFeedOverlay] = useState(false);
+    const [feedFileName, setFeedFileName] = useState('');
+
+    // Saved links CSV import
+    const linksFileInputRef = useRef<HTMLInputElement>(null);
+    const linksFormRef = useRef<HTMLFormElement>(null);
+    const [linksState, linksFormAction, linksIsPending] = useActionState(importSavedLinksCsv, initialState);
+    const [linksOverlay, setLinksOverlay] = useState(false);
+    const [linksFileName, setLinksFileName] = useState('');
 
     useEffect(() => {
         if (!open) return;
@@ -43,37 +115,69 @@ export default function SettingsMenu({
     }, [open]);
 
     useEffect(() => {
-        if (!overlay) return;
+        if (!feedOverlay) return;
         function onKey(e: KeyboardEvent) {
-            if (e.key === 'Escape' && !isPending) setOverlay(false);
+            if (e.key === 'Escape' && !feedIsPending) setFeedOverlay(false);
         }
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [overlay, isPending]);
+    }, [feedOverlay, feedIsPending]);
 
-    async function handleExport() {
-        const result = await exportFeedsCsv();
-        if (!result.success || !result.data) return;
-        const blob = new Blob([result.data], { type: 'text/csv' });
+    useEffect(() => {
+        if (!linksOverlay) return;
+        function onKey(e: KeyboardEvent) {
+            if (e.key === 'Escape' && !linksIsPending) setLinksOverlay(false);
+        }
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [linksOverlay, linksIsPending]);
+
+    function downloadCsv(data: string, filename: string) {
+        const blob = new Blob([data], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'multivrss-feed.csv';
+        a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    async function handleExportFeeds() {
+        const result = await exportFeedsCsv();
+        if (!result.success || !result.data) return;
+        downloadCsv(result.data, 'multivrss-feed.csv');
         setOpen(false);
     }
 
-    function handleImportClick() {
-        fileInputRef.current?.click();
+    async function handleExportSavedLinks() {
+        const result = await exportSavedLinksCsv();
+        if (!result.success || !result.data) return;
+        downloadCsv(result.data, 'multivrss-saved-links.csv');
+        setOpen(false);
     }
 
-    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handleFeedImportClick() {
+        feedFileInputRef.current?.click();
+    }
+
+    function handleFeedFileChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file) return;
-        setFileName(file.name);
-        setOverlay(true);
-        formRef.current?.requestSubmit();
+        setFeedFileName(file.name);
+        setFeedOverlay(true);
+        feedFormRef.current?.requestSubmit();
+    }
+
+    function handleLinksImportClick() {
+        linksFileInputRef.current?.click();
+    }
+
+    function handleLinksFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setLinksFileName(file.name);
+        setLinksOverlay(true);
+        linksFormRef.current?.requestSubmit();
     }
 
     return (
@@ -115,33 +219,65 @@ export default function SettingsMenu({
                             ⚙ ACCOUNT
                         </Link>
                         <button
-                            onClick={handleExport}
+                            onClick={handleExportFeeds}
                             className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
                         >
                             ↓ EXPORT CSV
                         </button>
-
                         <form
-                            ref={formRef}
-                            action={formAction}
-                            onSubmit={() => setOverlay(true)}
+                            ref={feedFormRef}
+                            action={feedFormAction}
+                            onSubmit={() => setFeedOverlay(true)}
                             className="contents"
                         >
+                            <label htmlFor="import-feeds-csv-file" className="sr-only">Import feed list CSV file</label>
                             <input
-                                ref={fileInputRef}
+                                ref={feedFileInputRef}
+                                id="import-feeds-csv-file"
                                 type="file"
                                 name="file"
                                 accept=".csv"
-                                onChange={handleFileChange}
+                                onChange={handleFeedFileChange}
                                 className="hidden"
                             />
                             <button
                                 type="button"
-                                onClick={handleImportClick}
-                                disabled={isPending}
+                                onClick={handleFeedImportClick}
+                                disabled={feedIsPending}
                                 className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors disabled:opacity-40 cursor-pointer"
                             >
                                 ↑ IMPORT CSV
+                            </button>
+                        </form>
+                        <button
+                            onClick={handleExportSavedLinks}
+                            className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors cursor-pointer"
+                        >
+                            ↓ EXPORT SAVED LINKS
+                        </button>
+                        <form
+                            ref={linksFormRef}
+                            action={linksFormAction}
+                            onSubmit={() => setLinksOverlay(true)}
+                            className="contents"
+                        >
+                            <label htmlFor="import-saved-links-csv-file" className="sr-only">Import saved links CSV file</label>
+                            <input
+                                ref={linksFileInputRef}
+                                id="import-saved-links-csv-file"
+                                type="file"
+                                name="file"
+                                accept=".csv"
+                                onChange={handleLinksFileChange}
+                                className="hidden"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleLinksImportClick}
+                                disabled={linksIsPending}
+                                className="w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest border-b border-foreground/10 hover:bg-foreground hover:text-background transition-colors disabled:opacity-40 cursor-pointer"
+                            >
+                                ↑ IMPORT SAVED LINKS
                             </button>
                         </form>
                     </div>
@@ -158,52 +294,23 @@ export default function SettingsMenu({
                 </div>
             )}
 
-            {overlay && (
-                <div
-                    className="fixed inset-0 z-50 flex items-start justify-center pt-32 px-4"
-                    style={{ backgroundColor: 'rgba(0,0,0,0.85)' }}
-                    onClick={() => { if (!isPending) setOverlay(false); }}
-                >
-                    <div
-                        className="w-full max-w-lg border-2 border-foreground bg-background"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        {isPending ? (
-                            <div className="flex flex-col items-center gap-5 py-20 px-8">
-                                <span className="text-terracotta text-[11px] font-mono uppercase tracking-widest animate-pulse">
-                                    IMPORTING FEEDS&hellip;
-                                </span>
-                                {fileName && (
-                                    <span className="text-white/40 text-[10px] font-mono">
-                                        {fileName}
-                                    </span>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-5 py-10 px-8">
-                                <span
-                                    className={`text-[11px] font-mono uppercase tracking-widest ${
-                                        state?.success ? 'text-green-400/70' : 'text-terracotta'
-                                    }`}
-                                >
-                                    {state?.success ? 'IMPORT COMPLETE' : 'IMPORT FAILED'}
-                                </span>
-                                <p className="font-mono text-[13px] text-foreground whitespace-pre-wrap leading-relaxed">
-                                    {state?.message}
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        setOverlay(false);
-                                        setOpen(false);
-                                    }}
-                                    className="self-start mt-2 px-5 py-3 font-mono text-[11px] font-bold uppercase tracking-widest border-2 border-foreground bg-foreground text-background hover:bg-background hover:text-foreground transition-colors cursor-pointer"
-                                >
-                                    DISMISS
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            {feedOverlay && (
+                <ImportOverlay
+                    verb="IMPORTING FEEDS"
+                    isPending={feedIsPending}
+                    fileName={feedFileName}
+                    state={feedState}
+                    onDismiss={() => { setFeedOverlay(false); setOpen(false); }}
+                />
+            )}
+            {linksOverlay && (
+                <ImportOverlay
+                    verb="IMPORTING SAVED LINKS"
+                    isPending={linksIsPending}
+                    fileName={linksFileName}
+                    state={linksState}
+                    onDismiss={() => { setLinksOverlay(false); setOpen(false); }}
+                />
             )}
         </div>
     );
