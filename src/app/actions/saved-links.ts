@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
 
-async function resolvePageTitle(url: string): Promise<string | null> {
+export async function resolvePageTitle(url: string): Promise<string | null> {
     try {
         await validateFeedUrl(url);
         const res = await safeFetchText(url, {
