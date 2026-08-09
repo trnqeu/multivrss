@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
+import { updateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendVerificationEmail } from '@/lib/email';
@@ -35,6 +36,7 @@ vi.mock('@/lib/prisma', () => ({
         },
         feedItem: {
             update: vi.fn(),
+            updateMany: vi.fn(),
             findMany: vi.fn(),
             findFirst: vi.fn(),
         },
@@ -76,6 +78,7 @@ const mockedSession = vi.mocked(getServerSession);
 const mockedPrisma = vi.mocked(prisma);
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 const mockedSendVerificationEmail = vi.mocked(sendVerificationEmail);
+const mockedUpdateTag = vi.mocked(updateTag);
 
 function mockTx() {
     return {
@@ -156,6 +159,73 @@ describe('markAsRead / markAsUnread', () => {
 
         const { markAsRead } = await import('@/app/actions/feed-items');
         const result = await markAsRead('item_1');
+
+        expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// markManyRead — batched counterpart used by useReadQueue
+// ---------------------------------------------------------------------------
+describe('markManyRead', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('returns unauthorized without session', async () => {
+        mockedSession.mockResolvedValue(null);
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1', 'item_2']);
+
+        expect(result).toEqual({ success: false, message: 'Unauthorized' });
+        expect(mockedPrisma.feedItem.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('no-ops on an empty id list without touching Prisma or the cache tags', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead([]);
+
+        expect(result).toEqual({ success: true });
+        expect(mockedPrisma.feedItem.updateMany).not.toHaveBeenCalled();
+        expect(mockedUpdateTag).not.toHaveBeenCalled();
+    });
+
+    it('marks many items as read, scoped by ownership, and invalidates only the frontpage tag', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.updateMany.mockResolvedValue({ count: 2 } as any);
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1', 'item_2']);
+
+        expect(result).toEqual({ success: true, message: 'Marked as read.' });
+        expect(mockedPrisma.feedItem.updateMany).toHaveBeenCalledWith({
+            where: { id: { in: ['item_1', 'item_2'] }, source: { category: { userId: 'user_1' } } },
+            data: { read: true },
+        });
+        // feed:${userId} is intentionally NOT invalidated here (see comment in
+        // markManyRead) — only the frontpage tag should be updated.
+        expect(mockedUpdateTag).toHaveBeenCalledTimes(1);
+        expect(mockedUpdateTag).toHaveBeenCalledWith(expect.stringContaining(`frontpage:user_1:`));
+    });
+
+    it('returns error when the batched update fails', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.updateMany.mockRejectedValue(new Error('DB error'));
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1']);
 
         expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
     });

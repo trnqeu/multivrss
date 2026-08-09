@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead, saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from '@/app/actions/feed-items';
+import { saveFeedItem, unsaveFeedItem, updateFeedItemDetails } from '@/app/actions/feed-items';
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Bookmark } from '@/components/icons/Bookmark';
@@ -8,6 +8,7 @@ import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
+import { useReadQueue } from '@/lib/useReadQueue';
 
 interface Props {
     item: {
@@ -34,10 +35,11 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
     const [titleDraft, setTitleDraft] = useState(item.title);
     const [modalOpen, setModalOpen] = useState(false);
     useCloseOnNavigate(() => setModalOpen(false));
-    async function handleClick() {
+    const { queueRead } = useReadQueue();
+    function handleClick() {
         if (isRead) return;
         setIsRead(true);
-        await markAsRead(item.id);
+        queueRead(item.id);
     }
     async function handleSave(e: React.MouseEvent) {
         e.preventDefault();
