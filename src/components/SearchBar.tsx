@@ -13,6 +13,7 @@ import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
+import { useReadQueue } from '@/lib/useReadQueue';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
 import TelemetryDropdown from './TelemetryDropdown';
@@ -71,6 +72,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
     const [itemTags, setItemTags] = useState<Map<string, TagVM[]>>(new Map());
     const [titleDraft, setTitleDraft] = useState('');
     useCloseOnNavigate(() => setTagModalItem(null));
+    const { queueRead } = useReadQueue();
 
 
     useEffect(() => {
@@ -303,7 +305,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                     onClick={() => {
                                         if (!(item.read ?? false)) {
                                             setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                            markAsRead(item.id);
+                                            queueRead(item.id);
                                         }
                                     }}
                                     aria-label="Read"
@@ -360,7 +362,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             onClick={() => {
                                                 if (!isSavedLink && !(item.read ?? false)) {
                                                     setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                    markAsRead(item.id);
+                                                    queueRead(item.id);
                                                 }
                                             }}
                                             className="font-serif font-semibold text-[15px] leading-snug tracking-[-.005em] text-foreground hover:text-terracotta transition-colors no-underline"
@@ -406,7 +408,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                                 onClick={() => {
                                                     if (!isSavedLink && !(item.read ?? false)) {
                                                         setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                        markAsRead(item.id);
+                                                        queueRead(item.id);
                                                     }
                                                 }}
                                                 className="font-serif font-semibold text-[15px] tracking-[-.005em] text-foreground group-hover:text-terracotta transition-colors no-underline"

@@ -2,12 +2,13 @@
 
 import { useState, useTransition, useCallback } from 'react';
 import Link from 'next/link';
-import { saveFeedItem, unsaveFeedItem, markAsRead } from '@/app/actions/feed-items';
+import { saveFeedItem, unsaveFeedItem } from '@/app/actions/feed-items';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
+import { useReadQueue } from '@/lib/useReadQueue';
 
 type TagVM = { id: string; name: string };
 
@@ -23,6 +24,7 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
     const [modalOpen, setModalOpen] = useState(false);
     const [, startTransition] = useTransition();
     useCloseOnNavigate(() => setModalOpen(false));
+    const { queueRead } = useReadQueue();
 
     function handleSave() {
         const next = !saved;
@@ -76,7 +78,7 @@ export default function FrontPageItemActions({ itemId, allTags, username }: Prop
             <Link
                 href={`/u/${username}/read/${itemId}`}
                 prefetch={false}
-                onClick={() => markAsRead(itemId)}
+                onClick={() => queueRead(itemId)}
                 aria-label="Read"
                 title="Read"
                 className="inline-flex items-center bg-terracotta text-background px-2 py-1.5 leading-none"

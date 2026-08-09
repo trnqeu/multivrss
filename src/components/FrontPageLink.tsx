@@ -1,6 +1,6 @@
 'use client';
 
-import { markAsRead } from '@/app/actions/feed-items';
+import { useReadQueue } from '@/lib/useReadQueue';
 
 interface Props {
     itemId: string;
@@ -11,8 +11,9 @@ interface Props {
 }
 
 export default function FrontPageLink({ itemId, href, className, children, onNavigate }: Props) {
+    const { queueRead } = useReadQueue();
     function handleClick() {
-        markAsRead(itemId);
+        queueRead(itemId);
         onNavigate?.();
     }
     return (

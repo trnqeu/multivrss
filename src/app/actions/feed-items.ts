@@ -155,6 +155,28 @@ export async function markFrontPageShown(itemIds: string[]): Promise<ActionState
     }
 }
 
+// Batched counterpart to markAsRead, used by useReadQueue to collapse many
+// per-item reads into one DB write + one cache invalidation per flush.
+// Intentionally skips updateTag(`feed:${userId}`): that cache already has a
+// short cacheLife('seconds') and the client shows read state optimistically,
+// so eager invalidation there is redundant. frontpageTag still needs eager
+// invalidation since it has cacheLife('days').
+export async function markManyRead(itemIds: string[]): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    if (itemIds.length === 0) return { success: true };
+    try {
+        await prisma.feedItem.updateMany({
+            where: { id: { in: itemIds }, source: { category: { userId: session.user.id } } },
+            data: { read: true },
+        });
+        updateTag(frontpageTag(session.user.id));
+        return { success: true, message: "Marked as read." };
+    } catch {
+        return { success: false, message: "Failed to mark as read." };
+    }
+}
+
 export async function dismissFrontPageItem(
     itemId: string,
     categoryName: string,
