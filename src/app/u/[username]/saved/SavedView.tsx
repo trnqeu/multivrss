@@ -42,6 +42,9 @@ interface Props {
     links: LinkVM[];
     activeQuery?: string;
     allTags: TagVM[];
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    onLoadMore: () => void;
     onRemoveArticle: (id: string) => void;
     onRemoveLink: (id: string) => void;
     onRemoveTagFromArticle: (articleId: string, tagId: string) => void;
@@ -79,6 +82,7 @@ interface ModalItem {
 
 export default function SavedView({
     username, articles, links, activeQuery, allTags,
+    hasMore, isLoadingMore, onLoadMore,
     onRemoveArticle, onRemoveLink,
     onRemoveTagFromArticle, onRemoveTagFromLink,
     onSetArticleDetails, onSetLinkDetails,
@@ -224,6 +228,19 @@ export default function SavedView({
                             </Fragment>
                         );
                     })}
+                </div>
+            )}
+            {hasMore && (
+                <div className="mt-8 pt-6 border-t border-foreground/20">
+                    <button
+                        onClick={onLoadMore}
+                        disabled={isLoadingMore}
+                        className="bg-background label-system text-foreground/60 hover:text-foreground disabled:opacity-30 border border-foreground/30 px-4 py-2 hover:border-foreground transition-colors"
+                    >
+                        <span role="status" aria-live="polite">
+                            {isLoadingMore ? 'LOADING...' : 'LOAD MORE'}
+                        </span>
+                    </button>
                 </div>
             )}
             {modalItem && (
