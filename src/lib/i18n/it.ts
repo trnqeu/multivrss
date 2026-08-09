@@ -2,15 +2,6 @@ import type { Dictionary } from "./types";
 
 export const it: Dictionary = {
   nav: {
-    items: [
-      { label: "BLOG", slug: "#blog", isAnchor: true },
-      { label: "GUIDA", slug: "guide" },
-      { label: "FONTI", slug: "sources" },
-      { label: "SUGGERIMENTI", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-    ],
-    signIn: "ACCEDI",
-    getStarted: "INIZIA →",
     myFeed: "IL MIO FEED →",
   },
   hero: {
@@ -214,26 +205,6 @@ export const it: Dictionary = {
   footer: {
     tagline:
       "Un aggregatore RSS e lista di lettura in un'unica dashboard semplice e minimale.",
-    productLabel: "Prodotto",
-    resourcesLabel: "Risorse",
-    productLinks: [
-      { label: "Lettore", href: "#" },
-      { label: "Lista di lettura", href: "#" },
-      { label: "Ricerca", href: "#" },
-      { label: "Blog", href: "#blog", isAnchor: true },
-    ],
-    resourceLinks: [
-      { label: "Fonti curate", slug: "sources" },
-      { label: "Suggerimenti", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-      { label: "Feed RSS", href: "#" },
-      { label: "Changelog", slug: "changelog" },
-      { label: "Stato", href: "#" },
-    ],
-    legalLinks: [
-      { label: "Privacy Policy", slug: "privacy" },
-      { label: "Cookie Policy", slug: "cookies" },
-    ],
   },
   meta: {
     home: {

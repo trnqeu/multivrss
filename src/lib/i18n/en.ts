@@ -2,15 +2,6 @@ import type { Dictionary } from "./types";
 
 export const en: Dictionary = {
   nav: {
-    items: [
-      { label: "BLOG", slug: "#blog", isAnchor: true },
-      { label: "GUIDE", slug: "guide" },
-      { label: "SOURCES", slug: "sources" },
-      { label: "TIPS", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-    ],
-    signIn: "SIGN IN",
-    getStarted: "GET STARTED →",
     myFeed: "MY FEED →",
   },
   hero: {
@@ -213,26 +204,6 @@ export const en: Dictionary = {
   },
   footer: {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",
-    productLabel: "Product",
-    resourcesLabel: "Resources",
-    productLinks: [
-      { label: "Reader", href: "#" },
-      { label: "Reading list", href: "#" },
-      { label: "Search", href: "#" },
-      { label: "Blog", href: "#blog", isAnchor: true },
-    ],
-    resourceLinks: [
-      { label: "Curated sources", slug: "sources" },
-      { label: "Tips & tricks", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-      { label: "RSS feeds", href: "#" },
-      { label: "Changelog", slug: "changelog" },
-      { label: "Status", href: "#" },
-    ],
-    legalLinks: [
-      { label: "Privacy Policy", slug: "privacy" },
-      { label: "Cookie Policy", slug: "cookies" },
-    ],
   },
   meta: {
     home: {

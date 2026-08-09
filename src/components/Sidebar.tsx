@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
@@ -104,7 +105,12 @@ async function CachedSidebar({ username, userId, lang }: { username: string; use
                 >
                     trnq.eu
                 </a>{" "}
-                <span className="text-foreground/35 text-[8px]">v{version}</span>
+                <Link
+                    href={`/${lang}/changelog`}
+                    className="text-foreground/35 text-[8px] hover:text-terracotta transition-colors"
+                >
+                    v{version}
+                </Link>
             </div>
         </aside>
     );
