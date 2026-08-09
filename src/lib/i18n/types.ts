@@ -1,16 +1,3 @@
-export interface NavItem {
-  label: string;
-  slug: string;
-  isAnchor?: boolean;
-}
-
-export interface FooterLink {
-  label: string;
-  href?: string;
-  slug?: string;
-  isAnchor?: boolean;
-}
-
 export interface FaqItem {
   question: string;
   answer: string;
@@ -26,9 +13,6 @@ export interface FaqCategory {
 
 export interface Dictionary {
   nav: {
-    items: NavItem[];
-    signIn: string;
-    getStarted: string;
     myFeed: string;
   };
   hero: {
@@ -100,11 +84,6 @@ export interface Dictionary {
   };
   footer: {
     tagline: string;
-    productLabel: string;
-    resourcesLabel: string;
-    productLinks: FooterLink[];
-    resourceLinks: FooterLink[];
-    legalLinks: FooterLink[];
   };
   meta: {
     home: {

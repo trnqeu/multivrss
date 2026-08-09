@@ -27,7 +27,12 @@ export default function SystemStrip({ lang, version }: Props) {
           <b className="text-black/55">LIVE</b>
         </span>
         <span>NODE_<b className="text-black/55">multivrss_beta</b></span>
-        <span>BUILD_<b className="text-black/55">{version}</b></span>
+        <span>
+          BUILD_
+          <Link href={`/${lang}/changelog`} className="text-black/55 hover:text-terracotta transition-colors">
+            {version}
+          </Link>
+        </span>
       </div>
       <div className="flex items-center gap-[9px]" role="group" aria-label="Language">
         <Link
