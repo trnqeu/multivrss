@@ -97,6 +97,27 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Fashion, style, and lifestyle coverage from The New York Times.",
     category: "CULTURE",
   },
+  {
+    name: "Washington Post: Lifestyle",
+    url: "https://feeds.washingtonpost.com/rss/lifestyle",
+    domain: "washingtonpost.com",
+    description: "Lifestyle, food, and culture coverage from The Washington Post.",
+    category: "CULTURE",
+  },
+  {
+    name: "Washington Post: Entertainment",
+    url: "https://feeds.washingtonpost.com/rss/entertainment",
+    domain: "washingtonpost.com",
+    description: "Entertainment and arts news from The Washington Post.",
+    category: "CULTURE",
+  },
+  {
+    name: "Washington Post: The Optimist",
+    url: "https://www.washingtonpost.com/arcio/rss/category/lifestyle/inspired-life/",
+    domain: "washingtonpost.com",
+    description: "Uplifting stories and personal essays from The Washington Post's Inspired Life section.",
+    category: "CULTURE",
+  },
   // DESIGN
   {
     name: "Michele De Lucchi's Substack",
@@ -318,6 +339,48 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Business and economic news from The New York Times.",
     category: "NEWS",
   },
+  {
+    name: "Washington Post: Politics",
+    url: "https://www.washingtonpost.com/arcio/rss/category/politics/",
+    domain: "washingtonpost.com",
+    description: "Political news and analysis from The Washington Post.",
+    category: "NEWS",
+  },
+  {
+    name: "Washington Post: Opinions",
+    url: "https://www.washingtonpost.com/arcio/rss/category/opinions/",
+    domain: "washingtonpost.com",
+    description: "Opinion and commentary from The Washington Post.",
+    category: "NEWS",
+  },
+  {
+    name: "Washington Post: National",
+    url: "https://feeds.washingtonpost.com/rss/national",
+    domain: "washingtonpost.com",
+    description: "National news coverage from The Washington Post.",
+    category: "NEWS",
+  },
+  {
+    name: "Washington Post: World",
+    url: "https://feeds.washingtonpost.com/rss/world",
+    domain: "washingtonpost.com",
+    description: "International news coverage from The Washington Post.",
+    category: "NEWS",
+  },
+  {
+    name: "Washington Post: Business",
+    url: "https://feeds.washingtonpost.com/rss/business",
+    domain: "washingtonpost.com",
+    description: "Business and economic news from The Washington Post.",
+    category: "NEWS",
+  },
+  {
+    name: "Washington Post: Local",
+    url: "https://feeds.washingtonpost.com/rss/local",
+    domain: "washingtonpost.com",
+    description: "Local news from the Washington, D.C. area.",
+    category: "NEWS",
+  },
   // PODCAST
   {
     name: "Dwarkesh Podcast",
@@ -537,6 +600,13 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     url: "https://thenextweb.com/feed",
     domain: "thenextweb.com",
     description: "Technology news and analysis for the always-on generation.",
+    category: "TECH",
+  },
+  {
+    name: "Washington Post: Technology",
+    url: "https://feeds.washingtonpost.com/rss/business/technology",
+    domain: "washingtonpost.com",
+    description: "Technology news and analysis from The Washington Post.",
     category: "TECH",
   },
   {

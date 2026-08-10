@@ -10,13 +10,13 @@ import SavedPageClient from './SavedPageClient';
 
 interface SavedPageProps {
   params: Promise<{ username: string }>;
-  searchParams: Promise<{ tag?: string; q?: string }>;
+  searchParams: Promise<{ tag?: string; q?: string; saved?: string; saveError?: string }>;
 }
 
 export default async function SavedPage({ params, searchParams }: SavedPageProps) {
     const resolvedParams = await params;
     const { username } = resolvedParams;
-    const { tag, q } = await searchParams;
+    const { tag, q, saved, saveError } = await searchParams;
     const session = await getServerSession(authOptions);
     if (!session) return notFound();
     if (session.user.username !== username) {
@@ -36,6 +36,17 @@ export default async function SavedPage({ params, searchParams }: SavedPageProps
     return (
         <>
             <PageHeader categories={categories} tags={allTags} username={session.user.username} email={session.user.email} />
+            {(saved || saveError) && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="px-4 py-2 border-b-2 border-foreground bg-background font-mono text-[11px] font-bold uppercase tracking-widest text-center"
+                >
+                    {saved
+                        ? <span>Saved <span className="text-terracotta">{saved}</span> to your reading list.</span>
+                        : <span className="text-terracotta">{saveError}</span>}
+                </div>
+            )}
             <Suspense fallback={null}>
                 <SavedPageClient
                     key={`${tag ?? ''}:${q ?? ''}`}

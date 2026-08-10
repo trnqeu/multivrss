@@ -1,12 +1,23 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPosts, getAuthorInfo, getPostBySlug, isoDateFromSlug, renderMarkdown } from "@/lib/blog";
-import { isValidLang, type Lang } from "@/lib/i18n";
+import { getAllPosts, getAuthorInfo, getPostBySlug, isoDateFromSlug, renderPostSegments, type PostSegment } from "@/lib/blog";
+import { getDictionary, isValidLang, type Lang } from "@/lib/i18n";
 import BlogLangAlt from "@/components/marketing/BlogLangAlt";
 import MarkBlogSeen from "@/components/marketing/MarkBlogSeen";
+import { DigestProvider, DigestCard } from "@/components/marketing/DigestCard";
 
 const BASE_URL = "https://multivrss.com";
+
+function renderSegments(segments: PostSegment[]) {
+  return segments.map((segment, i) =>
+    segment.type === "prose" ? (
+      <div key={`prose-${i}`} dangerouslySetInnerHTML={{ __html: segment.html }} />
+    ) : (
+      <DigestCard key={segment.item.id} item={segment.item} />
+    )
+  );
+}
 
 interface Props {
   params: Promise<{ lang: string; slug: string }>;
@@ -58,7 +69,11 @@ export default async function BlogPostPage({ params }: Props) {
   const post = getPostBySlug(slug, lang);
   if (!post) notFound();
 
-  const html = renderMarkdown(post.content);
+  // Throws on an unresolved ::digest[id] marker — deliberately loud, fails
+  // `next build` for this statically-generated page rather than silently
+  // dropping a broken reference. See renderPostSegments()'s header comment.
+  const segments = renderPostSegments(post);
+  const digest = getDictionary(lang).digest;
 
   const otherLang: Lang = lang === "it" ? "en" : "it";
   const translatedPost = post.translationSlug
@@ -144,11 +159,19 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           </header>
 
-          {/* Body */}
-          <div
-            className="prose"
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
+          {/* Body — for a regular post, renderPostSegments() returns a
+              single prose segment (identical to the old renderMarkdown()
+              blob); for a DIGEST post it's already split into prose chunks
+              and DigestItem cards laid out in ::digest[id] marker order
+              (see src/lib/blog.ts). Only DIGEST posts need the interactive
+              SAVE/ADD FEED wiring, so DigestProvider wraps conditionally. */}
+          {post.digestItems ? (
+            <DigestProvider items={post.digestItems} strings={digest}>
+              <div className="prose">{renderSegments(segments)}</div>
+            </DigestProvider>
+          ) : (
+            <div className="prose">{renderSegments(segments)}</div>
+          )}
         </div>
       </div>
     </>

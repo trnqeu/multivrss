@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Dictionary } from "@/lib/i18n";
+import { buildAddFeedHref, buildLoginResumeHref } from "@/lib/auth-resume-links";
 
 type FinderSource = { name: string; domain: string; url: string; description: string };
 type FinderGroup = { name: string; sources: FinderSource[] };
@@ -18,13 +19,6 @@ interface Props {
 // short (see the matching MAX_BULK in src/app/u/add/route.ts).
 const MAX_BULK = 30;
 
-// Unchanged from the previous single-add flow: routes through /login, then
-// /u/add (src/app/u/add/route.ts) completes the add once authenticated.
-function buildAddHref(feedUrl: string, feedName: string, categoryName: string): string {
-  const resumePath = `/u/add?${new URLSearchParams({ feedUrl, feedName, category: categoryName })}`;
-  return `/login?${new URLSearchParams({ callbackUrl: resumePath })}`;
-}
-
 // Sends only lookup keys ("category|name"), never raw URLs — /u/add resolves
 // each key against its own SUGGESTED_FEEDS list server-side, so a tampered
 // link can't be used to add attacker-chosen feeds to a victim's account.
@@ -33,8 +27,7 @@ function buildBulkAddHref(selected: Set<string>): string {
   Array.from(selected)
     .slice(0, MAX_BULK)
     .forEach((key) => params.append("key", key));
-  const resumePath = `/u/add?${params.toString()}`;
-  return `/login?${new URLSearchParams({ callbackUrl: resumePath })}`;
+  return buildLoginResumeHref(`/u/add?${params.toString()}`);
 }
 
 function AddButton({ href, label }: { href: string; label: string }) {
@@ -214,7 +207,7 @@ export default function MarketingSourcesFinder({ groups, dict, addLabel }: Props
                             </span>
                           </label>
                           <AddButton
-                            href={buildAddHref(source.url, source.name, group.name)}
+                            href={buildAddFeedHref(source.url, source.name, group.name)}
                             label={addLabel}
                           />
                         </div>
