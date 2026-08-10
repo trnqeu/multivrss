@@ -73,7 +73,7 @@ src/app/
     page.tsx              Feed list (all feeds)
     category/[slug]/      Category-filtered feed
     source/[slug]/        Source-filtered feed
-    read/[itemId]/        Reader Mode — full extracted article text (Readability), FeedItem only
+    read/[itemId]/        Reader Mode — full extracted article text (Readability); FeedItem by default, or a SavedLink when the URL has `?type=savedLink`
     saved/                Reading list (saved links)
     suggested/            Suggested feeds directory
   login|register|forgot-password|reset-password|verify-email/
@@ -95,7 +95,7 @@ src/app/
     auth.ts                 Register, verify email, password reset
     categories.ts           Category CRUD
     feeds.ts                Feed source CRUD, discovery, sync
-    feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode
+    feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode (FeedItem or SavedLink, by kind param)
     saved-links.ts          External link saving, page title resolution
     csv.ts                  Feed import/export
     tags.ts                 Tag CRUD, tag assignment to links/items

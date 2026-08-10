@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getReaderArticle } from '@/app/actions/feed-items';
+import { getReaderArticle, type ReaderItemKind } from '@/app/actions/feed-items';
 import { getTags } from '@/app/actions/tags';
 import { getHost, slugify } from '@/lib/utils';
 import { ReaderContent } from './ReaderContent';
@@ -12,14 +12,31 @@ import SmartBackLink from '@/components/SmartBackLink';
 
 interface Props {
     params: Promise<{ username: string; itemId: string }>;
+    // `type=savedLink` on the URL distinguishes a manually-saved link (e.g. via
+    // the mobile share target) from a feed-sourced FeedItem — see SavedView.tsx
+    // and SearchBar.tsx, which append it when linking to this page.
+    searchParams: Promise<{ type?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+function resolveKind(type: string | undefined): ReaderItemKind {
+    return type === 'savedLink' ? 'savedLink' : 'feedItem';
+}
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const session = await getServerSession(authOptions);
     if (!session) return {};
     const { itemId } = await params;
+    const kind = resolveKind((await searchParams).type);
     // A separate, cheap lookup — not getReaderArticle. Setting <title> should
     // never trigger a full extraction or spend the user's rate-limit budget.
+    if (kind === 'savedLink') {
+        const link = await prisma.savedLink.findFirst({
+            where: { id: itemId, userId: session.user.id },
+            select: { title: true, url: true },
+        });
+        if (!link) return {};
+        return { title: `${link.title ?? getHost(link.url)} · MultivRSS` };
+    }
     const item = await prisma.feedItem.findFirst({
         where: { id: itemId, source: { category: { userId: session.user.id } } },
         select: { title: true },
@@ -28,9 +45,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: `${item.title} · MultivRSS` };
 }
 
-export default async function ReadPage({ params }: Props) {
+export default async function ReadPage({ params, searchParams }: Props) {
     const { username, itemId } = await params;
-    const [data, allTags] = await Promise.all([getReaderArticle(itemId), getTags()]);
+    const kind = resolveKind((await searchParams).type);
+    const [data, allTags] = await Promise.all([getReaderArticle(itemId, kind), getTags()]);
 
     if (data.status === 'not-found') notFound();
 
@@ -47,6 +65,7 @@ export default async function ReadPage({ params }: Props) {
                 </SmartBackLink>
                 <ReaderActions
                     itemId={item.id}
+                    itemKind={item.kind}
                     initialSaved={!!item.savedAt}
                     initialTags={item.tags}
                     allTags={allTags}

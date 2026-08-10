@@ -190,17 +190,17 @@ export default function SavedView({
                                             ))}
                                         </span>
                                     )}
-                                    {/* Read in-app (Reader Mode is only available for feed items, not external links) */}
-                                    {!item.isExternal && (
-                                        <Link
-                                            href={`/u/${username}/read/${item.id}`}
-                                            aria-label="Read"
-                                            title="Read"
-                                            className="ml-2 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
-                                        >
-                                            <Reader size={13} />
-                                        </Link>
-                                    )}
+                                    {/* Read in-app — Reader Mode works for both feed items and external
+                                        saved links; `type=savedLink` tells the reader route which table
+                                        to look the id up in (see getReaderArticle in feed-items.ts). */}
+                                    <Link
+                                        href={`/u/${username}/read/${item.id}${item.isExternal ? '?type=savedLink' : ''}`}
+                                        aria-label="Read"
+                                        title="Read"
+                                        className="ml-2 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
+                                    >
+                                        <Reader size={13} />
+                                    </Link>
                                     {/* Edit title / tags button */}
                                     <button
                                         type="button"
