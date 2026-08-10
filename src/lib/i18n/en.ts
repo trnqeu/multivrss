@@ -202,6 +202,15 @@ export const en: Dictionary = {
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
   },
+  digest: {
+    saveLabel: "Save",
+    savedLabel: "Saved",
+    addFeedLabel: "Add feed",
+    alreadySubscribedLabel: "Already in your feeds",
+    noFeedNote: "No RSS feed for this source",
+    saveErrorMessage: "Couldn't save. Try again.",
+    addFeedErrorMessage: "Couldn't add. Try again.",
+  },
   footer: {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",
   },

@@ -82,6 +82,18 @@ export interface Dictionary {
     cta: string;
     secondaryCta: string;
   };
+  // Button/status strings for the digest-item cards rendered inside
+  // "MultivRSS Digest" blog posts — see DigestItem in src/lib/blog.ts and
+  // src/components/marketing/DigestCard.tsx.
+  digest: {
+    saveLabel: string;
+    savedLabel: string;
+    addFeedLabel: string;
+    alreadySubscribedLabel: string;
+    noFeedNote: string;
+    saveErrorMessage: string;
+    addFeedErrorMessage: string;
+  };
   footer: {
     tagline: string;
   };

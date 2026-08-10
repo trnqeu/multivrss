@@ -202,6 +202,35 @@ export async function createFeedSourceForUser(
     return result;
 }
 
+// Imperative entry point for the MultivRSS Digest blog rubric's ADD FEED
+// button (src/components/marketing/DigestCard.tsx): called directly as a
+// function from a Client Component's event handler, not dispatched via a
+// <form> — see the "Calling Server Functions" guide under
+// node_modules/next/dist/docs/. Takes plain args instead of FormData for
+// that reason. Resolves the session itself (never trusts a caller-supplied
+// userId) so it's safe to expose to the client this way.
+export async function addDigestFeedSource(feedUrl: string, feedName: string, categoryName: string): Promise<ActionState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+    const userId = session.user.id;
+    const username = session.user.username;
+
+    const result = await createFeedSourceCore(userId, {
+        url: feedUrl,
+        customTitle: feedName,
+        newCategoryName: categoryName,
+    });
+
+    if (result.success) {
+        updateTag(`feed:${userId}`);
+        updateTag(`sources:${userId}`);
+        updateTag(`sidebar:${userId}`);
+        revalidatePath(`/u/${username}`, 'layout');
+    }
+
+    return result;
+}
+
 export async function deleteFeedSource(sourceId: string) {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, message: "Unauthorized" };
