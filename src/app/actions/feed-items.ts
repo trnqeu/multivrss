@@ -9,6 +9,7 @@ import type { ActionState } from "./types";
 import { frontpageTag } from "./shared";
 import { getReadableArticle, type ReaderResult } from "@/lib/reader";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getHost } from "@/lib/utils";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -240,6 +241,8 @@ export async function dismissFrontPageItem(
     }
 }
 
+export type ReaderItemKind = 'feedItem' | 'savedLink';
+
 export interface ReaderPageItem {
     id: string;
     title: string;
@@ -247,6 +250,7 @@ export interface ReaderPageItem {
     sourceTitle: string | null;
     savedAt: Date | null;
     tags: { id: string; name: string }[];
+    kind: ReaderItemKind;
 }
 
 export type ReaderPageData =
@@ -256,9 +260,41 @@ export type ReaderPageData =
 
 // Called directly from the read/[itemId] Server Component (navigation triggers
 // it, not a client event), same shape as getCategories() in categories.ts.
-export async function getReaderArticle(itemId: string): Promise<ReaderPageData> {
+// `kind` distinguishes a feed-sourced FeedItem from a manually-saved SavedLink
+// (e.g. saved from mobile via the share target) — both can use Reader Mode,
+// but they live in different tables with different ownership chains.
+export async function getReaderArticle(itemId: string, kind: ReaderItemKind = 'feedItem'): Promise<ReaderPageData> {
     const session = await getServerSession(authOptions);
     if (!session) return { status: 'not-found' };
+
+    if (kind === 'savedLink') {
+        const link = await prisma.savedLink.findFirst({
+            where: { id: itemId, userId: session.user.id },
+            select: {
+                id: true,
+                title: true,
+                url: true,
+                createdAt: true,
+                tags: { select: { tag: { select: { id: true, name: true } } } },
+            },
+        });
+        if (!link) return { status: 'not-found' };
+
+        const pageItem: ReaderPageItem = {
+            id: link.id,
+            title: link.title ?? getHost(link.url),
+            link: link.url,
+            sourceTitle: getHost(link.url),
+            savedAt: link.createdAt,
+            tags: link.tags.map(t => t.tag),
+            kind: 'savedLink',
+        };
+
+        const withinLimit = await checkRateLimit(`reader:${session.user.id}`, { maxRequests: 20, windowMs: 60_000 });
+        if (!withinLimit) return { status: 'rate-limited', item: pageItem };
+
+        return { status: 'ready', item: pageItem, result: await getReadableArticle(link.url) };
+    }
 
     const item = await prisma.feedItem.findFirst({
         where: { id: itemId, source: { category: { userId: session.user.id } } },
@@ -280,6 +316,7 @@ export async function getReaderArticle(itemId: string): Promise<ReaderPageData> 
         sourceTitle: item.source.title,
         savedAt: item.savedAt,
         tags: item.tags.map(t => t.tag),
+        kind: 'feedItem',
     };
 
     const withinLimit = await checkRateLimit(`reader:${session.user.id}`, { maxRequests: 20, windowMs: 60_000 });

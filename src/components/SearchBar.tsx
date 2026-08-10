@@ -298,12 +298,15 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                 </>
                             );
 
-                            // Read — primary CTA pill, always visible (not hover-only).
-                            const readPill = !isSavedLink && (
+                            // Read — primary CTA pill, always visible (not hover-only). Reader Mode
+                            // works for saved links too; `type=savedLink` tells the reader route
+                            // which table to look the id up in (see getReaderArticle in feed-items.ts).
+                            // Read-marking only applies to feed items — saved links have no read state.
+                            const readPill = (
                                 <Link
-                                    href={`/u/${username}/read/${item.id}`}
+                                    href={`/u/${username}/read/${item.id}${isSavedLink ? '?type=savedLink' : ''}`}
                                     onClick={() => {
-                                        if (!(item.read ?? false)) {
+                                        if (!isSavedLink && !(item.read ?? false)) {
                                             setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
                                             queueRead(item.id);
                                         }

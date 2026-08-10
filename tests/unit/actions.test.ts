@@ -40,6 +40,9 @@ vi.mock('@/lib/prisma', () => ({
             findMany: vi.fn(),
             findFirst: vi.fn(),
         },
+        savedLink: {
+            findFirst: vi.fn(),
+        },
         category: {
             findFirst: vi.fn(),
             findUnique: vi.fn(),
@@ -608,7 +611,7 @@ describe('getReaderArticle', () => {
 
         expect(result).toEqual({
             status: 'rate-limited',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [], kind: 'feedItem' },
         });
         expect(getReadableArticle).not.toHaveBeenCalled();
     });
@@ -630,7 +633,62 @@ describe('getReaderArticle', () => {
         expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
         expect(result).toEqual({
             status: 'ready',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [], kind: 'feedItem' },
+            result: { ok: false, reason: 'extraction-empty' },
+        });
+    });
+
+    it('returns not-found for a savedLink id that does not belong to the session user', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.savedLink.findFirst.mockResolvedValue(null);
+
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const result = await getReaderArticle('link_1', 'savedLink');
+
+        expect(result).toEqual({ status: 'not-found' });
+        expect(mockedPrisma.savedLink.findFirst).toHaveBeenCalledWith({
+            where: { id: 'link_1', userId: 'user_1' },
+            select: {
+                id: true,
+                title: true,
+                url: true,
+                createdAt: true,
+                tags: { select: { tag: { select: { id: true, name: true } } } },
+            },
+        });
+        expect(mockedPrisma.feedItem.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('delegates to getReadableArticle for a savedLink on the happy path, falling back to the host as title', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        const createdAt = new Date('2026-08-09T12:00:00.000Z');
+        mockedPrisma.savedLink.findFirst.mockResolvedValue({
+            id: 'link_1', title: null, url: 'https://example.com/a', createdAt, tags: [],
+        } as any);
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const { getReadableArticle } = await import('@/lib/reader');
+        vi.mocked(getReadableArticle).mockResolvedValue({ ok: false, reason: 'extraction-empty' });
+
+        const result = await getReaderArticle('link_1', 'savedLink');
+
+        expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
+        expect(result).toEqual({
+            status: 'ready',
+            item: {
+                id: 'link_1',
+                title: 'example.com',
+                link: 'https://example.com/a',
+                sourceTitle: 'example.com',
+                savedAt: createdAt,
+                tags: [],
+                kind: 'savedLink',
+            },
             result: { ok: false, reason: 'extraction-empty' },
         });
     });
