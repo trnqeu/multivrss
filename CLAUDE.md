@@ -76,6 +76,10 @@ src/app/
     read/[itemId]/        Reader Mode — full extracted article text (Readability); FeedItem by default, or a SavedLink when the URL has `?type=savedLink`
     saved/                Reading list (saved links)
     suggested/            Suggested feeds directory
+    settings/
+      account/            Account security settings (password, danger zone)
+      api-keys/           Personal access tokens for external tools (Premium)
+      import-export/      RSS sources (OPML/CSV) and saved links (Pocket/Instapaper/CSV) import & export — ImportModal.tsx is the shared drop-zone/file-picker modal; linked from SettingsMenu.tsx
   login|register|forgot-password|reset-password|verify-email/
   share-target/           PWA share-target endpoint (share links into the app)
   docs/route.ts           Scalar API reference UI, served from /api/openapi
@@ -97,7 +101,8 @@ src/app/
     feeds.ts                Feed source CRUD, discovery, sync
     feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode (FeedItem or SavedLink, by kind param)
     saved-links.ts          External link saving, page title resolution
-    csv.ts                  Feed import/export
+    csv.ts                  Feed CSV import/export + saved-links CSV import/export (import also alias-matches Pocket/Instapaper-shaped headers, incl. Instapaper's headerless variant)
+    opml.ts                 OPML import/export for RSS sources — importFeedsOpml()/exportFeedsOpml(); parsing lives in src/lib/opml.ts
     tags.ts                 Tag CRUD, tag assignment to links/items
     starter-packs.ts        Onboarding starter pack add/undo
 
@@ -107,6 +112,7 @@ src/lib/
   rss.ts                  Feed URL validation (DNS + private IP check) + ingestion/sync; safeFetchText() also used by reader.ts
   reader.ts               getReadableArticle() — Reader Mode: SSRF-guarded fetch + Readability extraction + sanitize-html, Redis-cached (7-day TTL, keyed by article link)
   search.ts               searchAllForUser() — Postgres full-text search (tsvector/GIN) across FeedItem + SavedLink, parameterized $queryRaw
+  opml.ts                 Dependency-free OPML parse/build (parseOpml/buildOpml) — regex-scans <outline> elements, never processes DOCTYPE/entities so an uploaded file can't trigger XXE
   email.ts                Password reset via Resend
   utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
