@@ -2,16 +2,7 @@ import type { Dictionary } from "./types";
 
 export const en: Dictionary = {
   nav: {
-    items: [
-      { label: "BLOG", slug: "#blog", isAnchor: true },
-      { label: "GUIDE", slug: "guide" },
-      { label: "SOURCES", slug: "sources" },
-      { label: "TIPS", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-    ],
-    signIn: "SIGN IN",
-    getStarted: "GET STARTED →",
-    myFeed: "MY FEED →",
+    openApp: "OPEN MULTIVRSS →",
   },
   hero: {
     kicker: "Read the web. Skip the noise.",
@@ -211,28 +202,16 @@ export const en: Dictionary = {
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
   },
+  digest: {
+    saveLabel: "Save",
+    savedLabel: "Saved",
+    addFeedLabel: "Add feed",
+    alreadySubscribedLabel: "Already in your feeds",
+    saveErrorMessage: "Couldn't save. Try again.",
+    addFeedErrorMessage: "Couldn't add. Try again.",
+  },
   footer: {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",
-    productLabel: "Product",
-    resourcesLabel: "Resources",
-    productLinks: [
-      { label: "Reader", href: "#" },
-      { label: "Reading list", href: "#" },
-      { label: "Search", href: "#" },
-      { label: "Blog", href: "#blog", isAnchor: true },
-    ],
-    resourceLinks: [
-      { label: "Curated sources", slug: "sources" },
-      { label: "Tips & tricks", slug: "tips" },
-      { label: "FAQ", slug: "faq" },
-      { label: "RSS feeds", href: "#" },
-      { label: "Changelog", slug: "changelog" },
-      { label: "Status", href: "#" },
-    ],
-    legalLinks: [
-      { label: "Privacy Policy", slug: "privacy" },
-      { label: "Cookie Policy", slug: "cookies" },
-    ],
   },
   meta: {
     home: {

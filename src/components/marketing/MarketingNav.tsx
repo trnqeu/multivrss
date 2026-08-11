@@ -7,6 +7,7 @@ import type { Lang } from "@/lib/i18n";
 import type { Dictionary } from "@/lib/i18n";
 import Wordmark from "@/components/Wordmark";
 import SmartBackLink from "@/components/SmartBackLink";
+import { NAV_ROUTES, routeHref, isRouteActive } from "@/config/routes";
 
 interface Props {
   lang: Lang;
@@ -18,13 +19,8 @@ export default function MarketingNav({ lang, dict, username }: Props) {
   const pathname = usePathname();
   const t = dict.nav;
 
-  const hrefFor = (item: (typeof t.items)[number]) =>
-    "isAnchor" in item && item.isAnchor ? `/${lang}${item.slug}` : `/${lang}/${item.slug}`;
-
-  const isActive = (item: (typeof t.items)[number]) => {
-    if ("isAnchor" in item && item.isAnchor) return pathname === `/${lang}`;
-    return pathname === `/${lang}/${item.slug}`;
-  };
+  const links = NAV_ROUTES.filter((r) => r.inHeader && !r.headerButton);
+  const authButtons = NAV_ROUTES.filter((r) => r.inHeader && r.headerButton);
 
   return (
     <nav
@@ -48,15 +44,15 @@ export default function MarketingNav({ lang, dict, username }: Props) {
       </div>
 
       <div className="hidden min-[920px]:flex items-center gap-[30px]">
-        {t.items.map((item) => (
+        {links.map((route) => (
           <Link
-            key={item.label}
-            href={hrefFor(item)}
+            key={route.id}
+            href={routeHref(route, lang)}
             className={`font-mono text-[11px] font-bold tracking-[0.18em] uppercase transition-colors ${
-              isActive(item) ? "text-terracotta" : "text-black hover:text-terracotta"
+              isRouteActive(route, lang, pathname) ? "text-terracotta" : "text-black hover:text-terracotta"
             }`}
           >
-            {item.label}
+            {route.label[lang]}
           </Link>
         ))}
       </div>
@@ -67,23 +63,22 @@ export default function MarketingNav({ lang, dict, username }: Props) {
             fallbackHref={`/u/${username}`}
             className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
           >
-            {t.myFeed}
+            {t.openApp}
           </SmartBackLink>
         ) : (
-          <>
+          authButtons.map((route) => (
             <Link
-              href="/login"
-              className="inline-flex border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
+              key={route.id}
+              href={routeHref(route, lang)}
+              className={
+                route.primary
+                  ? "bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
+                  : "inline-flex border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-black hover:text-paper transition-colors"
+              }
             >
-              {t.signIn}
+              {route.label[lang]}
             </Link>
-            <Link
-              href="/register"
-              className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
-            >
-              {t.getStarted}
-            </Link>
-          </>
+          ))
         )}
       </div>
     </nav>

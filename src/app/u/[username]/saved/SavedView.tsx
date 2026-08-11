@@ -42,6 +42,9 @@ interface Props {
     links: LinkVM[];
     activeQuery?: string;
     allTags: TagVM[];
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    onLoadMore: () => void;
     onRemoveArticle: (id: string) => void;
     onRemoveLink: (id: string) => void;
     onRemoveTagFromArticle: (articleId: string, tagId: string) => void;
@@ -79,6 +82,7 @@ interface ModalItem {
 
 export default function SavedView({
     username, articles, links, activeQuery, allTags,
+    hasMore, isLoadingMore, onLoadMore,
     onRemoveArticle, onRemoveLink,
     onRemoveTagFromArticle, onRemoveTagFromLink,
     onSetArticleDetails, onSetLinkDetails,
@@ -186,17 +190,17 @@ export default function SavedView({
                                             ))}
                                         </span>
                                     )}
-                                    {/* Read in-app (Reader Mode is only available for feed items, not external links) */}
-                                    {!item.isExternal && (
-                                        <Link
-                                            href={`/u/${username}/read/${item.id}`}
-                                            aria-label="Read"
-                                            title="Read"
-                                            className="ml-2 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
-                                        >
-                                            <Reader size={13} />
-                                        </Link>
-                                    )}
+                                    {/* Read in-app — Reader Mode works for both feed items and external
+                                        saved links; `type=savedLink` tells the reader route which table
+                                        to look the id up in (see getReaderArticle in feed-items.ts). */}
+                                    <Link
+                                        href={`/u/${username}/read/${item.id}${item.isExternal ? '?type=savedLink' : ''}`}
+                                        aria-label="Read"
+                                        title="Read"
+                                        className="ml-2 inline-flex items-center align-baseline bg-terracotta text-background px-2 py-1.5 leading-none"
+                                    >
+                                        <Reader size={13} />
+                                    </Link>
                                     {/* Edit title / tags button */}
                                     <button
                                         type="button"
@@ -224,6 +228,19 @@ export default function SavedView({
                             </Fragment>
                         );
                     })}
+                </div>
+            )}
+            {hasMore && (
+                <div className="mt-8 pt-6 border-t border-foreground/20">
+                    <button
+                        onClick={onLoadMore}
+                        disabled={isLoadingMore}
+                        className="bg-background label-system text-foreground/60 hover:text-foreground disabled:opacity-30 border border-foreground/30 px-4 py-2 hover:border-foreground transition-colors"
+                    >
+                        <span role="status" aria-live="polite">
+                            {isLoadingMore ? 'LOADING...' : 'LOAD MORE'}
+                        </span>
+                    </button>
                 </div>
             )}
             {modalItem && (

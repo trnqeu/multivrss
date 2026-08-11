@@ -73,9 +73,15 @@ src/app/
     page.tsx              Feed list (all feeds)
     category/[slug]/      Category-filtered feed
     source/[slug]/        Source-filtered feed
-    read/[itemId]/        Reader Mode — full extracted article text (Readability), FeedItem only
+    read/[itemId]/        Reader Mode — full extracted article text (Readability); FeedItem by default, or a SavedLink when the URL has `?type=savedLink`
     saved/                Reading list (saved links)
     suggested/            Suggested feeds directory
+    settings/
+      account/            Account security settings (password, danger zone)
+      api-keys/           Personal access tokens for external tools (Premium)
+      import-export/      RSS sources (OPML/CSV) and saved links (Pocket/Instapaper/CSV) import & export — ImportModal.tsx is the shared drop-zone/file-picker modal; linked from SettingsMenu.tsx
+  u/add/route.ts          Public-page resume target: adds a feed source (by direct URL, or by SUGGESTED_FEEDS "category|name" key for bulk) after /login?callbackUrl=... completes
+  u/save-link/route.ts    Public-page resume target: saves an external URL (same /login?callbackUrl=... pattern as u/add) after authentication. General-purpose mirror of u/add for the save side — not currently called from anywhere (the blog Digest rubric resumes inline instead, see blog.ts below)
   login|register|forgot-password|reset-password|verify-email/
   share-target/           PWA share-target endpoint (share links into the app)
   docs/route.ts           Scalar API reference UI, served from /api/openapi
@@ -94,12 +100,14 @@ src/app/
     shared.ts              frontpageTag() cache-tag helper
     auth.ts                 Register, verify email, password reset
     categories.ts           Category CRUD
-    feeds.ts                Feed source CRUD, discovery, sync
-    feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode
-    saved-links.ts          External link saving, page title resolution
-    csv.ts                  Feed import/export
+    feeds.ts                Feed source CRUD, discovery, sync — addDigestFeedSource() is the plain-args variant called imperatively from DigestCard
+    feed-items.ts           Read/unread, save/unsave, front-page dismiss, getReaderArticle() for Reader Mode (FeedItem or SavedLink, by kind param)
+    saved-links.ts          External link saving, page title resolution — saveExternalLink() (Server Action) + saveExternalLinkForUser() (Route Handler variant, used by u/save-link) + saveDigestLink() (plain-args variant, called imperatively from DigestCard)
+    csv.ts                  Feed CSV import/export + saved-links CSV import/export (import also alias-matches Pocket/Instapaper-shaped headers, incl. Instapaper's headerless variant)
+    opml.ts                 OPML import/export for RSS sources — importFeedsOpml()/exportFeedsOpml(); parsing lives in src/lib/opml.ts
     tags.ts                 Tag CRUD, tag assignment to links/items
     starter-packs.ts        Onboarding starter pack add/undo
+    digest.ts                getDigestStatus() — read-only, resolves per-item SAVE/ADD FEED state for the blog Digest rubric; called imperatively from DigestCard, not a mutation
 
 src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)
@@ -107,12 +115,14 @@ src/lib/
   rss.ts                  Feed URL validation (DNS + private IP check) + ingestion/sync; safeFetchText() also used by reader.ts
   reader.ts               getReadableArticle() — Reader Mode: SSRF-guarded fetch + Readability extraction + sanitize-html, Redis-cached (7-day TTL, keyed by article link)
   search.ts               searchAllForUser() — Postgres full-text search (tsvector/GIN) across FeedItem + SavedLink, parameterized $queryRaw
+  opml.ts                 Dependency-free OPML parse/build (parseOpml/buildOpml) — regex-scans <outline> elements, never processes DOCTYPE/entities so an uploaded file can't trigger XXE
   email.ts                Password reset via Resend
-  utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities
+  utils.ts                slugify (uses underscores), isPrivateIp, PASSWORD_REGEX, decodeHtmlEntities, getHost, sanitizeCallbackUrl
+  auth-resume-links.ts    buildLoginResumeHref/buildAddFeedHref/buildSaveLinkHref — "log in, then finish this action" links for logged-out visitors. buildAddFeedHref (→ u/add) is used by the public /sources directory (MarketingSourcesFinder); buildSaveLinkHref (→ u/save-link) currently has no caller. The blog Digest rubric (DigestCard) reuses only the bare buildLoginResumeHref, pointed back at the post itself instead of at u/add/u/save-link — see blog.ts below
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
   rate-limit.ts           Redis-backed rate limiter (checkRateLimit) for login/password reset/reader mode
-  i18n/                   Dictionary-based i18n (en/it) for marketing routes
-  blog.ts                 Markdown blog post loader
+  i18n/                   Dictionary-based i18n (en/it) for marketing routes; Dictionary["digest"] holds the SAVE/ADD FEED button strings for the blog Digest rubric
+  blog.ts                 Markdown blog post loader. A post's optional `digestItems` frontmatter array (id/title/url/sourceName/feedUrl?/feedCategory?/blurb?, `id` required) drives the "MultivRSS Digest" rubric: the body places each pick inline with a `::digest[id]` marker on its own line; renderPostSegments() splits content on those markers into an ordered [{prose html} | {digest item}] list (any digestItems entry never referenced by a marker is appended at the end, frontmatter order) and throws — failing `next build` — if a marker references an unknown id. Rendered by src/components/marketing/DigestCard.tsx (DigestProvider + DigestCard) as SAVE + (if feedUrl set) ADD FEED cards: saved/subscribed status is resolved client-side after hydration via getDigestStatus() (src/app/actions/digest.ts) — blog pages are static and shared across users, so this can't be baked in at build time — and the two buttons call saveDigestLink()/addDigestFeedSource() imperatively (optimistic UI, no reload). A logged-out click redirects through /login?callbackUrl=<post path>?intent=save|feed&... and DigestCard's intent-resume effect finishes the action on return. Spec: public/design-handoffs/design_handoff_digest
   frontpage.ts            Landing page data (stats, featured content)
   suggested-feeds.ts      Suggested feeds directory data
   youtube.ts              YouTube feed source support
@@ -244,7 +254,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - No `.env.example` — check local `.env` for required vars.
 - Untracked `.codex` path exists — do not delete or modify.
-- `content/blog` (read by `src/lib/blog.ts`) does not exist on disk yet — the `/blog` route currently renders empty until posts are added.
+- Blog posts are published by branching off `main` (not `dev`) so a release doesn't drag in whatever app work is pending on `dev` — see `docs/EDITORIAL.md` "Publishing Workflow". A post still always requires a full rebuild+redeploy: `content/blog/**` is read via synchronous `fs` calls at `next build` time (`generateStaticParams`, no `"use cache"`/revalidate), and the running container has no runtime filesystem access to `content/` at all.
 - **`prisma migrate dev` reliably corrupts on every run** because of `FeedItem.searchVector`/`SavedLink.searchVector` (`Unsupported("tsvector")`, `GENERATED ALWAYS AS (...) STORED`, hand-written in `prisma/migrations/*_add_fulltext_search`). Prisma's diff engine always proposes `DROP INDEX "FeedItem_searchVector_idx"` / `DROP INDEX "SavedLink_searchVector_idx"` + `ALTER TABLE ... ALTER COLUMN "searchVector" DROP DEFAULT` — this fires even when the schema change is unrelated to search, and even on a second `migrate dev` run right after a clean apply. Postgres rejects the `DROP DEFAULT` on a generated column (error `42601`), but the `DROP INDEX` statements are NOT protected by that failure and commit for real, silently deleting the GIN indexes backing full-text search. Always run `prisma migrate dev --create-only --name <name>` first, delete the spurious `DropIndex`/`AlterTable searchVector` lines from the generated `migration.sql` by hand, then run `prisma migrate dev` (no args) to apply. If the indexes do get dropped, recreate them manually (exact SQL in `prisma/migrations/*_add_fulltext_search/migration.sql`) — do not reach for `prisma migrate reset`, it wipes all local data and is never necessary for this issue.
 - **Browser/router back-forward navigation can resurrect stale modal state.** Next.js always reuses a route segment's cached client render on back/forward navigation (`router.back()`, or the browser's own back button) to preserve scroll position — this is undocumented-but-real behavior distinct from `staleTimes`, which only governs *forward* navigation freshness (see `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/staleTimes.md` and the `04-glossary.md` "Client Cache" entry). Any modal/popover whose visibility is local `useState` (not tied to the URL) can therefore reappear after navigating away and back, even though it was explicitly closed before leaving. Fix: call `useCloseOnNavigate(closeFn)` (`src/components/useCloseOnNavigate.ts`) in any component that owns that kind of visibility state — it force-closes on every pathname change. Already applied everywhere `AssignTagsModal` is rendered from local state (`AddPopover`, `FeedItem`, `FrontPageItemActions`, `SavedView`, `SearchBar`, `ReaderActions`, `ShareTargetModal`); apply it to any new modal built the same way.
 

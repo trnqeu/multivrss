@@ -1,16 +1,3 @@
-export interface NavItem {
-  label: string;
-  slug: string;
-  isAnchor?: boolean;
-}
-
-export interface FooterLink {
-  label: string;
-  href?: string;
-  slug?: string;
-  isAnchor?: boolean;
-}
-
 export interface FaqItem {
   question: string;
   answer: string;
@@ -26,10 +13,7 @@ export interface FaqCategory {
 
 export interface Dictionary {
   nav: {
-    items: NavItem[];
-    signIn: string;
-    getStarted: string;
-    myFeed: string;
+    openApp: string;
   };
   hero: {
     kicker: string;
@@ -98,13 +82,19 @@ export interface Dictionary {
     cta: string;
     secondaryCta: string;
   };
+  // Button/status strings for the digest-item cards rendered inside
+  // "MultivRSS Digest" blog posts — see DigestItem in src/lib/blog.ts and
+  // src/components/marketing/DigestCard.tsx.
+  digest: {
+    saveLabel: string;
+    savedLabel: string;
+    addFeedLabel: string;
+    alreadySubscribedLabel: string;
+    saveErrorMessage: string;
+    addFeedErrorMessage: string;
+  };
   footer: {
     tagline: string;
-    productLabel: string;
-    resourcesLabel: string;
-    productLinks: FooterLink[];
-    resourceLinks: FooterLink[];
-    legalLinks: FooterLink[];
   };
   meta: {
     home: {

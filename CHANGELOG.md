@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-08-09
+
+### Added
+- Import saved links from CSV (Instapaper, Pocket, or any generic URL/title/tags CSV)
+- Export saved links as CSV
+
+### Fixed
+- Raised the Server Actions body size limit to 10MB so larger CSV imports (Pocket/Instapaper exports) no longer fail with "Body exceeded 1 MB limit"
+- Paginated the Saved page (was loading and rendering every saved article/link at once — froze the browser for accounts with a large saved list, e.g. after a big CSV import); added "LOAD MORE", moved tag/search filtering server-side, added supporting DB indexes
+
 ## [0.2.1] - 2026-08-08
 
 ### Added

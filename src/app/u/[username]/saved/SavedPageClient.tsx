@@ -9,6 +9,7 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import { deleteSavedLink } from '@/app/actions/saved-links';
 import { unsaveFeedItem } from '@/app/actions/feed-items';
 import { removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions/tags';
+import { getMoreSavedItems } from '@/app/actions/saved-items';
 import SavedTagPill from '@/components/SavedTagPill';
 import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 
@@ -17,30 +18,50 @@ interface SavedPageClientProps {
     initialArticles: ArticleVM[];
     initialLinks: LinkVM[];
     initialTags: TagVM[];
+    initialFeedOffset: number;
+    initialLinkOffset: number;
+    initialHasMore: boolean;
 }
 
-export default function SavedPageClient({ username, initialArticles, initialLinks, initialTags }: SavedPageClientProps) {
+export default function SavedPageClient({
+    username, initialArticles, initialLinks, initialTags,
+    initialFeedOffset, initialLinkOffset, initialHasMore,
+}: SavedPageClientProps) {
     const [articles, setArticles] = useState(initialArticles);
     const [links, setLinks] = useState(initialLinks);
     const [tags, setTags] = useState(initialTags);
     const [tagsExpanded, setTagsExpanded] = useState(false);
+    const [feedOffset, setFeedOffset] = useState(initialFeedOffset);
+    const [linkOffset, setLinkOffset] = useState(initialLinkOffset);
+    const [hasMore, setHasMore] = useState(initialHasMore);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const searchParams = useSearchParams();
     const activeTag = searchParams.get('tag');
     const query = searchParams.get('q') ?? '';
-    const normalizedQuery = query.trim().toLowerCase();
 
-    function matchesQuery(title: string | null, body: string | null): boolean {
-        if (!normalizedQuery) return true;
-        return `${title ?? ''} ${body ?? ''}`.toLowerCase().includes(normalizedQuery);
-    }
-
-    const filteredLinks = links
-        .filter(l => !activeTag || l.tags.some(t => t.name === activeTag))
-        .filter(l => matchesQuery(l.title, l.description));
-
-    const filteredArticles = articles
-        .filter(a => !activeTag || a.tags.some(t => t.name === activeTag))
-        .filter(a => matchesQuery(a.title, a.content));
+    // Filtering by tag/query now happens server-side (fetchSavedItemsPage), so
+    // `articles`/`links` already reflect the active filter — no client-side
+    // .filter() here. Since data is paginated, filtering only the loaded
+    // window would silently hide matches further down un-loaded pages.
+    const handleLoadMore = useCallback(async () => {
+        setIsLoadingMore(true);
+        try {
+            const result = await getMoreSavedItems({
+                tag: activeTag ?? undefined,
+                q: query || undefined,
+                feedOffset,
+                linkOffset,
+            });
+            if ('error' in result) return;
+            setArticles(prev => [...prev, ...result.articles]);
+            setLinks(prev => [...prev, ...result.links]);
+            setFeedOffset(result.nextFeedOffset);
+            setLinkOffset(result.nextLinkOffset);
+            setHasMore(result.hasMore);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    }, [activeTag, query, feedOffset, linkOffset]);
 
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
@@ -133,7 +154,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
     const visibleTags = tagsExpanded ? sortedTags : sortedTags.slice(0, TAG_PREVIEW_COUNT);
     const hiddenTagCount = sortedTags.length - visibleTags.length;
 
-    const total = filteredArticles.length + filteredLinks.length;
+    const total = articles.length + links.length;
 
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
@@ -146,7 +167,7 @@ export default function SavedPageClient({ username, initialArticles, initialLink
                 </Link>
                 <div className="flex items-center gap-2.5">
                     <Bookmark filled className="text-terracotta" size={13} />
-                    <span className="label-system text-terracotta text-xs">SAVED // {total} ITEMS</span>
+                    <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
                     {activeTag && (
                         <Link
                             href={`/u/${username}/saved`}
@@ -184,10 +205,13 @@ export default function SavedPageClient({ username, initialArticles, initialLink
             </header>
             <SavedView
                 username={username}
-                articles={filteredArticles}
-                links={filteredLinks}
+                articles={articles}
+                links={links}
                 activeQuery={query}
                 allTags={tags}
+                hasMore={hasMore}
+                isLoadingMore={isLoadingMore}
+                onLoadMore={handleLoadMore}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
                 onRemoveTagFromArticle={handleRemoveTagFromArticle}

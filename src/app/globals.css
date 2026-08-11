@@ -192,8 +192,10 @@ a:focus-visible {
 .prose p  { font-size: 16px; line-height: 1.7; color: #000; margin: 1rem 0; }
 .prose a  { color: var(--terracotta); text-decoration: underline; }
 .prose a:hover { opacity: 0.75; }
-.prose ul, .prose ol { padding-left: 1.5rem; margin: 1rem 0; }
+.prose ul { padding-left: 1.5rem; margin: 1rem 0; list-style: disc; }
+.prose ol { padding-left: 1.5rem; margin: 1rem 0; list-style: decimal; }
 .prose li { font-size: 16px; line-height: 1.7; margin: 0.4rem 0; }
+.prose img { max-width: 100%; height: auto; display: block; margin: 1.5rem 0; }
 .prose pre {
   background: #000;
   color: #f6f3ec;
@@ -234,6 +236,89 @@ a:focus-visible {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border-bottom-width: 2px;
+}
+
+/* MultivRSS Digest card — src/components/marketing/DigestCard.tsx, spec at
+   public/design-handoffs/design_handoff_digest. Bleeds out of the .prose
+   text column on both sides; --paper-2/--ink-2/--ink-3 are local to the
+   card only and deliberately do not touch the b/w palette documented in
+   CLAUDE.md's Design System (this warm off-black + two soft grays are a
+   one-off exception approved for this component in the handoff).
+   `.digest-item .btn*` is scoped to outrank the unrelated global `.btn`
+   (onboarding button variants) further up this file. */
+.digest-item {
+  --paper-2: #ece7d9;
+  --ink-2: rgba(20, 17, 16, .62);
+  --ink-3: rgba(20, 17, 16, .34);
+  background: var(--paper-2);
+  border-top: 2px solid var(--foreground);
+  padding: 22px 24px 20px;
+  margin: 30px -24px 30px;
+}
+/* Every child rule below is double-scoped (.digest-item .digest-item__x,
+   specificity 0,2,0) rather than bare .digest-item__x (0,1,0) — these cards
+   render inside .prose, whose h1-h4/p rules (.prose h3, .prose p — 0,1,1)
+   would otherwise outrank a single-class selector regardless of source
+   order and silently override title/blurb/note typography. */
+.digest-item .digest-item__source {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+.digest-item .digest-item__source b { color: var(--ink-3); font-weight: 500; }
+.digest-item .digest-item__title {
+  margin: 8px 0 0;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.22;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+.digest-item .digest-item__title a { color: var(--foreground); border: 0; text-decoration: none; }
+.digest-item .digest-item__title a:hover { color: var(--terracotta); }
+.digest-item .digest-item__blurb { margin: 9px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.digest-item .digest-item__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+.digest-item .btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  padding: 9px 13px;
+  border: 1.5px solid var(--foreground);
+  background: transparent;
+  color: var(--foreground);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.digest-item .btn--save { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+.digest-item .btn:hover:not(:disabled),
+.digest-item .btn--save:hover:not(:disabled) { background: var(--foreground); border-color: var(--foreground); color: var(--background); }
+.digest-item .btn[aria-pressed="true"] { background: transparent; border-color: var(--terracotta); color: var(--terracotta); }
+.digest-item .btn:disabled { opacity: .45; cursor: default; }
+.digest-item .digest-item__note {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+/* Error state (save/add-feed failure) — unlayered so it reliably outranks
+   the base .digest-item__note grey, unlike a Tailwind text-* utility which
+   would lose to that unlayered rule regardless of specificity. */
+.digest-item .digest-item__note--error { color: var(--terracotta); margin-top: 8px; }
+@media (max-width: 640px) {
+  .digest-item { margin-left: -20px; margin-right: -20px; padding: 20px; }
+  .digest-item .digest-item__actions .btn { flex: 1; justify-content: center; min-height: 44px; }
+  .digest-item .digest-item__actions .btn:only-child { flex: 0 0 auto; }
 }
 
 /* Reader Mode prose — dark-mode aware sibling to .prose (which hardcodes

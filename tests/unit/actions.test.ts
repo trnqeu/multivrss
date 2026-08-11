@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getServerSession } from 'next-auth';
+import { updateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendVerificationEmail } from '@/lib/email';
@@ -35,7 +36,11 @@ vi.mock('@/lib/prisma', () => ({
         },
         feedItem: {
             update: vi.fn(),
+            updateMany: vi.fn(),
             findMany: vi.fn(),
+            findFirst: vi.fn(),
+        },
+        savedLink: {
             findFirst: vi.fn(),
         },
         category: {
@@ -76,6 +81,7 @@ const mockedSession = vi.mocked(getServerSession);
 const mockedPrisma = vi.mocked(prisma);
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 const mockedSendVerificationEmail = vi.mocked(sendVerificationEmail);
+const mockedUpdateTag = vi.mocked(updateTag);
 
 function mockTx() {
     return {
@@ -156,6 +162,73 @@ describe('markAsRead / markAsUnread', () => {
 
         const { markAsRead } = await import('@/app/actions/feed-items');
         const result = await markAsRead('item_1');
+
+        expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// markManyRead — batched counterpart used by useReadQueue
+// ---------------------------------------------------------------------------
+describe('markManyRead', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('returns unauthorized without session', async () => {
+        mockedSession.mockResolvedValue(null);
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1', 'item_2']);
+
+        expect(result).toEqual({ success: false, message: 'Unauthorized' });
+        expect(mockedPrisma.feedItem.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('no-ops on an empty id list without touching Prisma or the cache tags', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead([]);
+
+        expect(result).toEqual({ success: true });
+        expect(mockedPrisma.feedItem.updateMany).not.toHaveBeenCalled();
+        expect(mockedUpdateTag).not.toHaveBeenCalled();
+    });
+
+    it('marks many items as read, scoped by ownership, and invalidates only the frontpage tag', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.updateMany.mockResolvedValue({ count: 2 } as any);
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1', 'item_2']);
+
+        expect(result).toEqual({ success: true, message: 'Marked as read.' });
+        expect(mockedPrisma.feedItem.updateMany).toHaveBeenCalledWith({
+            where: { id: { in: ['item_1', 'item_2'] }, source: { category: { userId: 'user_1' } } },
+            data: { read: true },
+        });
+        // feed:${userId} is intentionally NOT invalidated here (see comment in
+        // markManyRead) — only the frontpage tag should be updated.
+        expect(mockedUpdateTag).toHaveBeenCalledTimes(1);
+        expect(mockedUpdateTag).toHaveBeenCalledWith(expect.stringContaining(`frontpage:user_1:`));
+    });
+
+    it('returns error when the batched update fails', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedItem.updateMany.mockRejectedValue(new Error('DB error'));
+
+        const { markManyRead } = await import('@/app/actions/feed-items');
+        const result = await markManyRead(['item_1']);
 
         expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
     });
@@ -538,7 +611,7 @@ describe('getReaderArticle', () => {
 
         expect(result).toEqual({
             status: 'rate-limited',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [], kind: 'feedItem' },
         });
         expect(getReadableArticle).not.toHaveBeenCalled();
     });
@@ -560,7 +633,62 @@ describe('getReaderArticle', () => {
         expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
         expect(result).toEqual({
             status: 'ready',
-            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [] },
+            item: { id: 'item_1', title: 'Title', link: 'https://example.com/a', sourceTitle: 'Source', savedAt: null, tags: [], kind: 'feedItem' },
+            result: { ok: false, reason: 'extraction-empty' },
+        });
+    });
+
+    it('returns not-found for a savedLink id that does not belong to the session user', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.savedLink.findFirst.mockResolvedValue(null);
+
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const result = await getReaderArticle('link_1', 'savedLink');
+
+        expect(result).toEqual({ status: 'not-found' });
+        expect(mockedPrisma.savedLink.findFirst).toHaveBeenCalledWith({
+            where: { id: 'link_1', userId: 'user_1' },
+            select: {
+                id: true,
+                title: true,
+                url: true,
+                createdAt: true,
+                tags: { select: { tag: { select: { id: true, name: true } } } },
+            },
+        });
+        expect(mockedPrisma.feedItem.findFirst).not.toHaveBeenCalled();
+    });
+
+    it('delegates to getReadableArticle for a savedLink on the happy path, falling back to the host as title', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        const createdAt = new Date('2026-08-09T12:00:00.000Z');
+        mockedPrisma.savedLink.findFirst.mockResolvedValue({
+            id: 'link_1', title: null, url: 'https://example.com/a', createdAt, tags: [],
+        } as any);
+        const { getReaderArticle } = await import('@/app/actions/feed-items');
+        const { getReadableArticle } = await import('@/lib/reader');
+        vi.mocked(getReadableArticle).mockResolvedValue({ ok: false, reason: 'extraction-empty' });
+
+        const result = await getReaderArticle('link_1', 'savedLink');
+
+        expect(getReadableArticle).toHaveBeenCalledWith('https://example.com/a');
+        expect(result).toEqual({
+            status: 'ready',
+            item: {
+                id: 'link_1',
+                title: 'example.com',
+                link: 'https://example.com/a',
+                sourceTitle: 'example.com',
+                savedAt: createdAt,
+                tags: [],
+                kind: 'savedLink',
+            },
             result: { ok: false, reason: 'extraction-empty' },
         });
     });

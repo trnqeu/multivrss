@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ['multivrss.com', 'www.multivrss.com'],
+      // Default is 1MB; CSV imports (feed lists, and saved links exported
+      // from Instapaper/Pocket/etc.) can exceed that for larger accounts.
+      bodySizeLimit: '10mb',
     },
   },
   outputFileTracingIncludes: {

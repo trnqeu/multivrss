@@ -2,13 +2,13 @@
 
 import { prisma } from "@/lib/prisma";
 import { validateFeedUrl, safeFetchText } from "@/lib/rss";
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
 
-async function resolvePageTitle(url: string): Promise<string | null> {
+export async function resolvePageTitle(url: string): Promise<string | null> {
     try {
         await validateFeedUrl(url);
         const res = await safeFetchText(url, {
@@ -37,13 +37,19 @@ export interface SavedLinkData {
 
 export type SaveExternalLinkState = ActionState & { link?: SavedLinkData };
 
-export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<SaveExternalLinkState> {
-    const session = await getServerSession(authOptions);
-    if (!session) return { success: false, message: "Unauthorized" };
-
-    const url = formData.get("url") as string;
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
+// Does the actual work of saving a link: validation, title resolution, and
+// the DB write. Deliberately does NOT touch cache invalidation
+// (updateTag/revalidatePath) — updateTag() only works when called from
+// within an actual Server Action dispatch, not from arbitrary server-side
+// code that merely calls this function directly (e.g. the /u/save-link
+// Route Handler, which must instead use revalidateTag()). Callers are
+// responsible for invalidating the cache tags/paths listed at the bottom of
+// saveExternalLink()/saveExternalLinkForUser() below on success.
+async function saveExternalLinkCore(
+    userId: string,
+    input: { url: string; title?: string; description?: string },
+): Promise<SaveExternalLinkState> {
+    const { url, title, description } = input;
 
     if (!url) return { success: false, message: "URL is required." };
 
@@ -59,15 +65,12 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
     try {
         const link = await prisma.savedLink.create({
             data: {
-                userId: session.user.id,
+                userId,
                 url,
                 title: resolvedTitle || null,
                 description: description?.trim() || null,
             }
         });
-        const username = session.user.username;
-        updateTag(`feed:${session.user.id}`);
-        revalidatePath(`/u/${username}/saved`);
         return {
             success: true,
             message: "Link saved.",
@@ -83,6 +86,66 @@ export async function saveExternalLink(prevState: ActionState | null, formData: 
         console.error("Error saving external link:", error);
         return { success: false, message: "Failed to save link." };
     }
+}
+
+export async function saveExternalLink(prevState: ActionState | null, formData: FormData): Promise<SaveExternalLinkState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const result = await saveExternalLinkCore(session.user.id, {
+        url: formData.get("url") as string,
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+    });
+
+    if (result.success) {
+        const username = session.user.username;
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${username}/saved`);
+    }
+
+    return result;
+}
+
+// Entry point for contexts that are NOT a Server Action dispatch (currently
+// just the /u/save-link Route Handler — see src/app/u/save-link/route.ts).
+// Runs the same core logic as saveExternalLink() but invalidates via
+// revalidateTag(), the Route-Handler-safe equivalent of updateTag().
+export async function saveExternalLinkForUser(
+    userId: string,
+    username: string,
+    input: { url: string; title?: string; description?: string },
+): Promise<SaveExternalLinkState> {
+    const result = await saveExternalLinkCore(userId, input);
+
+    if (result.success) {
+        revalidateTag(`feed:${userId}`, 'max');
+        revalidatePath(`/u/${username}/saved`);
+    }
+
+    return result;
+}
+
+// Imperative entry point for the MultivRSS Digest blog rubric's SAVE button
+// (src/components/marketing/DigestCard.tsx): called directly as a function
+// from a Client Component's event handler, not dispatched via a <form> —
+// see the "Calling Server Functions" guide under
+// node_modules/next/dist/docs/. Takes plain args instead of FormData for
+// that reason. Resolves the session itself (never trusts a caller-supplied
+// userId) so it's safe to expose to the client this way.
+export async function saveDigestLink(url: string, title: string): Promise<SaveExternalLinkState> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, message: "Unauthorized" };
+
+    const result = await saveExternalLinkCore(session.user.id, { url, title });
+
+    if (result.success) {
+        const username = session.user.username;
+        updateTag(`feed:${session.user.id}`);
+        revalidatePath(`/u/${username}/saved`);
+    }
+
+    return result;
 }
 
 export async function updateSavedLinkDetails(linkId: string, title: string, tagIds: string[]): Promise<ActionState> {

@@ -3,17 +3,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getCategories } from "@/app/actions/categories";
 import { prisma } from '@/lib/prisma';
+import { fetchSavedItemsPage } from '@/lib/saved-items';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import SavedPageClient from './SavedPageClient';
 
 interface SavedPageProps {
   params: Promise<{ username: string }>;
+  searchParams: Promise<{ tag?: string; q?: string; saved?: string; saveError?: string }>;
 }
 
-export default async function SavedPage({ params }: SavedPageProps) {
+export default async function SavedPage({ params, searchParams }: SavedPageProps) {
     const resolvedParams = await params;
     const { username } = resolvedParams;
+    const { tag, q, saved, saveError } = await searchParams;
     const session = await getServerSession(authOptions);
     if (!session) return notFound();
     if (session.user.username !== username) {
@@ -22,57 +25,38 @@ export default async function SavedPage({ params }: SavedPageProps) {
 
     const categories = await getCategories();
 
-    const [savedFeedItems, savedLinks, allTags] = await Promise.all([
-        prisma.feedItem.findMany({
-            where: {
-                savedAt: { not: null },
-                source: { category: { userId: session.user.id } }
-            },
-            include: {
-                source: { select: { title: true } },
-                tags: { include: { tag: { select: { id: true, name: true } } } },
-            },
-            orderBy: { savedAt: 'desc' }
-        }),
-        prisma.savedLink.findMany({
-            where: { userId: session.user.id },
-            include: { tags: { include: { tag: { select: { id: true, name: true } } } } },
-            orderBy: { createdAt: 'desc' }
-        }),
+    const [itemsPage, allTags] = await Promise.all([
+        fetchSavedItemsPage(session.user.id, { tag, q }),
         prisma.tag.findMany({
             where: { userId: session.user.id },
             orderBy: { name: 'asc' },
         }),
     ]);
 
-    const articles = savedFeedItems.map(item => ({
-        id: item.id,
-        title: item.title,
-        link: item.link,
-        content: item.content,
-        savedAt: item.savedAt!,
-        sourceTitle: item.source.title,
-        tags: item.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
-    }));
-
-    const links = savedLinks.map(link => ({
-        id: link.id,
-        title: link.title,
-        url: link.url,
-        description: link.description,
-        createdAt: link.createdAt,
-        tags: link.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
-    }));
-
     return (
         <>
             <PageHeader categories={categories} tags={allTags} username={session.user.username} email={session.user.email} />
+            {(saved || saveError) && (
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="px-4 py-2 border-b-2 border-foreground bg-background font-mono text-[11px] font-bold uppercase tracking-widest text-center"
+                >
+                    {saved
+                        ? <span>Saved <span className="text-terracotta">{saved}</span> to your reading list.</span>
+                        : <span className="text-terracotta">{saveError}</span>}
+                </div>
+            )}
             <Suspense fallback={null}>
                 <SavedPageClient
+                    key={`${tag ?? ''}:${q ?? ''}`}
                     username={session.user.username}
-                    initialArticles={articles}
-                    initialLinks={links}
+                    initialArticles={itemsPage.articles}
+                    initialLinks={itemsPage.links}
                     initialTags={allTags.map(t => ({ id: t.id, name: t.name }))}
+                    initialFeedOffset={itemsPage.nextFeedOffset}
+                    initialLinkOffset={itemsPage.nextLinkOffset}
+                    initialHasMore={itemsPage.hasMore}
                 />
             </Suspense>
         </>
