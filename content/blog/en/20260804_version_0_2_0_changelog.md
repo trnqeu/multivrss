@@ -1,5 +1,5 @@
 ---
-title: "Multivrss 0.2.0 up close: the changelog"
+title: "Multivrss 0.2 up close"
 category: "PRODUCT DESIGN"
 date: "05 AUG 2026"
 translationSlug: "20260804_versione_020_changelog"
@@ -8,24 +8,38 @@ author: "Stefano Trinchero"
 excerpt: "In my original plan, multivrss.com was supposed to be simple and minimal, but how can a Product Manager resist the temptation to add a ton of useless features?"
 ---
 
-*Translated from the original Italian with the help of AI — if a sentence sounds a bit off, that's probably why.*
+*Translated from the original Italian with the help of AI. If a sentence sounds a bit off, that's probably why.*
 
-When I started this project I told myself: Stefano, please, keep it simple. Few features, let's go *live* with an ultra-minimal version. It has to do very few things, and ideally do them without breaking: track *RSS feeds* and save URLs. That's it.
-
-Then things went very differently. Being both the only developer and the only user of the service, myself-the-user started pestering myself-the-developer, constantly reporting bugs and suggesting new features.
-
-Out of this conflict between my two personalities, Multivrss 0.2.0 was born.
+In my original plan, MultivRSS was supposed to be simple and minimal, but how can a Product Manager resist the temptation to add a ton of useless features? After piling on enough of them, I had to build a page just to keep track of the changes, and try to impose some discipline on how I publish updates.
 
 ## Changelog and version tracking
 
-A version that, to start with, introduces the concept of version tracking and a *changelog*, to try to bring a bit of order and discipline to a development flow that, let's be honest, had been chaotic and pretty random up to this point.
+Here you'll find the [changelog](https://multivrss.com/en/changelog) page, with a concise description of every change made in each version.
 
-We (sorry, I feel more comfortable using the plural) have added a [changelog](https://multivrss.com/en/changelog) page that we hope to keep up to date.
 
-There you'll find a concise but thorough description of everything that changed in every version.
+## Readability for in-app reading
 
-One big question remains: which features will mark the jump from version 0.something to version 1.0? We have a few ideas, but we can already tell you it won't take much longer, if only because, as we keep repeating: this product is supposed to have few, very few *features*, and honestly it feels like we already have almost all of them. From here on it'll mostly be about facing a hell of *bug fixes*.
+The feature I'm proudest of is the integration with Mozilla's [Readability](https://github.com/mozilla/readability) library, which lets MultivRSS users read articles directly inside the dashboard.
 
-In the next posts we'll look in-some-detail-but-not-too-much at a few of Multivrss's new features.
+![View of an article open in Reader Mode inside MultivRSS](/blog/20260804/readability.png)
 
-Bye!
+
+And I'm even prouder of the fact that, as of today, you can:
+
+- **copy articles as plain text** (and maybe paste them into an LLM prompt)
+- **download articles as markdown** (and maybe drop them into your favorite *second brain*. And if you don't have a *second brain*, I'd suggest starting [here](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f))
+
+## A few other things
+
+- The app's internal search engine originally ran on [Meilisearch](https://www.meilisearch.com/): blazing fast, extremely capable, and also the textbook definition of *overkill*. I realized Postgres's full-text search was more than enough to search across feeds and saved articles, so I backtracked and removed Meilisearch entirely. If this project had any users, they probably wouldn't have noticed a thing
+- **Account deletion**: if this project had any users, they would now be able to delete their own account
+- **Progressive Web App**: from Chrome you can install the site as an app and use the PWA on both desktop and mobile. I personally use it on both, with great results
+- The ability to **tag** saved articles
+- You can paste a **YouTube channel link** and follow it as a source
+- Noticeable improvements to the **suggested feeds** page, hopefully one I'll keep updating regularly
+- A [**FAQ**](https://multivrss.com/en/faq) page
+- Integration with [Sentry](https://sentry.io/) for error reporting
+
+There's definitely more, but this is already long enough.
+
+Until next time.
