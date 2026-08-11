@@ -241,25 +241,21 @@ export function DigestCard({ item }: CardProps) {
           disabled={saved || pending}
           onClick={() => save(item)}
         >
-          <span aria-hidden="true">{saved ? "✓" : "✚"}</span>
           {saved ? strings.savedLabel : strings.saveLabel}
         </button>
-        {item.feedUrl ? (
+        {item.feedUrl && (
           <button
             type="button"
             className="btn"
             disabled={subscribed || pending}
             onClick={() => addFeed(item)}
           >
-            <span aria-hidden="true">📡</span>
             {subscribed ? strings.alreadySubscribedLabel : strings.addFeedLabel}
           </button>
-        ) : (
-          <span className="digest-item__note">{strings.noFeedNote}</span>
         )}
       </div>
       {error && (
-        <p role="status" aria-live="polite" className="digest-item__note text-terracotta mt-2">
+        <p role="status" aria-live="polite" className="digest-item__note digest-item__note--error">
           {error}
         </p>
       )}

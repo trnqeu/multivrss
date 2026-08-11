@@ -63,7 +63,7 @@ export default function MarketingNav({ lang, dict, username }: Props) {
             fallbackHref={`/u/${username}`}
             className="bg-black text-paper border-2 border-black px-[15px] py-[10px] max-[920px]:px-[10px] max-[920px]:py-[8px] font-mono text-[10.5px] max-[920px]:text-[9px] font-extrabold tracking-[0.18em] uppercase hover:bg-terracotta hover:text-black hover:border-terracotta transition-colors"
           >
-            {t.myFeed}
+            {t.openApp}
           </SmartBackLink>
         ) : (
           authButtons.map((route) => (

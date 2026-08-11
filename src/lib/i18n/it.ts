@@ -2,7 +2,7 @@ import type { Dictionary } from "./types";
 
 export const it: Dictionary = {
   nav: {
-    myFeed: "IL MIO FEED →",
+    openApp: "APRI MULTIVRSS →",
   },
   hero: {
     kicker: "I tuoi contenuti. E basta.",
@@ -207,7 +207,6 @@ export const it: Dictionary = {
     savedLabel: "Salvato",
     addFeedLabel: "Aggiungi feed",
     alreadySubscribedLabel: "Già nei tuoi feed",
-    noFeedNote: "Nessun feed RSS per questa fonte",
     saveErrorMessage: "Salvataggio non riuscito. Riprova.",
     addFeedErrorMessage: "Aggiunta non riuscita. Riprova.",
   },
