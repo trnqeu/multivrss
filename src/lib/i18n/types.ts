@@ -13,7 +13,7 @@ export interface FaqCategory {
 
 export interface Dictionary {
   nav: {
-    myFeed: string;
+    openApp: string;
   };
   hero: {
     kicker: string;
@@ -90,7 +90,6 @@ export interface Dictionary {
     savedLabel: string;
     addFeedLabel: string;
     alreadySubscribedLabel: string;
-    noFeedNote: string;
     saveErrorMessage: string;
     addFeedErrorMessage: string;
   };

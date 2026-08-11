@@ -192,8 +192,10 @@ a:focus-visible {
 .prose p  { font-size: 16px; line-height: 1.7; color: #000; margin: 1rem 0; }
 .prose a  { color: var(--terracotta); text-decoration: underline; }
 .prose a:hover { opacity: 0.75; }
-.prose ul, .prose ol { padding-left: 1.5rem; margin: 1rem 0; }
+.prose ul { padding-left: 1.5rem; margin: 1rem 0; list-style: disc; }
+.prose ol { padding-left: 1.5rem; margin: 1rem 0; list-style: decimal; }
 .prose li { font-size: 16px; line-height: 1.7; margin: 0.4rem 0; }
+.prose img { max-width: 100%; height: auto; display: block; margin: 1.5rem 0; }
 .prose pre {
   background: #000;
   color: #f6f3ec;
@@ -309,6 +311,10 @@ a:focus-visible {
   text-transform: uppercase;
   color: var(--ink-3);
 }
+/* Error state (save/add-feed failure) — unlayered so it reliably outranks
+   the base .digest-item__note grey, unlike a Tailwind text-* utility which
+   would lose to that unlayered rule regardless of specificity. */
+.digest-item .digest-item__note--error { color: var(--terracotta); margin-top: 8px; }
 @media (max-width: 640px) {
   .digest-item { margin-left: -20px; margin-right: -20px; padding: 20px; }
   .digest-item .digest-item__actions .btn { flex: 1; justify-content: center; min-height: 44px; }
