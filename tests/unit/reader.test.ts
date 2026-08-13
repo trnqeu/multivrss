@@ -35,6 +35,28 @@ const ARTICLE_HTML = `<!doctype html><html><head><title>Test</title></head><body
 
 const THIN_HTML = '<html><body><p>hi</p></body></html>';
 
+// Reproduces a real-world failure mode: Next.js's PPR/dynamic-resume streaming
+// delivers a resolved-but-postponed subtree wrapped in a `hidden` container
+// (e.g. `<div hidden id="S:2">…</div>`) meant to be revealed by client-side JS.
+// Readability's own `_isProbablyVisible()` check (Readability.js) explicitly
+// strips any `hidden`-attributed node before scoring candidates, so on a page
+// like this the *only* thing left to score is the tiny always-visible loading
+// placeholder — even though the real article sits right there in the DOM.
+const HIDDEN_RESUME_HTML = `<!doctype html><html><head><title>Field Notes: A Small Utility</title></head><body>
+<div>
+  <span>MultivRSS</span>
+  <span>Initializing_Data_Stream // 0xAF4</span>
+</div>
+<div hidden id="S:2">
+  <main id="main-content">
+    <h1>Field Notes: A Small Utility</h1>
+    <p>This week I spent a few afternoons building a tiny utility that nobody asked for, mostly because I wanted an excuse to sit with a problem long enough to understand its edges properly this time around.</p>
+    <p>I started from a blank file and a rough idea, then let the shape of the thing emerge as I ran into the first few real constraints one after another, adjusting course each time something didn't quite fit.</p>
+    <p>What stuck with me afterwards was less the code itself and more the sequence of small decisions that led to it, each one obvious only in hindsight, which is usually how these side projects go.</p>
+  </main>
+</div>
+</body></html>`;
+
 function mockSuccessfulFetch(html: string, finalUrl = LINK) {
     mockSafeFetchText.mockResolvedValue({ status: 200, contentType: 'text/html; charset=utf-8', body: html, finalUrl });
 }
@@ -148,6 +170,17 @@ describe('getReadableArticle', () => {
             'EX',
             604_800,
         );
+    });
+
+    it('retries scoped to <main> when full-page extraction is defeated by a hidden resume container', async () => {
+        mockSuccessfulFetch(HIDDEN_RESUME_HTML);
+
+        const result = await getReadableArticle(LINK);
+
+        expect(result.ok).toBe(true);
+        if (!result.ok) throw new Error('expected ok result');
+        expect(result.article.title).toBe('Field Notes: A Small Utility');
+        expect(result.article.contentHtml).toContain('a blank file and a rough idea');
     });
 
     it('still returns a result when the Redis cache is unavailable', async () => {
