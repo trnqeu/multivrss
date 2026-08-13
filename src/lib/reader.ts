@@ -137,6 +137,31 @@ async function writeFailureCache(link: string, reason: ReaderFailureReason): Pro
     }
 }
 
+// Readability's own candidate-scoring (link density, tag/class heuristics)
+// runs against the *whole* document. On pages with a lot of chrome outside the
+// article — nav bars, footers, card grids of links — that scoring can pick the
+// wrong top candidate (or none at all) even though a perfectly good, well-formed
+// article sits right there in a <main>/<article> landmark; charThreshold alone
+// doesn't help since the failure is which node gets picked, not how much text
+// it has. Try the full document first (right call for the general case — most
+// third-party article pages don't have this problem), and only if that comes up
+// thin, retry scoped to the page's own <main>/<article> landmark before giving up.
+function extractArticle(document: Document): ReturnType<Readability['parse']> {
+    const fullPage = new Readability(document, { charThreshold: MIN_EXTRACTED_CHARS }).parse();
+    if (fullPage && (fullPage.textContent?.trim().length ?? 0) >= MIN_EXTRACTED_CHARS) {
+        return fullPage;
+    }
+
+    const scope = document.querySelector('article') ?? document.querySelector('main');
+    if (!scope) return fullPage;
+
+    const { document: scopedDocument } = parseHTML(
+        `<!doctype html><html><head><title>${document.title ?? ''}</title></head><body>${scope.outerHTML}</body></html>`
+    );
+    const scoped = new Readability(scopedDocument as unknown as Document, { charThreshold: MIN_EXTRACTED_CHARS }).parse();
+    return scoped && (scoped.textContent?.trim().length ?? 0) >= MIN_EXTRACTED_CHARS ? scoped : fullPage;
+}
+
 // Extracts a clean, readable version of a third-party article page, caching
 // the result in Redis. Never throws — every expected failure mode (SSRF,
 // network error, non-HTML response, thin/empty extraction) is returned as
@@ -178,7 +203,7 @@ export async function getReadableArticle(link: string): Promise<ReaderResult> {
     // DOM shape but is not the same nominal type as the ambient lib.dom `Document`
     // Readability's own types are written against — a deliberate, narrow cast at
     // the one boundary where a lightweight DOM shim meets a jsdom-typed library.
-    const parsed = new Readability(document as unknown as Document, { charThreshold: MIN_EXTRACTED_CHARS }).parse();
+    const parsed = extractArticle(document as unknown as Document);
 
     const textContent = parsed?.textContent?.trim() ?? '';
     if (!parsed || !parsed.content || textContent.length < MIN_EXTRACTED_CHARS) {
