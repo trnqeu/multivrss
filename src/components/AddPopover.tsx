@@ -34,6 +34,12 @@ export default function AddPopover({ categories, tags }: Props) {
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, null);
     const [, startTransition] = useTransition();
     const { notifyLinkSaved, notifyLinkDetailsSaved } = useSavedLinksSync();
+    // Next's back/forward client cache can restore this component with its
+    // effects re-run against the same already-handled `saveState` (see the
+    // "Browser/router back-forward navigation..." gotcha) — tracks the last
+    // result this effect actually acted on so a replay of the identical
+    // object doesn't reopen the tag modal for a save the user already closed.
+    const handledSaveStateRef = useRef<typeof saveState>(null);
 
     const close = useCallback(() => {
         setOpen(false);
@@ -71,8 +77,8 @@ export default function AddPopover({ categories, tags }: Props) {
     }, [open, close]);
 
     useEffect(() => {
-        if (saveState?.success && saveState.link) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (saveState?.success && saveState.link && handledSaveStateRef.current !== saveState) {
+            handledSaveStateRef.current = saveState;
             setSavedLink(saveState.link);
             setTitleDraft(saveState.link.title ?? "");
             notifyLinkSaved(saveState.link);
