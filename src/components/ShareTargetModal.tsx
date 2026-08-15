@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition, useActionState } from "react";
+import { useEffect, useRef, useState, useTransition, useActionState } from "react";
 import AddFeedForm from "./AddFeedForm";
 import AssignTagsModal from "./AssignTagsModal";
 import { useCloseOnNavigate } from "./useCloseOnNavigate";
@@ -26,11 +26,18 @@ export default function ShareTargetModal({ categories, tags, url, title, onClose
     const [saveState, saveAction, isSaving] = useActionState(saveExternalLink, initialState);
     const [, startTransition] = useTransition();
     const { notifyLinkSaved, notifyLinkDetailsSaved } = useSavedLinksSync();
+    // Next's back/forward client cache can restore this component (e.g. the
+    // mobile PWA reusing its window across two share-target navigations)
+    // with its effects re-run against the same already-handled `saveState`
+    // (see the "Browser/router back-forward navigation..." gotcha) — tracks
+    // the last result this effect actually acted on so a replay of the
+    // identical object doesn't reopen the tag modal for a save that's done.
+    const handledSaveStateRef = useRef<typeof saveState>(null);
     useCloseOnNavigate(() => setSavedLinkId(null));
 
     useEffect(() => {
-        if (saveState?.success && saveState.link) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (saveState?.success && saveState.link && handledSaveStateRef.current !== saveState) {
+            handledSaveStateRef.current = saveState;
             setSavedLinkId(saveState.link.id);
             setTitleDraft(saveState.link.title ?? '');
             notifyLinkSaved(saveState.link);
