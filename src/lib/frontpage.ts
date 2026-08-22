@@ -24,8 +24,16 @@ export type FrontPageItem = FrontPageBaseItem & {
 
 export type FrontPage = {
     forYouPool: FrontPageItem[];
-    sections: { category: string; items: FrontPageItem[]; totalCount: number }[];
-    stats: { read: number; saved: number; categories: number; updatedAt: number | null; dateLabel: string };
+    sections: { category: string; items: FrontPageItem[]; totalCount: number; remaining: number }[];
+    stats: {
+        read: number; saved: number; categories: number; updatedAt: number | null; dateLabel: string;
+        // Today's edition is the exact item set assembled below, which is
+        // already stable for the day (getFrontPage is cached per user per
+        // calendar date) — total/readAtLoad give the masthead a finishable,
+        // never-growing progress figure. Items loaded later via "load more"
+        // are deliberately outside this set — see expandFrontPageSection.
+        edition: { total: number; readAtLoad: number };
+    };
 };
 
 const RECO_LOOKBACK_DAYS = 30;
@@ -53,7 +61,10 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
-        return { forYouPool: [], sections: [], stats: { read: 0, saved: 0, categories: 0, updatedAt: null, dateLabel } };
+        return {
+            forYouPool: [], sections: [],
+            stats: { read: 0, saved: 0, categories: 0, updatedAt: null, dateLabel, edition: { total: 0, readAtLoad: 0 } },
+        };
     }
     const updatedAt = sources.reduce<number | null>((latest, s) => {
         if (!s.lastSync) return latest;
@@ -210,20 +221,54 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         catTotal.set(cat, (catTotal.get(cat) ?? 0) + row._count._all);
     }
 
+    // Unread pool per category — used to derive each section's "remaining"
+    // count for the load-more footer. Every item already placed in a section
+    // or forYouPool is guaranteed read:false && savedAt:null (both the
+    // Engine-A pick path and the fill path enforce this), so subtracting
+    // items already shown gives an exact count without a query per category.
+    const unreadCounts = await prisma.feedItem.groupBy({
+        by: ['sourceId'],
+        where: { sourceId: { in: sourceIds }, read: false, savedAt: null },
+        _count: { _all: true },
+    });
+    const catUnread = new Map<string, number>();
+    for (const row of unreadCounts) {
+        const cat = sourceCat.get(row.sourceId) ?? '—';
+        catUnread.set(cat, (catUnread.get(cat) ?? 0) + row._count._all);
+    }
+    // forYouPool items are drawn from the same unread pool but are excluded
+    // from byCat/sections above (see the forYouIds.has(it.id) check) — they
+    // still count against catUnread, so they must be subtracted too or
+    // "remaining" would double-count them as available.
+    const forYouCountByCat = new Map<string, number>();
+    for (const it of forYouPool) {
+        forYouCountByCat.set(it.categoryName, (forYouCountByCat.get(it.categoryName) ?? 0) + 1);
+    }
+
     const maxAffinityByCat = new Map([...byCat.entries()].map(([category, items]) => [category, Math.max(...items.map(i => i.affinity))]));
     const sections = [...byCat.entries()]
         .map(([category, items]) => ({
             category,
             items: [...items].sort((a, b) => (b.pubDate ?? 0) - (a.pubDate ?? 0)),
             totalCount: catTotal.get(category) ?? items.length,
+            remaining: Math.max(0, (catUnread.get(category) ?? 0) - items.length - (forYouCountByCat.get(category) ?? 0)),
         }))
         .filter(s => s.items.length > 0)
         .sort((a, b) => (maxAffinityByCat.get(b.category) ?? 0) - (maxAffinityByCat.get(a.category) ?? 0));
 
+    // "Today's edition" — see the FrontPage.stats.edition doc comment above.
+    const editionIds = [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id);
+    const editionRead = editionIds.length > 0
+        ? await prisma.feedItem.count({ where: { id: { in: editionIds }, read: true } })
+        : 0;
+
     return {
         forYouPool,
         sections,
-        stats: { read: readCount, saved: savedCount, categories: sections.length, updatedAt, dateLabel },
+        stats: {
+            read: readCount, saved: savedCount, categories: sections.length, updatedAt, dateLabel,
+            edition: { total: editionIds.length, readAtLoad: editionRead },
+        },
     };
 }
 

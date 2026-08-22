@@ -101,3 +101,34 @@ export function decodeHtmlEntities(str: string): string {
         .replace(/&apos;/g, "'")
         .replace(/&nbsp;/g, ' ');
 }
+
+// Trailing "read more" boilerplate that feeds commonly append to excerpts —
+// stripped before truncating so it never survives into a Front Page row dek.
+const DEK_BOILERPLATE = [
+    /\s*read more.*$/i,
+    /\s*continue reading.*$/i,
+    /\s*\(more…?\)\s*$/i,
+    /\s*\[…\]\s*$/,
+    /\s*the post .* appeared first on .*$/i,
+];
+
+/** Derives a short plain-text dek from an item's (already HTML-stripped) content:
+ *  collapses whitespace, strips common feed "read more" boilerplate tails, and
+ *  truncates at a word boundary. Returns null for empty/whitespace-only input —
+ *  callers should render nothing rather than a placeholder. */
+export function makeDek(content: string | null | undefined, maxChars = 100): string | null {
+    if (!content) return null;
+    let text = content.replace(/\s+/g, ' ').trim();
+    if (!text) return null;
+
+    for (const pattern of DEK_BOILERPLATE) {
+        text = text.replace(pattern, '');
+    }
+    text = text.trim();
+    if (!text) return null;
+
+    if (text.length <= maxChars) return text;
+    const cut = text.slice(0, maxChars);
+    const lastSpace = cut.lastIndexOf(' ');
+    return `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trim()}…`;
+}

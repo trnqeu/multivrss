@@ -39,6 +39,7 @@ vi.mock('@/lib/prisma', () => ({
             updateMany: vi.fn(),
             findMany: vi.fn(),
             findFirst: vi.fn(),
+            count: vi.fn(),
         },
         savedLink: {
             findFirst: vi.fn(),
@@ -231,6 +232,132 @@ describe('markManyRead', () => {
         const result = await markManyRead(['item_1']);
 
         expect(result).toEqual({ success: false, message: 'Failed to mark as read.' });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// expandFrontPageSection — Front Page "load more" in-place expansion
+// ---------------------------------------------------------------------------
+describe('expandFrontPageSection', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('returns unauthorized without session', async () => {
+        mockedSession.mockResolvedValue(null);
+
+        const { expandFrontPageSection } = await import('@/app/actions/feed-items');
+        const result = await expandFrontPageSection('TECH', [], 6);
+
+        expect(result).toEqual({ success: false, items: [], remaining: 0 });
+        expect(mockedPrisma.feedSource.findMany).not.toHaveBeenCalled();
+    });
+
+    it('returns empty when the category has no sources', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedSource.findMany.mockResolvedValue([]);
+
+        const { expandFrontPageSection } = await import('@/app/actions/feed-items');
+        const result = await expandFrontPageSection('TECH', [], 6);
+
+        expect(result).toEqual({ success: true, items: [], remaining: 0 });
+        expect(mockedPrisma.feedItem.findMany).not.toHaveBeenCalled();
+    });
+
+    it('fetches the next batch reverse-chron, stamps it shown, and does NOT invalidate the frontpage cache tag', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedSource.findMany.mockResolvedValue([
+            { id: 'src_1', title: 'Source One', slug: 'source-one' },
+        ] as any);
+        const pubDate = new Date('2026-08-20T12:00:00.000Z');
+        mockedPrisma.feedItem.findMany.mockResolvedValue([
+            { id: 'item_3', title: 'Third', link: 'https://example.com/3', content: 'Body', pubDate, sourceId: 'src_1' },
+            { id: 'item_4', title: 'Fourth', link: 'https://example.com/4', content: null, pubDate: null, sourceId: 'src_1' },
+        ] as any);
+        mockedPrisma.feedItem.updateMany.mockResolvedValue({ count: 2 } as any);
+        mockedPrisma.feedItem.count.mockResolvedValue(3);
+
+        const { expandFrontPageSection } = await import('@/app/actions/feed-items');
+        const result = await expandFrontPageSection('TECH', ['item_1', 'item_2'], 6);
+
+        expect(mockedPrisma.feedSource.findMany).toHaveBeenCalledWith({
+            where: { category: { userId: 'user_1', name: 'TECH' } },
+            select: { id: true, title: true, slug: true },
+        });
+        expect(mockedPrisma.feedItem.findMany).toHaveBeenCalledWith({
+            where: { sourceId: { in: ['src_1'] }, read: false, savedAt: null, id: { notIn: ['item_1', 'item_2'] } },
+            orderBy: { pubDate: 'desc' },
+            take: 6,
+            select: { id: true, title: true, link: true, content: true, pubDate: true, sourceId: true },
+        });
+        // Newly loaded items are stamped shown, same as first-paint items,
+        // so they're permanently ineligible for tomorrow's Engine-A picks.
+        expect(mockedPrisma.feedItem.updateMany).toHaveBeenCalledWith({
+            where: { id: { in: ['item_3', 'item_4'] }, source: { category: { userId: 'user_1' } } },
+            data: { frontPageShownAt: expect.any(Date) },
+        });
+        expect(mockedPrisma.feedItem.count).toHaveBeenCalledWith({
+            where: {
+                sourceId: { in: ['src_1'] }, read: false, savedAt: null,
+                id: { notIn: ['item_1', 'item_2', 'item_3', 'item_4'] },
+            },
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.remaining).toBe(3);
+        expect(result.items).toEqual([
+            {
+                id: 'item_3', link: 'https://example.com/3', title: 'Third', content: 'Body',
+                pubDate: pubDate.getTime(), sourceTitle: 'Source One', sourceSlug: 'source-one',
+                categoryName: 'TECH', read: false, savedAt: null, reasonType: 'source',
+                reason: 'Fresh from Source One', affinity: 40,
+            },
+            {
+                id: 'item_4', link: 'https://example.com/4', title: 'Fourth', content: undefined,
+                pubDate: null, sourceTitle: 'Source One', sourceSlug: 'source-one',
+                categoryName: 'TECH', read: false, savedAt: null, reasonType: 'source',
+                reason: 'Fresh from Source One', affinity: 40,
+            },
+        ]);
+        // The defining asymmetry vs dismissFrontPageItem: appending client-side
+        // must not force getFrontPage() to recompute on the next reload.
+        expect(mockedUpdateTag).not.toHaveBeenCalled();
+    });
+
+    it('clamps batchSize to a sane range (never trusts the client-supplied number)', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedSource.findMany.mockResolvedValue([{ id: 'src_1', title: 'Source One', slug: 'source-one' }] as any);
+        mockedPrisma.feedItem.findMany.mockResolvedValue([]);
+        mockedPrisma.feedItem.count.mockResolvedValue(0);
+
+        const { expandFrontPageSection } = await import('@/app/actions/feed-items');
+        await expandFrontPageSection('TECH', [], 9999);
+
+        expect(mockedPrisma.feedItem.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({ take: 50 }),
+        );
+    });
+
+    it('returns a failure shape when the query throws', async () => {
+        mockedSession.mockResolvedValue({
+            user: { id: 'user_1', username: 'testuser' },
+            expires: new Date(Date.now() + 1000).toISOString(),
+        });
+        mockedPrisma.feedSource.findMany.mockRejectedValue(new Error('DB error'));
+
+        const { expandFrontPageSection } = await import('@/app/actions/feed-items');
+        const result = await expandFrontPageSection('TECH', [], 6);
+
+        expect(result).toEqual({ success: false, items: [], remaining: 0 });
     });
 });
 
