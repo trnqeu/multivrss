@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slugify, isPrivateIp, PASSWORD_REGEX } from '@/lib/utils';
+import { slugify, isPrivateIp, PASSWORD_REGEX, makeDek } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
 // slugify
@@ -112,5 +112,58 @@ describe('PASSWORD_REGEX', () => {
 
     it('rejects passwords without a special character', () => {
         expect(PASSWORD_REGEX.test('Passw0rd1')).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// makeDek
+// ---------------------------------------------------------------------------
+describe('makeDek', () => {
+    it('returns null for empty, whitespace-only, null, or undefined input', () => {
+        expect(makeDek('')).toBeNull();
+        expect(makeDek('   ')).toBeNull();
+        expect(makeDek(null)).toBeNull();
+        expect(makeDek(undefined)).toBeNull();
+    });
+
+    it('collapses whitespace', () => {
+        expect(makeDek('Too   many\n\nspaces   here')).toBe('Too many spaces here');
+    });
+
+    it('strips a "read more" tail', () => {
+        expect(makeDek('An interesting summary. Read more at example.com')).toBe('An interesting summary.');
+    });
+
+    it('strips a "continue reading" tail', () => {
+        expect(makeDek('An interesting summary. Continue reading on our site')).toBe('An interesting summary.');
+    });
+
+    it('strips a "(more…)" tail', () => {
+        expect(makeDek('An interesting summary. (more…)')).toBe('An interesting summary.');
+    });
+
+    it('strips a "[…]" tail', () => {
+        expect(makeDek('An interesting summary. […]')).toBe('An interesting summary.');
+    });
+
+    it('strips a WordPress "appeared first on" tail', () => {
+        expect(makeDek('An interesting summary. The post Title appeared first on My Blog.')).toBe('An interesting summary.');
+    });
+
+    it('returns null when stripping boilerplate leaves nothing', () => {
+        expect(makeDek('Read more')).toBeNull();
+    });
+
+    it('returns short text unchanged, with no manual ellipsis', () => {
+        expect(makeDek('A short summary.')).toBe('A short summary.');
+    });
+
+    it('truncates long text at a word boundary and appends an ellipsis', () => {
+        const long = 'word '.repeat(30).trim(); // 30 five-char "word" tokens, well over 100 chars
+        const result = makeDek(long, 20);
+        expect(result).not.toBeNull();
+        expect(result!.endsWith('…')).toBe(true);
+        expect(result!.length).toBeLessThanOrEqual(21); // 20 + ellipsis, no mid-word cut
+        expect(result).not.toContain(' …');
     });
 });

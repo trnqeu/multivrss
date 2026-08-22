@@ -241,6 +241,89 @@ export async function dismissFrontPageItem(
     }
 }
 
+// Loads the next batch of a category's unread items directly into the Front
+// Page section (in-place "load more" — see Section in FrontPage.tsx).
+// Deliberately mirrors dismissFrontPageItem's candidate query (read:false,
+// savedAt:null, id notIn excludeIds, orderBy pubDate desc) rather than Engine
+// A's "fresh" fill query in getFrontPage(): load-more's job is to exhaust the
+// category's true remaining unread pool (matching River semantics for that
+// category), not stay within algorithmically-fresh bounds — so no
+// frontPageShownAt filter and no shuffle, unlike the daily fill step.
+//
+// Does NOT call updateTag(frontpageTag(userId)): today's cached edition is
+// meant to stay fixed once generated (see getFrontPage's cacheLife('days')).
+// Invalidating here would force a recompute on the user's next reload,
+// re-running Engine A/the fill-shuffle and changing which items make up
+// "today's edition" mid-day. Contrast with dismissFrontPageItem, which DOES
+// invalidate — a dismiss genuinely swaps that item's slot and should be
+// reflected on reload.
+export async function expandFrontPageSection(
+    categoryName: string,
+    excludeIds: string[],
+    batchSize: number,
+): Promise<{ success: boolean; items: FrontPageItem[]; remaining: number }> {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, items: [], remaining: 0 };
+
+    const take = Math.min(Math.max(Math.trunc(batchSize) || 0, 0), 50);
+
+    try {
+        const sources = await prisma.feedSource.findMany({
+            where: { category: { userId: session.user.id, name: categoryName } },
+            select: { id: true, title: true, slug: true },
+        });
+        const sourceIds = sources.map(s => s.id);
+        if (sourceIds.length === 0) return { success: true, items: [], remaining: 0 };
+
+        const candidates = await prisma.feedItem.findMany({
+            where: {
+                sourceId: { in: sourceIds },
+                read: false,
+                savedAt: null,
+                id: { notIn: excludeIds },
+            },
+            orderBy: { pubDate: 'desc' },
+            take,
+            select: { id: true, title: true, link: true, content: true, pubDate: true, sourceId: true },
+        });
+
+        if (candidates.length > 0) {
+            await stampFrontPageShown(candidates.map(c => c.id), session.user.id);
+        }
+
+        const sourceTitle = new Map(sources.map(s => [s.id, s.title ?? '']));
+        const sourceSlug = new Map(sources.map(s => [s.id, s.slug]));
+        const items: FrontPageItem[] = candidates.map(c => ({
+            id: c.id,
+            link: c.link,
+            title: c.title,
+            content: c.content ?? undefined,
+            pubDate: c.pubDate ? c.pubDate.getTime() : null,
+            sourceTitle: sourceTitle.get(c.sourceId) || undefined,
+            sourceSlug: sourceSlug.get(c.sourceId),
+            categoryName,
+            read: false,
+            savedAt: null,
+            reasonType: 'source',
+            reason: `Fresh from ${sourceTitle.get(c.sourceId) || 'your feed'}`,
+            affinity: 40,
+        }));
+
+        const remaining = await prisma.feedItem.count({
+            where: {
+                sourceId: { in: sourceIds },
+                read: false,
+                savedAt: null,
+                id: { notIn: [...excludeIds, ...items.map(i => i.id)] },
+            },
+        });
+
+        return { success: true, items, remaining };
+    } catch {
+        return { success: false, items: [], remaining: 0 };
+    }
+}
+
 export type ReaderItemKind = 'feedItem' | 'savedLink';
 
 export interface ReaderPageItem {
