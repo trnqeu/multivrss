@@ -1,15 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { FrontPage as FrontPageData, FrontPageItem } from '@/lib/frontpage';
 import FrontPageItemActions from './FrontPageItemActions';
 import FrontPageLink from './FrontPageLink';
-import { dismissFrontPageItem, markFrontPageShown } from '@/app/actions/feed-items';
+import { dismissFrontPageItem, expandFrontPageSection, markFrontPageShown } from '@/app/actions/feed-items';
+import { makeDek } from '@/lib/utils';
+import { EditionProgressProvider, useEditionProgress } from './EditionProgressContext';
 
 type TagVM = { id: string; name: string };
 
 const FORYOU_COUNT = 4;
+const FIRST_BATCH_SIZE = 6;
+const REST_BATCH_SIZE = 50; // "load everything remaining" cap, see plan's batch-size decision
 
 // ── Category tag — always terracotta ──
 function CatTag({ name }: { name: string }) {
@@ -98,19 +102,29 @@ function CollapseToggle({ collapsed, onToggle, label, controlsId }: { collapsed:
     );
 }
 
-// ── Masthead — single-line dateline ──
+// ── Masthead — edition label + live progress ──
 function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
+    const { readCount, total } = useEditionProgress();
+    const pct = total > 0 ? Math.round((readCount / total) * 100) : 0;
     return (
         <div className="pt-[38px]">
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] font-semibold uppercase tracking-[.06em] text-foreground/45">
-                <span>{stats.dateLabel}</span>
-                <span aria-hidden="true" className="text-foreground/22">·</span>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 font-mono text-[10px] font-semibold uppercase tracking-[.09em] text-foreground/45">
                 <span>
-                    Curated from <b className="font-extrabold text-foreground/70">{stats.read} read</b>,{' '}
-                    <b className="font-extrabold text-foreground/70">{stats.saved} saved</b> across{' '}
-                    <b className="font-extrabold text-foreground/70">{stats.categories} categories</b>
+                    Your edition <span aria-hidden="true" className="text-foreground/22">·</span> {stats.dateLabel}
                 </span>
-            </p>
+                <p aria-live="polite" className="m-0">
+                    <b className="font-extrabold text-foreground/70">{readCount}</b> of{' '}
+                    <b className="font-extrabold text-foreground/70">{total}</b> read{' '}
+                    <span aria-hidden="true" className="text-foreground/22">·</span>{' '}
+                    <b className="font-extrabold text-foreground/70">{stats.saved}</b> saved
+                </p>
+            </div>
+            <div className="relative h-[2px] bg-foreground/[0.09] mt-[9px]">
+                <div
+                    className="absolute inset-y-0 left-0 bg-terracotta transition-[width] duration-300 ease-out"
+                    style={{ width: `${pct}%` }}
+                />
+            </div>
         </div>
     );
 }
@@ -118,13 +132,14 @@ function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
 // ── FOR YOU card ──
 function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
+    const { notifyOpened } = useEditionProgress();
     return (
         <article className="group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5">
             <CatTag name={item.categoryName} />
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
-                onNavigate={() => setOpened(true)}
+                onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[19px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
@@ -183,12 +198,13 @@ function ForYouStrip({ pool: initialPool, allTags, username }: { pool: FrontPage
 // ── Category section lead article ──
 function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
+    const { notifyOpened } = useEditionProgress();
     return (
         <article className="group flex flex-col items-start gap-[11px] min-w-0">
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
-                onNavigate={() => setOpened(true)}
+                onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[27px] font-semibold leading-[1.14] tracking-[-0.015em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
@@ -206,19 +222,28 @@ function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; all
     );
 }
 
-// ── Category section list row ──
-function Row({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
+// ── Category section list row — rows 0/1 (2nd/3rd article) get a tiered dek ──
+function Row({ item, rowIndex, allTags, onDismiss, username, animate }: {
+    item: FrontPageItem; rowIndex: number; allTags: TagVM[]; onDismiss: () => void; username: string; animate: boolean;
+}) {
     const [opened, setOpened] = useState(false);
+    const { notifyOpened } = useEditionProgress();
+    const dek = rowIndex < 2 ? makeDek(item.content) : null;
     return (
-        <li className="group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0">
+        <li className={`group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0 ${animate ? 'animate-row-in' : ''}`}>
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
-                onNavigate={() => setOpened(true)}
+                onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[17px] font-medium leading-[1.26] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
                 {item.title}
             </FrontPageLink>
+            {dek && (
+                <p className={`font-serif text-[13.5px] leading-[1.45] text-foreground/45 font-normal max-w-[52ch] line-clamp-2 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+                    {dek}
+                </p>
+            )}
             <div className="flex items-center gap-3 min-h-[18px]">
                 <Meta item={item} username={username} />
                 <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
@@ -227,15 +252,30 @@ function Row({ item, allTags, onDismiss, username }: { item: FrontPageItem; allT
     );
 }
 
-// ── Category section — lead + list, "See all" footer ──
-function Section({ category, items: initialItems, allTags, username }: { category: string; items: FrontPageItem[]; allTags: TagVM[]; username: string }) {
+// ── Category section — lead + list, in-place load-more footer ──
+function Section({ category, items: initialItems, remaining: initialRemaining, forYouPool, allTags, username }: {
+    category: string; items: FrontPageItem[]; remaining: number; forYouPool: FrontPageItem[]; allTags: TagVM[]; username: string;
+}) {
     const [items, setItems] = useState(initialItems);
+    const [remaining, setRemaining] = useState(initialRemaining);
     const [collapsed, setCollapsed] = useState(false);
+    const [newlyAddedIds, setNewlyAddedIds] = useState<Set<string>>(new Set());
+    const [nextBatchSize, setNextBatchSize] = useState(FIRST_BATCH_SIZE);
     const [, startTransition] = useTransition();
+    const [expandPending, startExpand] = useTransition();
     const [lead, ...rest] = items;
 
+    // This category's For You ids — items drawn from the same unread pool
+    // but shown at the top of the page, not in this section. Must be
+    // excluded from both dismiss-replacement and load-more candidate
+    // queries or either can duplicate an item already visible above.
+    const catForYouIds = useMemo(
+        () => forYouPool.filter(i => i.categoryName === category).map(i => i.id),
+        [forYouPool, category],
+    );
+
     function dismiss(item: FrontPageItem) {
-        const excludeIds = items.map(i => i.id);
+        const excludeIds = [...items.map(i => i.id), ...catForYouIds];
         startTransition(async () => {
             const { replacement } = await dismissFrontPageItem(item.id, category, excludeIds);
             setItems(prev => {
@@ -245,8 +285,21 @@ function Section({ category, items: initialItems, allTags, username }: { categor
         });
     }
 
+    function loadMore() {
+        const excludeIds = [...items.map(i => i.id), ...catForYouIds];
+        startExpand(async () => {
+            const result = await expandFrontPageSection(category, excludeIds, nextBatchSize);
+            if (!result.success) return;
+            setItems(prev => [...prev, ...result.items]);
+            setRemaining(result.remaining);
+            setNewlyAddedIds(new Set(result.items.map(i => i.id)));
+            setNextBatchSize(REST_BATCH_SIZE);
+        });
+    }
+
     if (!lead) return null;
     const bodyId = `sec-${category}-body`;
+    const nextCount = Math.min(nextBatchSize, remaining);
 
     return (
         <section aria-labelledby={`sec-${category}`} className="py-[34px]">
@@ -267,21 +320,53 @@ function Section({ category, items: initialItems, allTags, username }: { categor
                     <li className={`py-[18px] ${rest.length > 0 ? 'border-b border-foreground/[0.09]' : ''}`}>
                         <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} username={username} />
                     </li>
-                    {rest.map(item => (
-                        <Row key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} username={username} />
+                    {rest.map((item, i) => (
+                        <Row
+                            key={item.id}
+                            item={item}
+                            rowIndex={i}
+                            allTags={allTags}
+                            onDismiss={() => dismiss(item)}
+                            username={username}
+                            animate={newlyAddedIds.has(item.id)}
+                        />
                     ))}
                 </ul>
 
                 <div className="flex justify-start mt-6">
-                    <Link
-                        href={`?view=river&cat=${encodeURIComponent(category)}`}
-                        className="group/all inline-flex items-center gap-1.5 border border-terracotta rounded-[2px] px-[11px] py-[6px] font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-terracotta hover:opacity-70 transition-opacity no-underline"
-                    >
-                        <span>See all in {category}</span>
-                        <span aria-hidden="true" className="inline-block transition-transform duration-[160ms] group-hover/all:translate-x-[3px]">
-                            →
-                        </span>
-                    </Link>
+                    {remaining > 0 ? (
+                        <button
+                            type="button"
+                            onClick={loadMore}
+                            disabled={expandPending}
+                            className="group inline-flex items-center gap-3 border border-foreground/22 hover:border-terracotta rounded-[2px] px-[13px] py-[15px] md:py-2 font-mono text-[9.5px] uppercase bg-transparent transition-colors"
+                        >
+                            {expandPending ? (
+                                <span className="font-extrabold tracking-[.1em] text-foreground">LOADING…</span>
+                            ) : (
+                                <>
+                                    <span className="font-extrabold tracking-[.1em] text-foreground group-hover:text-terracotta transition-colors">
+                                        + {nextCount} MORE IN {category}
+                                    </span>
+                                    <span className="font-semibold tracking-[.06em] text-foreground/35 group-hover:text-terracotta group-hover:opacity-65 transition-colors">
+                                        {remaining} LEFT
+                                    </span>
+                                </>
+                            )}
+                        </button>
+                    ) : (
+                        <div className="inline-flex items-center gap-4">
+                            <p role="status" aria-live="polite" className="m-0 font-mono text-[9.5px] uppercase tracking-[.1em] text-foreground/35">
+                                That&rsquo;s everything new in {category}
+                            </p>
+                            <Link
+                                href={`?view=river&cat=${encodeURIComponent(category)}`}
+                                className="font-mono text-[9.5px] font-extrabold uppercase tracking-[.1em] text-foreground/45 hover:text-terracotta transition-colors no-underline"
+                            >
+                                Open in river →
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>
@@ -315,8 +400,13 @@ export default function FrontPage({ data, allTags, username }: { data: FrontPage
         if (ids.length > 0) void markFrontPageShown(ids);
     }, [forYouPool, sections]);
 
+    const editionIds = useMemo(
+        () => [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id),
+        [forYouPool, sections],
+    );
+
     return (
-        <>
+        <EditionProgressProvider editionIds={editionIds} initialReadCount={stats.edition.readAtLoad}>
             <div className="md:hidden flex items-stretch border-b-2 border-foreground min-h-[2.5rem]">
                 <Link
                     href="?view=river"
@@ -336,12 +426,20 @@ export default function FrontPage({ data, allTags, username }: { data: FrontPage
                         <ForYouStrip pool={forYouPool} allTags={allTags} username={username} />
                         <div className="mt-[18px] flex flex-col">
                             {sections.map(s => (
-                                <Section key={s.category} category={s.category} items={s.items} allTags={allTags} username={username} />
+                                <Section
+                                    key={s.category}
+                                    category={s.category}
+                                    items={s.items}
+                                    remaining={s.remaining}
+                                    forYouPool={forYouPool}
+                                    allTags={allTags}
+                                    username={username}
+                                />
                             ))}
                         </div>
                     </>
                 )}
             </div>
-        </>
+        </EditionProgressProvider>
     );
 }
