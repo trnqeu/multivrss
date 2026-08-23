@@ -118,6 +118,20 @@ export const SUGGESTED_FEEDS: SuggestedFeed[] = [
     description: "Uplifting stories and personal essays from The Washington Post's Inspired Life section.",
     category: "CULTURE",
   },
+  {
+    name: "Henrik Karlsson: Escaping Flatland",
+    url: "https://www.henrikkarlsson.xyz/feed",
+    domain: "henrikkarlsson.xyz",
+    description: "Essays on relationships, thinking, and human agency from writer Henrik Karlsson.",
+    category: "CULTURE",
+  },
+  {
+    name: "Stanford Encyclopedia of Philosophy",
+    url: "https://plato.stanford.edu/rss/sep.xml",
+    domain: "plato.stanford.edu",
+    description: "New and revised entries from the Stanford Encyclopedia of Philosophy.",
+    category: "CULTURE",
+  },
   // DESIGN
   {
     name: "Michele De Lucchi's Substack",
