@@ -1,0 +1,29 @@
+name: Close External Pull Requests
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment and close
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "Thanks for the interest in MultivRSS! This repository doesn't accept external pull requests — it's maintained solo. See [CONTRIBUTING.md](https://github.com/trnqeu/multivrss/blob/main/CONTRIBUTING.md) for the reasoning, and please open an [Issue](https://github.com/trnqeu/multivrss/issues) for bug reports instead.\n\nClosing automatically — no action needed on your part."
+            });
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              state: "closed"
+            });
