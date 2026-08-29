@@ -1,4 +1,5 @@
 import Parser from 'rss-parser';
+import { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import dns from 'dns';
 import net from 'net';
@@ -309,11 +310,18 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         frontPageShownAt: Date | null;
     }> = [];
 
+    // Every externalId still present in the feed XML this sync — used to stamp
+    // lastSeenAt below. Items with neither guid nor link collapse to '' (and
+    // collide on @@unique([sourceId, externalId])); exclude that degenerate row.
+    const seenExternalIds = new Set<string>();
+
     for (const item of feed.items) {
         const externalId = item.guid || item.link || '';
         const title = decodeHtmlEntities(item.title || 'Untitled');
         const rawContent = item.contentSnippet || stripHtml(item.summary || item.content || '');
         const content = decodeHtmlEntities(rawContent);
+
+        if (externalId !== '') seenExternalIds.add(externalId);
 
         const existing = existingByExtId.get(externalId);
         if (!existing) {
@@ -348,7 +356,22 @@ export async function syncFeed(sourceId: string, prefetchedFeed?: ParsedFeed) {
         created = await prisma.feedItem.createManyAndReturn({ data: toCreate });
     }
 
-    // 4. Update the last sync date of the source. Title is intentionally
+    // 4. Stamp lastSeenAt for every item still in the feed (new + existing).
+    // This is retention's heartbeat: runFeedSyncScan() only purges unsaved
+    // items whose lastSeenAt is 90+ days old, i.e. items that actually dropped
+    // off the source feed — never items still being served. Raw UPDATE (not
+    // prisma.updateMany) so it doesn't bump the client-emulated @updatedAt,
+    // which getFrontPage()'s "recently read" ordering depends on.
+    if (seenExternalIds.size > 0) {
+        await prisma.$executeRaw`
+            UPDATE "FeedItem"
+            SET "lastSeenAt" = ${new Date()}
+            WHERE "sourceId" = ${source.id}
+              AND "externalId" IN (${Prisma.join([...seenExternalIds])})
+        `;
+    }
+
+    // 5. Update the last sync date of the source. Title is intentionally
     // not touched here — it's set once when the source is created/discovered
     // and must not be clobbered by the feed's own title on later syncs,
     // otherwise manual renames and custom names would keep reverting.

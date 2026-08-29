@@ -87,4 +87,18 @@ describe('GET /api/cron/sync', () => {
     const res = await GET(makeRequest(SECRET))
     await expect(res.json()).resolves.toMatchObject({ purged: 0 })
   })
+
+  it('scopes the retention purge to last-seen age (lastSeenAt), not ingestion or publication date', async () => {
+    // Retention keys on lastSeenAt — the last sync the item still appeared in
+    // the feed — so only items that actually dropped off their feed 90+ days
+    // ago are purged. A serial on hiatus or an evergreen feed whose items are
+    // all older than 90 days keeps every item as long as the feed still lists it.
+    await GET(makeRequest(SECRET))
+
+    const where = mockedPrisma.feedItem.findMany.mock.calls[0][0].where
+    expect(where).toMatchObject({ savedAt: null })
+    expect(where.lastSeenAt).toEqual({ lt: expect.any(Date) })
+    expect(where.createdAt).toBeUndefined()
+    expect(where.pubDate).toBeUndefined()
+  })
 })

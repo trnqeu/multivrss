@@ -112,6 +112,10 @@ model FeedItem {
   read       Boolean    @default(false)
   savedAt    DateTime?
   frontPageShownAt DateTime?
+  // Bumped by syncFeed() to "now" for every item still present in the feed XML.
+  // Retention (runFeedSyncScan) purges unsaved items 90 days after this — i.e.
+  // 90 days after the item dropped off its source feed, not after publication.
+  lastSeenAt DateTime   @default(now())
   sourceId   String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
@@ -128,6 +132,8 @@ model FeedItem {
   @@index([sourceId])
   @@index([pubDate])
   @@index([savedAt])
+  // Backs the retention purge in runFeedSyncScan() (savedAt IS NULL AND lastSeenAt < cutoff).
+  @@index([savedAt, lastSeenAt])
 }
 
 model PasswordResetToken {

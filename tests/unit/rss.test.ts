@@ -3,10 +3,12 @@ import { EventEmitter } from 'events';
 import { prisma } from '@/lib/prisma';
 
 const mockTransaction = vi.hoisted(() => vi.fn((updates: any) => Promise.all(updates)));
+const mockExecuteRaw = vi.hoisted(() => vi.fn().mockResolvedValue(0));
 
 vi.mock('@/lib/prisma', () => ({
     prisma: {
         $transaction: mockTransaction,
+        $executeRaw: mockExecuteRaw,
         feedSource: {
             findUnique: vi.fn(),
             update: vi.fn(),
@@ -18,6 +20,15 @@ vi.mock('@/lib/prisma', () => ({
         },
     },
 }));
+
+// Pulls the externalId list out of the Prisma.join(...) fragment passed to the
+// lastSeenAt $executeRaw call (values 1..n after the template strings array are
+// the interpolations: Date, sourceId, Prisma.join(seenIds)).
+function seenIdsFromExecuteRaw(callIndex = 0): string[] {
+    const call = mockExecuteRaw.mock.calls[callIndex];
+    const joined = call?.[call.length - 1] as { values?: unknown[] } | undefined;
+    return (joined?.values ?? []) as string[];
+}
 
 // syncFeed fetches the feed body over HTTP(S) itself (via safeFetchText, the
 // SSRF-guarded fetcher) and only hands the raw XML to rss-parser's
@@ -103,9 +114,13 @@ describe('syncFeed', () => {
             where: { id: 'src_1' },
             data: { lastSync: expect.any(Date) },
         });
+
+        // lastSeenAt is stamped for every externalId present in the feed.
+        expect(mockExecuteRaw).toHaveBeenCalledTimes(1);
+        expect(seenIdsFromExecuteRaw()).toEqual(['ext_1', 'ext_2']);
     });
 
-    it('does not create or update anything for unchanged items', async () => {
+    it('bumps lastSeenAt but does not create or update unchanged items', async () => {
         const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
         mockedFindUnique.mockResolvedValue(source);
 
@@ -125,6 +140,7 @@ describe('syncFeed', () => {
         expect(result).toEqual([]);
         expect(mockedCreateManyAndReturn).not.toHaveBeenCalled();
         expect(mockedUpdateItem).not.toHaveBeenCalled();
+        expect(seenIdsFromExecuteRaw()).toEqual(['ext_1']);
     });
 
     it('updates items with changed title or content', async () => {
@@ -149,6 +165,52 @@ describe('syncFeed', () => {
             where: { id: 'item_1' },
             data: { title: 'New Title', content: 'New Content' },
         });
+        expect(seenIdsFromExecuteRaw()).toEqual(['ext_1']);
+    });
+
+    it('bumps lastSeenAt for items present in the feed, not for ones that dropped off it', async () => {
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
+        mockedFindUnique.mockResolvedValue(source);
+
+        // ext_1 is unchanged and still in the feed; ext_2 has fallen out of the feed.
+        mockedFindMany.mockResolvedValue([
+            { id: 'item_1', externalId: 'ext_1', title: 'Post 1', content: 'Content 1', link: 'https://example.com/1', pubDate: null, sourceId: 'src_1' },
+            { id: 'item_2', externalId: 'ext_2', title: 'Post 2', content: 'Content 2', link: 'https://example.com/2', pubDate: null, sourceId: 'src_1' },
+        ]);
+        mockParseString.mockResolvedValue({
+            title: 'Example',
+            items: [
+                { guid: 'ext_1', title: 'Post 1', link: 'https://example.com/1', contentSnippet: 'Content 1' },
+                { guid: 'ext_3', title: 'Post 3', link: 'https://example.com/3', contentSnippet: 'Content 3' },
+            ],
+        });
+        mockedCreateManyAndReturn.mockResolvedValue([]);
+
+        const { syncFeed } = await import('@/lib/rss');
+        await syncFeed('src_1');
+
+        const seen = seenIdsFromExecuteRaw();
+        expect(seen).toEqual(['ext_1', 'ext_3']);
+        expect(seen).not.toContain('ext_2');
+    });
+
+    it('excludes feed items with no guid or link from the lastSeenAt bump', async () => {
+        const source = { id: 'src_1', url: 'https://example.com/feed', title: 'Example' };
+        mockedFindUnique.mockResolvedValue(source);
+        mockedFindMany.mockResolvedValue([]);
+        mockParseString.mockResolvedValue({
+            title: 'Example',
+            items: [
+                { title: 'No id at all', contentSnippet: 'x' },
+                { guid: 'ext_1', title: 'Post 1', link: 'https://example.com/1', contentSnippet: 'Content 1' },
+            ],
+        });
+        mockedCreateManyAndReturn.mockResolvedValue([]);
+
+        const { syncFeed } = await import('@/lib/rss');
+        await syncFeed('src_1');
+
+        expect(seenIdsFromExecuteRaw()).toEqual(['ext_1']);
     });
 
     it('uses prefetched feed when provided', async () => {
