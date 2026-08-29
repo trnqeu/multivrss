@@ -40,7 +40,7 @@ Fonti feed, link salvati, categorie, tag e ricerca sono gestiti interamente sull
 
 ## Per quanto tempo li conserviamo
 
-I dati dell'account e i contenuti sono conservati finché il tuo account è attivo. Puoi eliminare definitivamente il tuo account e tutti i tuoi dati in qualsiasi momento da Impostazioni → Account nella dashboard; la cancellazione è immediata, salvo obblighi di legge che richiedano una conservazione più lunga. Le segnalazioni di errore sono conservate da Sentry per un periodo limitato secondo la loro policy, tipicamente 90 giorni.
+I dati dell'account e i contenuti sono conservati finché il tuo account è attivo. Gli articoli presi dai tuoi feed che non hai salvato vengono eliminati automaticamente circa 90 giorni dopo che escono dal feed di origine; tutto ciò che salvi nella lista di lettura resta finché il tuo account è attivo. Puoi eliminare definitivamente il tuo account e tutti i tuoi dati in qualsiasi momento da Impostazioni → Account nella dashboard; la cancellazione è immediata, salvo obblighi di legge che richiedano una conservazione più lunga. Le segnalazioni di errore sono conservate da Sentry per un periodo limitato secondo la loro policy, tipicamente 90 giorni.
 
 ## I tuoi diritti
 

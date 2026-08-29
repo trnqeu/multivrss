@@ -10,11 +10,15 @@ import { prisma } from "@/lib/prisma";
 interface FeedListProps {
     sourceId?: string;
     categoryName?: string;
+    // Epoch ms of the source's last successful sync, or null if never synced.
+    // Only the single-source view passes it — lets the empty state say "synced,
+    // nothing here" instead of the misleading "SYNC_REQUIRED".
+    sourceLastSync?: number | null;
 }
 
 async function CachedFeedContent({
-    userId, username, sourceId, categoryName,
-}: { userId: string; username: string; sourceId?: string; categoryName?: string }) {
+    userId, username, sourceId, categoryName, sourceLastSync,
+}: { userId: string; username: string; sourceId?: string; categoryName?: string; sourceLastSync?: number | null }) {
     'use cache';
     cacheLife('seconds');
     cacheTag(`feed:${userId}`);
@@ -41,9 +45,17 @@ async function CachedFeedContent({
     }));
 
     if (items.length === 0) {
+        const synced = sourceId != null && sourceLastSync != null;
         return (
             <section className="p-8">
-                <p className="label-system italic text-foreground">NULL_SET // SYNC_REQUIRED</p>
+                <p className="label-system italic text-foreground">
+                    {synced ? 'NULL_SET // NOTHING HERE RIGHT NOW' : 'NULL_SET // SYNC_REQUIRED'}
+                </p>
+                {synced && (
+                    <p className="label-system not-italic text-foreground/55 mt-2">
+                        Unsaved items drop off ~90 days after they leave the source feed. Save anything you want to keep.
+                    </p>
+                )}
             </section>
         );
     }
@@ -105,7 +117,7 @@ async function CachedFeedContent({
     );
 }
 
-export default async function FeedList({ sourceId, categoryName }: FeedListProps) {
+export default async function FeedList({ sourceId, categoryName, sourceLastSync }: FeedListProps) {
     const session = await getServerSession(authOptions);
     if (!session) return null;
     return <CachedFeedContent
@@ -113,5 +125,6 @@ export default async function FeedList({ sourceId, categoryName }: FeedListProps
         username={session.user.username}
         sourceId={sourceId}
         categoryName={categoryName}
+        sourceLastSync={sourceLastSync}
     />;
 }
