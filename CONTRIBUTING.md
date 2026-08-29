@@ -24,6 +24,10 @@ this file. Nothing personal — reviewing, iterating on, and maintaining
 someone else's code on top of a solo project isn't a workflow there's time
 to support.
 
+(Dependabot's automated dependency-update PRs are the one exception — those
+come from the maintainer's own configuration, not outside contributors, and
+are reviewed and merged normally.)
+
 Forking is welcome under the [MIT License](./LICENSE) if you want to take
 this codebase in your own direction.
 
