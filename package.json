@@ -1,6 +1,13 @@
 {
   "name": "multivrss",
   "version": "0.2.2",
+  "description": "A high-performance RSS aggregator and personal reading list SaaS.",
+  "license": "MIT",
+  "author": "Stefano Trinchero",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trnqeu/multivrss.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev --port 3002",

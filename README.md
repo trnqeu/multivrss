@@ -4,47 +4,68 @@ A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js
 
 ---
 
-## Next.js App Router Architecture
+## Architecture
 
-This project uses the Next.js 16 App Router under the optional `src` folder:
+Next.js 16 App Router under `src/app`. Route groups like `[lang]/(marketing)` organize the tree without adding a URL segment; dynamic folders like `u/[username]` do add one.
 
-```text
-src/app/
-  layout.tsx              Root layout for every route
-  page.tsx                Public route when present at this level
-  (app)/                  Route group for the authenticated product UI
-    layout.tsx            Private app shell with sidebar
-    page.tsx              Private dashboard at `/`
-    search/page.tsx       Private search at `/search`
-    category/[slug]/      Private category page at `/category/[slug]`
-    source/[slug]/        Private source page at `/source/[slug]`
-  api/**/route.ts         Route Handlers / API endpoints
-```
+| URL | Who sees it | What it is |
+|-----|-------------|------------|
+| `multivrss.com/` | Unauthenticated | Marketing landing page |
+| `multivrss.com/en`, `/it` | Unauthenticated | Localized marketing site — blog, guide, suggested sources, tips |
+| `multivrss.com/u/{username}` | Authenticated, own account only | Private RSS dashboard — all feeds, full-text search via `?q=` |
+| `multivrss.com/u/{username}/category/{slug}` | Authenticated | Feed items filtered by category |
+| `multivrss.com/u/{username}/source/{slug}` | Authenticated | Feed items filtered by source |
+| `multivrss.com/u/{username}/saved` | Authenticated | Reading list (saved links) |
+| `multivrss.com/u/{username}/suggested` | Authenticated | Suggested feeds directory |
+| `multivrss.com/u/{username}/read/{itemId}` | Authenticated | Reader Mode — full extracted article text |
+| `multivrss.com/u/{username}/settings/*` | Authenticated | Account, API keys, import/export |
+| `multivrss.com/login`, `/register`, `/forgot-password` | Public | Auth flows |
+| `multivrss.com/docs` | Public | Interactive API reference (OpenAPI via Scalar) |
 
-Important Next.js conventions used here:
+Every route under `u/{username}/` sits behind a layout that enforces both authentication and that the URL's `{username}` matches the logged-in session — no other user's dashboard is reachable by editing the URL.
 
-- `src` is only a source folder; it does not affect URL paths.
-- `app` enables the App Router.
-- Folders define URL segments only when they are normal route folders.
-- Route groups such as `(app)` organize routes and layouts without adding anything to the URL.
-- A route becomes public only when a `page.tsx` or `route.ts` file exists.
-- Dynamic route params use square brackets, for example `category/[slug]`.
-- `proxy.ts` is the Next.js 16 request proxy convention; do not use the old `middleware.ts` naming for new work.
-- `next.config.ts` enables `cacheComponents: true`, so caching work must follow the Next.js 16 Cache Components model.
-- With Cache Components, use `"use cache"` only for cacheable output, keep request-specific/private data uncached or behind the appropriate runtime boundary, and use `connection()` when a route must defer to request time.
+A few Next.js 16 conventions worth knowing before reading the code: `proxy.ts` is the request-proxy convention that replaced `middleware.ts`; `next.config.ts` enables `cacheComponents: true`, so caching follows the Cache Components model (`"use cache"` only for cacheable output, `connection()` to defer to request time); Server Components are the default, Server Actions handle mutations.
+
+The full route-by-route breakdown and every other architectural convention live in [CLAUDE.md](./CLAUDE.md) — written as coding-agent guidance, but equally useful as a technical reference for humans.
 
 ## Local Development
+
+### Setup
+
+Prerequisites: Node.js 24+, Docker.
+
+```bash
+git clone git@github.com:trnqeu/multivrss.git
+cd multivrss
+npm install
+cp .env.example .env          # fill in the values — see comments in the file
+docker-compose up -d          # Postgres (5435) + Redis (6379)
+npx prisma migrate deploy     # apply the existing schema
+npm run dev                   # http://localhost:3002
+```
 
 ### Creating test users
 
 `scripts/create-test-users.ts` creates one or more users directly in the database, with `emailVerified` already set — so they can log in immediately without going through email verification.
 
 ```bash
-npx ts-node --project tsconfig.test.json scripts/create-test-users.ts 5              # 5 users, default password
-npx ts-node --project tsconfig.test.json scripts/create-test-users.ts 5 MyPass1!      # custom password
+npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 5              # 5 users, default password
+npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 5 MyPass1!      # custom password
 ```
 
 Usernames/emails are generated as `testuser_<timestamp>_<n>@example.com`; the default password is `Test1234!`. Credentials are printed to the console. Requires the local Postgres container (`docker-compose up -d`) to be running.
+
+## Self-Hosting
+
+Want to run your own instance long-term, not just hack on the code? The steps are similar to the Setup above, plus starting the background sync worker and (optionally) putting the app behind your own domain. Full walkthrough — OAuth app creation, generating secrets, running the worker, exposing it to the internet — in [docs/self-hosting.md](./docs/self-hosting.md).
+
+## Contributing
+
+Bug reports are welcome via [Issues](https://github.com/trnqeu/multivrss/issues). This project does not accept external Pull Requests — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
 
 ## Product Vision
 
@@ -56,27 +77,9 @@ MultivRSS is two things in one:
 
 ---
 
-## URL Architecture
-
-| URL | Who sees it | What it is |
-|-----|-------------|------------|
-| `multivrss.com/` | Unauthenticated users: marketing landing. Authenticated users: redirect to `/u/{username}` | Marketing homepage / project presentation |
-| `multivrss.com/u/{username}` | Authenticated users | Private RSS dashboard |
-| `multivrss.com/u/{username}/search` | Authenticated users | Full-text search over indexed feed items |
-| `multivrss.com/u/{username}/category/{slug}` | Authenticated users | Filtered view by category |
-| `multivrss.com/u/{username}/source/{slug}` | Authenticated users | Filtered view by feed source |
-| `multivrss.com/saved` | Authenticated users | Planned private reading list (all saved links) |
-
-
-The authenticated product routes currently live inside `src/app/(app)`. The `(app)` route group is omitted from URLs by design. If a future real `/app` URL segment is desired, create a normal `app` segment instead of relying on `(app)`.
-
----
-
 ## CI/CD Pipeline
 
-### Overview
-
-Two deployment targets, one shared quality gate.
+Two deployment targets, one shared quality gate:
 
 ```
 push → dev    →  Deploy to Staging    →  staging.multivrss.com
@@ -84,109 +87,9 @@ push → main   →  Deploy to Production →  multivrss.com
 PR   → dev/main  →  CI (quality gate only, no deploy)
 ```
 
-### Quality Gate (`ci.yml`)
+The quality gate (`ci.yml`) runs `npm ci` → `prisma generate` → `tsc --noEmit` → lint → tests → `npm audit --audit-level=critical` on every PR, and is reused by both deploy workflows. Deploys build a multi-stage Docker image, push it to GHCR, then SSH into the server to run migrations and recreate the containers, with a health-check-gated automatic rollback on failure.
 
-Runs on every PR targeting `dev` or `main`, and is called internally by both deploy workflows via `workflow_call`. Steps in order:
-
-1. `npm ci` — clean install
-2. `npx prisma generate` — generate the Prisma client
-3. `npx tsc --noEmit` — TypeScript type check
-4. `npm run lint` — ESLint
-5. `npm run test` — Vitest unit tests
-6. `npm audit --audit-level=critical` — fails only on critical CVEs
-
-`ci.yml` has no standalone `push` trigger. It runs either on PRs or when called by a deploy workflow — never duplicated.
-
-### Dockerfile (multi-stage)
-
-Three stages:
-
-**`deps`** — installs `node_modules` (all dependencies). Kept separate so Docker caches it independently of source changes.
-
-**`builder`** — copies source, runs `npx prisma generate` + `npm run build` (Next.js standalone output), then bundles the background worker (`src/workers/feed-sync.ts`) into a single `dist/worker.js` via esbuild. All worker dependencies except `@prisma/client` are bundled into the file; `@prisma/client` is left external because it requires native binaries and is already present in the standalone output.
-
-**`runner`** — minimal production image. Copies only `.next/standalone`, `.next/static`, `public/`, and `dist/worker.js`. No source files, no full `node_modules`.
-
-### Deploy pipeline (staging and production)
-
-Both workflows are identical in structure. They differ only in the branch, env file, and the floating image tags pushed (`:staging` vs `:production` / `:latest`).
-
-Each deploy runs **three jobs in sequence**:
-
-**1. `quality-gate`** — calls `ci.yml` (reusable).
-
-**2. `build`** — builds two Docker images and pushes them to GHCR (`ghcr.io/trnqeu/multivrss`):
-- `:SHA-migrator` — the `builder` stage, used only to run `prisma migrate deploy`
-- `:SHA` + `:staging` or `:production` / `:latest` — the `runner` stage (the actual app)
-
-Layer caching uses `type=gha` (GitHub Actions cache) to avoid rebuilding unchanged layers.
-
-**3. `deploy`** — connects to the server via SSH (`appleboy/ssh-action`) and runs:
-1. `git fetch origin <branch> && git checkout origin/<branch> -- docker-compose.prod.yml` — syncs the compose file from git on every deploy to prevent server drift
-2. Saves the current SHA to `~/.multivrss_staging_sha` (or `_prod_sha`) for rollback
-3. Authenticates Docker against GHCR using the workflow's `GITHUB_TOKEN`
-4. Pulls both new images explicitly
-5. Runs Prisma migrations in an isolated one-shot container on the internal Docker network — schema is always updated before the new app starts, preventing schema/code mismatch
-6. `docker compose pull app worker` — pulls new images for the two services that change on each deploy
-7. `docker compose up -d --remove-orphans --force-recreate` — recreates all containers, guaranteeing the new image is used
-8. Health check: polls `GET http://localhost:3001/api/health` every 5 s for up to 60 s (12 attempts). Uses the internal port directly — no DNS, no Nginx, no TLS in the path
-9. On failure: pulls the previous SHA image and redeploys it with `--force-recreate`
-
-### `/api/health` endpoint
-
-`GET /api/health` checks all backing services in parallel via `Promise.allSettled`. Returns HTTP 200 `{"status":"ok"}` only when all pass; returns HTTP 503 `{"status":"degraded", ...}` if any fail. The deploy script matches on the `"ok"` string — a degraded response triggers rollback.
-
-| Field | Check |
-|-------|-------|
-| `db` | `prisma.$queryRaw\`SELECT 1\`` |
-| `redis` | `redis.ping()` |
-
-### Production stack (`docker-compose.prod.yml`)
-
-Four containers on an isolated `internal` Docker network. No service port is publicly exposed; the app listens on loopback only, with Nginx in front:
-
-| Container | Image | Host binding |
-|-----------|-------|-------------|
-| `app` | `ghcr.io/trnqeu/multivrss:SHA` | `127.0.0.1:3001` |
-| `worker` | same image, `node dist/worker.js` | none |
-| `db` | `postgres:16-alpine` | none |
-| `redis` | `redis:8-alpine` | none |
-
-`adminer` is defined but only starts with `--profile tools` — never auto-started in normal operation.
-
-### GitHub Secrets required
-
-| Secret | Used by |
-|--------|---------|
-| `SSH_HOST` | staging + production deploy |
-| `SSH_USER` | staging + production deploy |
-| `SSH_KEY` | staging + production deploy |
-| `GITHUB_TOKEN` | auto-provided by Actions (GHCR push + pull) |
-
-### Full flow from `git push` to live
-
-```
-git push dev
-    ↓
-GitHub Actions — Deploy to Staging (single workflow run)
-    ├─ quality-gate: tsc, lint, test, npm audit
-    ├─ build: Docker multi-stage → GHCR (:SHA-migrator + :SHA + :staging)
-    └─ deploy (SSH):
-           ├─ sync docker-compose.prod.yml from git
-           ├─ prisma migrate deploy (isolated one-shot container)
-           ├─ docker compose pull app worker
-           ├─ docker compose up -d --force-recreate
-           ├─ GET http://localhost:3001/api/health × 12 (60 s)
-           └─ on failure: --force-recreate with previous SHA
-```
-
-For production the flow is identical but triggers on `main`.
-
-### Known limitations
-
-- **Brief downtime on deploy** — `--force-recreate` stops the app container before starting the new one. Typical gap is 5–15 s depending on Next.js cold-start time. Zero-downtime would require a blue/green swap at the Nginx level.
-- **Migration rollback asymmetry** — Prisma migrations run before the new container starts. If the deploy fails and rolls back to the previous code, the database schema stays at the newer version. All migrations must therefore be backwards-compatible with the previous code version (additive-only: no column renames, no drops).
-- **Rollback unavailable on first deploy** — `PREV_SHA` is read from `~/.multivrss_staging_sha`. If the file does not exist (first ever deploy on a fresh server), rollback is skipped and the script exits 1 with no recovery.
+Full breakdown — Dockerfile stages, the exact deploy script, the production container topology, required secrets — lives in [docs/deploy-strategy.md](./docs/deploy-strategy.md).
 
 ---
 
@@ -221,15 +124,15 @@ For production the flow is identical but triggers on `main`.
 
 ### Sync Performance & Scalability
 
-- [x] **Staleness filter nel cron** — sincronizzare solo feed con `lastSync < 30min fa` o `null`, invece di tutti i feed a ogni tick
-- [x] **Batch UPDATE per item cambiati** — sostituire gli update uno-a-uno dentro il loop con `prisma.$transaction`
+- [x] **Staleness filter in the cron** — sync only feeds with `lastSync < 30min ago` or `null`, instead of every feed on each tick
+- [x] **Batch UPDATE for changed items** — replace one-by-one updates inside the loop with `prisma.$transaction`
 - [x] ~~Meilisearch fire-and-forget indexing~~ — superseded: search moved to native Postgres full-text search (generated `tsvector` column, no separate index-sync step), see "Migrated search from Meilisearch to native Postgres full-text search" above
-- [x] **Priorità feed mai sincronizzati** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in cron e syncAllFeeds
-- [x] **Rate limiting per dominio** — `DomainGate` con semaforo: max 2 richieste concorrenti per hostname
-- [x] **Coda di job (BullMQ + Redis)** — sostituire `Promise.all` chunked con un job queue per retry, backoff, monitoring; ogni feed diventa un job indipendente
-- [x] **Rispetto TTL del feed** — leggere `<ttl>` o `Cache-Control` dal feed e non risincronizzare prima della scadenza dichiarata
-- [x] **Limite feed per utente** — max 200 feed per account (protezione cron da abusi)
-- [x] **Per-user feed limits** — hard cap per proteggere il cron da utenti con centinaia di feed
+- [x] **Priority for never-synced feeds** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in the cron and `syncAllFeeds`
+- [x] **Rate limiting per domain** — `DomainGate` semaphore: max 2 concurrent requests per hostname
+- [x] **Job queue (BullMQ + Redis)** — replace chunked `Promise.all` with a job queue for retry, backoff, monitoring; each feed becomes an independent job
+- [x] **Respect feed TTL** — read `<ttl>` or `Cache-Control` from the feed and skip re-sync before the declared expiry
+- [x] **Per-account feed limit** — max 200 feeds per account (protects the cron from abuse)
+- [x] **Per-user feed limits** — hard cap to protect the cron from users with hundreds of feeds
 
 ### Production Readiness Plan
 
@@ -307,7 +210,7 @@ Steps to make the repo public and let users run their own instance.
 - [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)
 - [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
 - [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
-- [x] **Feed item retention / auto-purge** — cron deletes `FeedItem` rows with `pubDate < 90 days` and `savedAt = null`
+- [x] **Feed item retention / auto-purge** — cron deletes unsaved `FeedItem` rows (`savedAt = null`) whose `lastSeenAt` (the last sync that still found the item in the feed) is more than 90 days old — i.e. 90 days after the item drops off its source feed, not 90 days after it was published
 - [x] **Reader Mode** — `/u/{username}/read/{itemId}` renders the full article text in-app (Mozilla Readability extraction + `sanitize-html` allowlist), triggered by a `READ` button on FeedItem/SearchBar/SavedView rows. SSRF-guarded fetch (`validateFeedUrl`/`safeFetchText`, same guard as `resolvePageTitle`), Redis-cached by article link (7-day TTL, cache is a pure optimization — never a hard dependency), rate-limited per user. Works for both `FeedItem` and `SavedLink` (the latter via `?type=savedLink` on the URL, since caching is keyed by URL, not by item) — so links saved externally (e.g. from mobile via the share target) get Reader Mode too, not just feed-sourced articles.
 
 ### TBD / Future
@@ -337,18 +240,18 @@ Steps to make the repo public and let users run their own instance.
     - [x] **Form label** — all inputs now have an associated `<label htmlFor>` (`sr-only` where hidden), including `PageHeader` search fields, the Import/Export settings page's file inputs, and the `SuggestedPageClient` directory filter
     - [x] **Skip-to-content** — `href="#main-content"` link in `src/app/layout.tsx`, matching `id="main-content"` on `<main>` across all top-level pages
   - **HIGH**
-    - [ ] **Contrasto colore** — terracotta `#E2725B` su carta `#F6F3EC` = 3.89:1 (soglia 4.5:1); testo `/30`, `/40` scende a 2.1:1 (Sidebar, FeedItem, SearchBar, PageHeader, CollapsibleCategory). Scurire terracotta o non usare opacità sotto `/55` per testo informativo
-    - [ ] **Messaggi errore non associati** — errori in AddFeedForm, EditSourceForm, login, register senza `aria-describedby` collegato all'input
-    - [ ] **Dropdown senza navigazione tastiera** — ThreeDotMenu, AddFeedForm, EditSourceForm: no arrow keys, no focus management su apertura/chiusura
-    - [ ] **Focus trap sidebar mobile** — SidebarContainer overlay non blocca focus; implementare focus trap
-    - [ ] **Pulsanti bookmark hover-only** — FeedItem, SearchBar, SavedView: `opacity-0 group-hover/item:opacity-100`. Aggiungere `group-focus-within/item:opacity-100`
-    - [ ] **Stati dinamici muti** — loading spinner, errori, feedback successo, cambiamenti read/save ottimistici senza `role="alert"`, `aria-live="polite"`, `role="status"`
-    - [ ] **Landmark nav senza etichetta** — due `<nav>` (Sidebar, MobileTabBar) senza `aria-label` distintivo
+    - [ ] **Color contrast** — terracotta `#E2725B` on paper `#F6F3EC` = 3.89:1 (threshold 4.5:1); text at `/30`, `/40` opacity drops to 2.1:1 (Sidebar, FeedItem, SearchBar, PageHeader, CollapsibleCategory). Darken the terracotta or avoid opacity below `/55` for informational text
+    - [ ] **Unassociated error messages** — errors in AddFeedForm, EditSourceForm, login, register without `aria-describedby` linked to the input
+    - [ ] **Dropdowns without keyboard navigation** — ThreeDotMenu, AddFeedForm, EditSourceForm: no arrow keys, no focus management on open/close
+    - [ ] **Mobile sidebar focus trap** — SidebarContainer overlay does not trap focus; implement a focus trap
+    - [ ] **Hover-only bookmark buttons** — FeedItem, SearchBar, SavedView: `opacity-0 group-hover/item:opacity-100`. Add `group-focus-within/item:opacity-100`
+    - [ ] **Silent dynamic states** — loading spinner, errors, success feedback, optimistic read/save changes without `role="alert"`, `aria-live="polite"`, `role="status"`
+    - [ ] **Unlabeled nav landmarks** — two `<nav>` elements (Sidebar, MobileTabBar) without a distinct `aria-label`
 
 ### Monetization
 
 - [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access.
-- [ ] **Display free tier limits on marketing landing page** — even before a paid tier exists, the pricing/plans section must show the hard limits already enforced in the app: **max 200 feeds** per account and **90-day article retention** (items older than 90 days are purged; saved links are exempt). This sets honest expectations and primes users for a future upgrade path. Copy must be kept in sync whenever these limits change in the code.
+- [ ] **Display free tier limits on marketing landing page** — even before a paid tier exists, the pricing/plans section must show the hard limits already enforced in the app: **max 200 feeds** per account and **90-day article retention** (an unsaved item is purged ~90 days after it drops out of its source feed; saved items are exempt). This sets honest expectations and primes users for a future upgrade path. Copy must be kept in sync whenever these limits change in the code.
 - [ ] **RSS feed generator (Pro)** — Pro-only feature: generate a valid RSS feed for any website that doesn't publish one. User provides a URL; the backend fetches the page, extracts a list of links + titles (via `@mozilla/readability` + `jsdom` or a CSS selector the user configures), and serves a synthetic `/feeds/[id].xml` endpoint that aggregates updates on each cron tick. The generated feed appears in the user's source list like any other feed. Key considerations: rate-limit fetching per domain (reuse `DomainGate`); store the CSS selector / extraction config in a new `GeneratedFeed` model linked to `FeedSource`; gate the feature behind a `plan === 'pro'` check in the Server Action; respect `robots.txt` (fetch and cache it alongside the feed). Candidate scraping strategies in order of reliability: (1) structured `<article>` / `<li>` extraction via Readability, (2) user-supplied CSS selector, (3) sitemap.xml fallback.
 
 ### Marketing & Infrastructure
@@ -373,7 +276,7 @@ Steps to make the repo public and let users run their own instance.
 - [ ] **AI agent integration** — TBD
 - [ ] **Vector database** — TBD
 - [ ] **Markdown-driven home page** — allow updating marketing home page sections (hero copy, pillars, pricing, tips) by editing local `.md` files, without touching React components. Rendered server-side via `next-mdx-remote` or similar; hot-reloads in dev, statically included in production build.
-- [ ] **Blog section** — `/blog` public section (no auth required) driven by Markdown files stored in `content/blog/`. Each `.md` file becomes a post at `/blog/[slug]`. Index page lists posts sorted by date. No CMS or database required — content is versioned in Git.
+- [x] **Blog section** — public, i18n (en/it) Markdown-driven blog under `content/blog/`, loaded by `src/lib/blog.ts`. No CMS or database required — content is versioned in Git.
 - [ ] **Public changelog page** — `/changelog` on the marketing site, Markdown-driven like the planned blog. Source of truth is repo-root `CHANGELOG.md` (Keep a Changelog format); render its entries instead of duplicating content. Hold until the blog's Markdown-rendering pattern is actually in use, then reuse it.
 
 ### Personalization

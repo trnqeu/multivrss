@@ -146,12 +146,12 @@ export const it: Dictionary = {
           {
             question: "Ci sono limiti nel piano gratuito?",
             answer:
-              "Due, e preferiamo dirtelo subito: un massimo di 200 feed per account, e gli articoli non salvati vengono rimossi automaticamente dopo 90 giorni. Tutto ciò che salvi nella lista di lettura resta per sempre.",
+              "Due, e preferiamo dirtelo subito: un massimo di 200 feed per account, e un articolo non salvato viene rimosso circa 90 giorni dopo che sparisce dal feed di origine. Tutto ciò che salvi nella lista di lettura resta per sempre.",
           },
           {
-            question: "Cosa succede a un articolo dopo 90 giorni?",
+            question: "Per quanto tempo restano gli articoli non salvati?",
             answer:
-              "Se non l'hai salvato nella lista di lettura, viene rimosso automaticamente per tenere tutto in ordine. Salvarlo in qualsiasi momento prima lo conserva per sempre.",
+              "Finché il feed di origine li elenca, più circa 90 giorni dopo che ne escono. Salva un articolo nella lista di lettura in qualsiasi momento prima di allora e resta per sempre.",
           },
           {
             question: "Ci sarà un piano a pagamento in futuro?",

@@ -4,18 +4,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **This is NOT the Next.js you know.** This version has breaking changes — APIs, conventions, and file structure may all differ from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code.
 
-## Teaching Mode — IMPORTANT
-
-This project is a **learning exercise**. Do NOT write code unless explicitly asked to.
-
-**Default flow:**
-1. Explain *what* and *why*
-2. Point to exact file(s) and line(s)
-3. Show the code snippet for the user to write
-4. Wait for implementation, then review
-
-Only write code directly if the user says "write it for me", "fallo tu", or "go ahead".
-
 ## Guiding Principles
 
 1. **Step-by-step:** Break tasks into small modules — do not generate the entire feature at once.
@@ -43,17 +31,17 @@ npx prisma migrate deploy                     # Apply existing migrations
 npx prisma generate                           # Regenerate client after schema changes
 ```
 
-Manual integration checks (`tsconfig.test.json` uses CommonJS — main tsconfig uses ESM which breaks ts-node):
+Manual integration checks (`tsconfig.test.json` uses CommonJS — main tsconfig uses ESM, so this runs under its own config via `tsx`):
 
 ```bash
-npx ts-node --project tsconfig.test.json tests/test-rss.ts
+npx tsx --tsconfig tsconfig.test.json tests/test-rss.ts
 ```
 
 ## Verification Order
 
 1. `npm run test` + `npm run lint`
 2. `npm run build` for framework/route/component changes
-3. `npx ts-node --project tsconfig.test.json tests/test-rss.ts` for RSS changes
+3. `npx tsx --tsconfig tsconfig.test.json tests/test-rss.ts` for RSS changes
 4. After Prisma changes: create migration + `npx prisma generate`
 5. When adding a new searchable text field: extend the generated `tsvector` column's migration SQL (see `prisma/migrations/*_add_fulltext_search`) and the corresponding branch query in `src/lib/search.ts`
 6. Update this file when behavior or workflow changes
@@ -249,7 +237,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 ## Known Gotchas
 
-- `AGENTS.md` and `GEMINI.md` stay at repo root (read from root by their respective CLI tools); `docs/notes.md`, `docs/MARKETING_PLAN.md`, `docs/CICD.md`, `docs/EDITORIAL.md` live under `docs/`. All are in `.gitignore` — they exist only locally, never committed.
+- `docs/notes.md`, `docs/MARKETING_PLAN.md`, `docs/CICD.md`, `docs/EDITORIAL.md` are local-only working notes under `docs/`. `AGENTS.md`/`GEMINI.md` at repo root (read from root by their respective CLI tools, if present) follow the same convention. All are in `.gitignore` — they exist only locally, never committed.
 - No `opencode.json` in the repo.
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - No `.env.example` — check local `.env` for required vars.
@@ -314,18 +302,6 @@ SENTRY_ORG=<org-slug>         # optional; source map upload at build time (next.
 SENTRY_PROJECT=<project-slug> # optional; source map upload at build time (next.config.ts)
 SENTRY_AUTH_TOKEN=<token>     # optional; source map upload at build time, CI only
 ```
-
-## Dependency Docs (chub)
-
-For current third-party API docs, use Context Hub:
-
-```bash
-npm install -g @aisuite/chub
-chub search "prisma"
-chub get prisma/prisma --lang js
-```
-
-Caveat: `chub` can hang flushing PostHog telemetry. Use `timeout 25s chub ...` when needed.
 
 ## Skills
 

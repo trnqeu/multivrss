@@ -58,7 +58,7 @@ export default async function SourcePage({ params }: SourcePageProps) {
                 </header>
 
                 {/* Filtered Feed List */}
-                <FeedList sourceId={source.id} />
+                <FeedList sourceId={source.id} sourceLastSync={source.lastSync ? source.lastSync.getTime() : null} />
             </main>
         </>
     );

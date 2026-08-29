@@ -146,12 +146,12 @@ export const en: Dictionary = {
           {
             question: "Are there any limits on the free plan?",
             answer:
-              "Two, and we'd rather tell you upfront: a maximum of 200 feeds per account, and unsaved articles are automatically removed after 90 days. Anything you save to your reading list is kept indefinitely.",
+              "Two, and we'd rather tell you upfront: a maximum of 200 feeds per account, and an unsaved article is cleared about 90 days after it drops out of its source feed. Anything you save to your reading list is kept indefinitely.",
           },
           {
-            question: "What happens to an article after 90 days?",
+            question: "How long do unsaved articles stay?",
             answer:
-              "If you haven't saved it to your reading list, it's automatically cleared to keep things tidy. Saving it any time before then keeps it for good.",
+              "As long as the source feed still lists them, plus roughly 90 days after they fall off it. Save an article to your reading list any time before then and it's kept for good.",
           },
           {
             question: "Will there be a paid plan in the future?",

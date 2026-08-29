@@ -40,7 +40,7 @@ Feed sources, saved links, categories, tags, and search are handled entirely on 
 
 ## How long we keep it
 
-Account data and content are kept for as long as your account is active. You can permanently delete your account and all its data at any time from Settings → Account in the dashboard; deletion happens immediately, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
+Account data and content are kept for as long as your account is active. Articles pulled from your feeds that you haven't saved are deleted automatically about 90 days after they drop out of their source feed; anything you save to your reading list stays for as long as your account is active. You can permanently delete your account and all its data at any time from Settings → Account in the dashboard; deletion happens immediately, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
 
 ## Your rights
 
