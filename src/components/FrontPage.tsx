@@ -133,6 +133,7 @@ function Masthead({ stats }: { stats: FrontPageData['stats'] }) {
 function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string }) {
     const [opened, setOpened] = useState(false);
     const { notifyOpened } = useEditionProgress();
+    const dek = makeDek(item.content);
     return (
         <article className="group flex flex-col gap-[11px] min-w-0 border-t-2 border-foreground pt-3.5">
             <CatTag name={item.categoryName} />
@@ -144,6 +145,11 @@ function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageIte
             >
                 {item.title}
             </FrontPageLink>
+            {dek && (
+                <p className={`font-serif text-[13px] leading-[1.5] text-foreground/55 font-normal line-clamp-2 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+                    {dek}
+                </p>
+            )}
             <div className="flex flex-col gap-1.5 mt-auto pt-1">
                 <Meta item={item} username={username} />
                 <Actions item={item} allTags={allTags} onDismiss={onDismiss} username={username} />
@@ -222,13 +228,13 @@ function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; all
     );
 }
 
-// ── Category section list row — rows 0/1 (2nd/3rd article) get a tiered dek ──
-function Row({ item, rowIndex, allTags, onDismiss, username, animate }: {
-    item: FrontPageItem; rowIndex: number; allTags: TagVM[]; onDismiss: () => void; username: string; animate: boolean;
+// ── Category section list row — every row carries a short dek when the item has one ──
+function Row({ item, allTags, onDismiss, username, animate }: {
+    item: FrontPageItem; allTags: TagVM[]; onDismiss: () => void; username: string; animate: boolean;
 }) {
     const [opened, setOpened] = useState(false);
     const { notifyOpened } = useEditionProgress();
-    const dek = rowIndex < 2 ? makeDek(item.content) : null;
+    const dek = makeDek(item.content);
     return (
         <li className={`group flex flex-col gap-2 py-[15px] border-b border-foreground/[0.09] last:border-b-0 ${animate ? 'animate-row-in' : ''}`}>
             <FrontPageLink
@@ -240,7 +246,7 @@ function Row({ item, rowIndex, allTags, onDismiss, username, animate }: {
                 {item.title}
             </FrontPageLink>
             {dek && (
-                <p className={`font-serif text-[13.5px] leading-[1.45] text-foreground/45 font-normal max-w-[52ch] line-clamp-2 transition-opacity ${opened ? 'opacity-40' : ''}`}>
+                <p className={`font-serif text-[13.5px] leading-[1.45] text-foreground/55 font-normal max-w-[52ch] line-clamp-2 transition-opacity ${opened ? 'opacity-40' : ''}`}>
                     {dek}
                 </p>
             )}
@@ -320,11 +326,10 @@ function Section({ category, items: initialItems, remaining: initialRemaining, f
                     <li className={`py-[18px] ${rest.length > 0 ? 'border-b border-foreground/[0.09]' : ''}`}>
                         <Lead item={lead} allTags={allTags} onDismiss={() => dismiss(lead)} username={username} />
                     </li>
-                    {rest.map((item, i) => (
+                    {rest.map((item) => (
                         <Row
                             key={item.id}
                             item={item}
-                            rowIndex={i}
                             allTags={allTags}
                             onDismiss={() => dismiss(item)}
                             username={username}

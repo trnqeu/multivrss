@@ -210,6 +210,51 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         }
     }
 
+    // Revive fill — a category with zero picks after the fresh fill above would
+    // be dropped by the `items.length > 0` filter when building `sections`,
+    // silently vanishing from the front page once the reader has worked through
+    // everything recent in it. Bring it back with its most recent still-unread
+    // items even though they were shown on a prior day, so every category with
+    // anything left to read keeps a section (no `frontPageShownAt` filter, same
+    // as load-more semantics — see expandFrontPageSection).
+    const categoriesNeedingRevive = [...byCat.entries()].filter(([, items]) => items.length === 0);
+    if (categoriesNeedingRevive.length > 0) {
+        const reviveResults = await Promise.all(
+            categoriesNeedingRevive.map(async ([cat, existing]) => {
+                const sids = catSourceIds.get(cat) ?? [];
+                const candidates = await prisma.feedItem.findMany({
+                    where: {
+                        sourceId: { in: sids },
+                        read: false,
+                        savedAt: null,
+                        id: { notIn: [...shownIds] },
+                    },
+                    take: PER_CATEGORY,
+                    orderBy: { pubDate: 'desc' },
+                    select: { id: true, title: true, link: true, content: true, pubDate: true, sourceId: true },
+                });
+                return { cat, existing, candidates };
+            })
+        );
+
+        for (const { cat, existing, candidates } of reviveResults) {
+            for (const f of candidates) {
+                shownIds.add(f.id);
+                existing.push({
+                    id: f.id, link: f.link, title: f.title, content: f.content ?? undefined,
+                    pubDate: f.pubDate ? f.pubDate.getTime() : null,
+                    sourceTitle: sourceName.get(f.sourceId) ?? undefined,
+                    sourceSlug: sourceSlug.get(f.sourceId),
+                    categoryName: cat,
+                    read: false, savedAt: null,
+                    reasonType: 'source',
+                    reason: `From ${sourceName.get(f.sourceId) ?? 'your feed'}`,
+                    affinity: 40,
+                });
+            }
+        }
+    }
+
     const categoryCounts = await prisma.feedItem.groupBy({
         by: ['sourceId'],
         where: { sourceId: { in: sourceIds } },
