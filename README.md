@@ -1,36 +1,87 @@
 # MultivRSS
 
-A high-performance RSS aggregator and personal reading list SaaS. Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4, PostgreSQL + Prisma 7 (native full-text search — no separate search service), Docker.
+**Read the open web, save what matters.** MultivRSS is an RSS aggregator and
+a reading list in one calm, ad-free dashboard — the feeds you follow and the
+links you save, in an open format that stays yours. No algorithmic timeline,
+no engagement metrics: just your updates and your bookmarks.
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-000.svg)](./LICENSE)
+&nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./docs/ROADMAP.md) · [Self-hosting](./docs/self-hosting.md)
 
-## Architecture
+## Try it
 
-Next.js 16 App Router under `src/app`. Route groups like `[lang]/(marketing)` organize the tree without adding a URL segment; dynamic folders like `u/[username]` do add one.
+- **Hosted:** [multivrss.com](https://multivrss.com) — free, no setup.
+- **Self-hosted:** run your own instance with Docker — see
+  [Self-hosting](#self-hosting) below.
 
-| URL | Who sees it | What it is |
-|-----|-------------|------------|
-| `multivrss.com/` | Unauthenticated | Marketing landing page |
-| `multivrss.com/en`, `/it` | Unauthenticated | Localized marketing site — blog, guide, suggested sources, tips |
-| `multivrss.com/u/{username}` | Authenticated, own account only | Private RSS dashboard — all feeds, full-text search via `?q=` |
-| `multivrss.com/u/{username}/category/{slug}` | Authenticated | Feed items filtered by category |
-| `multivrss.com/u/{username}/source/{slug}` | Authenticated | Feed items filtered by source |
-| `multivrss.com/u/{username}/saved` | Authenticated | Reading list (saved links) |
-| `multivrss.com/u/{username}/suggested` | Authenticated | Suggested feeds directory |
-| `multivrss.com/u/{username}/read/{itemId}` | Authenticated | Reader Mode — full extracted article text |
-| `multivrss.com/u/{username}/settings/*` | Authenticated | Account, API keys, import/export |
-| `multivrss.com/login`, `/register`, `/forgot-password` | Public | Auth flows |
-| `multivrss.com/docs` | Public | Interactive API reference (OpenAPI via Scalar) |
+> This repository is public for transparency and portfolio purposes. Bug
+> reports are welcome via [Issues](https://github.com/trnqeu/multivrss/issues);
+> it does not accept external pull requests. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-Every route under `u/{username}/` sits behind a layout that enforces both authentication and that the URL's `{username}` matches the logged-in session — no other user's dashboard is reachable by editing the URL.
+## Screenshots
 
-A few Next.js 16 conventions worth knowing before reading the code: `proxy.ts` is the request-proxy convention that replaced `middleware.ts`; `next.config.ts` enables `cacheComponents: true`, so caching follows the Cache Components model (`"use cache"` only for cacheable output, `connection()` to defer to request time); Server Components are the default, Server Actions handle mutations.
+<!-- TODO: add screenshots to docs/images/ (dashboard, Reader Mode, search) and embed them here -->
 
-The full route-by-route breakdown and every other architectural convention live in [CLAUDE.md](./CLAUDE.md) — written as coding-agent guidance, but equally useful as a technical reference for humans.
+_Screenshots coming soon — for now, see the live instance at [multivrss.com](https://multivrss.com)._
 
-## Local Development
+## Features
 
-### Setup
+**Feeds**
+- Subscribe by URL, organize sources into categories, sort and collapse them
+  in the sidebar.
+- Background sync in a **separate worker process** (BullMQ + Redis): per-feed
+  jobs with retry and exponential backoff, a per-domain concurrency limit,
+  feed-`ttl`/`Cache-Control` awareness, and priority for never-synced feeds.
+- YouTube channels work as feed sources.
+- Every feed URL is treated as untrusted — DNS + private-IP checks guard
+  against SSRF before anything is fetched.
+
+**Reading**
+- Read / unread tracking, a per-source-affinity "For You" strip on the home
+  page, and a daily edition with a finishable progress count.
+- **Reader Mode** — full article text extracted in-app (Mozilla Readability +
+  `sanitize-html` allowlist, Redis-cached), with copy-to-clipboard and
+  export-as-Markdown. Works for both feed items and saved external links.
+- "Paper" light theme and a contrast-checked dark theme, persisted locally.
+
+**Reading list**
+- Save any feed item or any external URL (Pocket / Instapaper style), with
+  the page title and description fetched automatically.
+- Tag saved links and feed items; filter the list by tag.
+- Unsaved feed items are purged ~90 days after they drop out of their source
+  feed; saved items are kept indefinitely.
+
+**Search**
+- Native PostgreSQL full-text search (`tsvector` / GIN, no separate search
+  service) across feed items **and** saved links in a single bar.
+- Filter by category, time range, source, and read status.
+
+**Discovery & import/export**
+- A curated public suggested-feeds directory with search, category filters,
+  and bulk-add.
+- Import feed sources from OPML or CSV; import saved links from Pocket,
+  Instapaper, or generic CSV. Export either as CSV.
+
+**Platform**
+- Installable PWA with a share-target endpoint (share links straight into the
+  app from mobile).
+- Personal API keys for external tools (gated behind a Premium flag),
+  documented by an interactive OpenAPI reference at `/docs`.
+- Localized public marketing site (English / Italian).
+- Sign in with GitHub, Google, or email + password (with email verification
+  and password reset). Self-service account deletion.
+
+## Tech stack
+
+Next.js 16 (App Router, React Server Components, Server Actions) · React 19 ·
+TypeScript 5 · Tailwind CSS 4 · PostgreSQL 16 · Prisma 7 (`@prisma/adapter-pg`) ·
+NextAuth v4 (JWT) · BullMQ + Redis · Docker · Sentry.
+
+Full-text search is native Postgres (`tsvector` generated columns, GIN
+indexes) rather than a separate search service — a deliberate choice to keep
+the production footprint small.
+
+## Running locally
 
 Prerequisites: Node.js 24+, Docker.
 
@@ -42,340 +93,100 @@ cp .env.example .env          # fill in the values — see comments in the file
 docker-compose up -d          # Postgres (5435) + Redis (6379)
 npx prisma migrate deploy     # apply the existing schema
 npm run dev                   # http://localhost:3002
+npm run worker                # in a second terminal — feeds don't sync without it
 ```
 
-### Creating test users
-
-`scripts/create-test-users.ts` creates one or more users directly in the database, with `emailVerified` already set — so they can log in immediately without going through email verification.
+`scripts/create-test-users.ts` creates verified users directly in the
+database so you can log in without email verification:
 
 ```bash
-npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 5              # 5 users, default password
-npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 5 MyPass1!      # custom password
+npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 1 MyPass1!
 ```
 
-Usernames/emails are generated as `testuser_<timestamp>_<n>@example.com`; the default password is `Test1234!`. Credentials are printed to the console. Requires the local Postgres container (`docker-compose up -d`) to be running.
+It refuses to run against anything but `localhost`. Full usage is in
+[docs/self-hosting.md](./docs/self-hosting.md#8-first-login).
 
-## Self-Hosting
+### Common commands
 
-Want to run your own instance long-term, not just hack on the code? The steps are similar to the Setup above, plus starting the background sync worker and (optionally) putting the app behind your own domain. Full walkthrough — OAuth app creation, generating secrets, running the worker, exposing it to the internet — in [docs/self-hosting.md](./docs/self-hosting.md).
+```bash
+npm run dev      # dev server (port 3002)
+npm run build    # production build
+npm run lint     # ESLint
+npm run test     # Vitest unit tests
+npm run worker   # background feed-sync worker
+```
+
+## Self-hosting
+
+Running a long-lived instance for personal use takes a few more steps than
+the quickstart — registering OAuth apps, generating secrets, keeping the
+worker process alive, and (optionally) putting the app behind your own
+domain. The full walkthrough, plus updates and troubleshooting, is in
+[docs/self-hosting.md](./docs/self-hosting.md).
+
+## Project layout
+
+Next.js 16 App Router under `src/app`. A few conventions worth knowing before
+reading the code: `src/proxy.ts` is the request-proxy convention that
+replaced `middleware.ts`; `next.config.ts` sets `cacheComponents: true`, so
+caching follows the Cache Components model (`"use cache"` for cacheable
+output, `connection()` to defer to request time); Server Components are the
+default and Server Actions handle mutations.
+
+| Path | Access | What it is |
+|------|--------|------------|
+| `/`, `/en`, `/it` | Public | Marketing site — landing, blog, guide, suggested sources, tips |
+| `/login`, `/register`, `/forgot-password` | Public | Auth flows |
+| `/docs` | Public | Interactive API reference (OpenAPI via Scalar) |
+| `/u/{username}` | Owner only | Private dashboard — all feeds, inline full-text search (`?q=`) |
+| `/u/{username}/category/{slug}`, `/source/{slug}` | Owner only | Category- / source-filtered feed |
+| `/u/{username}/saved` | Owner only | Reading list |
+| `/u/{username}/read/{itemId}` | Owner only | Reader Mode |
+| `/u/{username}/settings/*` | Owner only | Account, API keys, import/export |
+
+Every route under `/u/{username}/` sits behind a layout that enforces
+authentication **and** that the URL's `{username}` matches the session — no
+other user's dashboard is reachable by editing the URL.
+
+The full route-by-route breakdown and every architectural convention live in
+[CLAUDE.md](./CLAUDE.md) — written as coding-agent guidance, but equally
+useful as a technical reference.
+
+## Deployment & CI/CD
+
+Push to `dev` deploys to staging; push to `main` deploys to production; pull
+requests run the quality gate only (`tsc --noEmit`, lint, tests,
+`npm audit`). Deploys build a multi-stage Docker image, push it to GHCR, then
+SSH into the server to run migrations and recreate the containers, with a
+health-check-gated automatic rollback.
+
+Full breakdown — Dockerfile stages, the deploy script, production container
+topology, required secrets — in
+[docs/deploy-strategy.md](./docs/deploy-strategy.md).
+
+## Roadmap
+
+A few of the larger things on the list:
+
+- Browser extension — detect feeds on the current page, save articles (the
+  REST API it needs already exists).
+- All-in-one `docker compose up` that starts the app alongside Postgres and
+  Redis.
+- WCAG 2.1 AA accessibility pass.
+- A Postgres-native redesign of the "similar items" recommendation engine.
+- Full backup export / restore (feeds, categories, saved links, tags, read
+  state) as a single archive.
+
+The full list is in [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Contributing
 
-Bug reports are welcome via [Issues](https://github.com/trnqeu/multivrss/issues). This project does not accept external Pull Requests — see [CONTRIBUTING.md](./CONTRIBUTING.md).
+Bug reports and feature ideas are welcome as
+[Issues](https://github.com/trnqeu/multivrss/issues). This repository does
+**not** accept external pull requests — it is maintained solo. Forking under
+the MIT License is welcome if you want to take the codebase in your own
+direction. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
 MIT — see [LICENSE](./LICENSE).
-
-## Product Vision
-
-MultivRSS is two things in one:
-
-1. **RSS Reader** — subscribe to feeds organized in categories, read and search articles in a private dashboard.
-2. **Reading List** — save any link (from your feeds or from anywhere on the web, like Instapaper or Pocket), annotate it, and build a personal archive.
-
-
----
-
-## CI/CD Pipeline
-
-Two deployment targets, one shared quality gate:
-
-```
-push → dev    →  Deploy to Staging    →  staging.multivrss.com
-push → main   →  Deploy to Production →  multivrss.com
-PR   → dev/main  →  CI (quality gate only, no deploy)
-```
-
-The quality gate (`ci.yml`) runs `npm ci` → `prisma generate` → `tsc --noEmit` → lint → tests → `npm audit --audit-level=critical` on every PR, and is reused by both deploy workflows. Deploys build a multi-stage Docker image, push it to GHCR, then SSH into the server to run migrations and recreate the containers, with a health-check-gated automatic rollback on failure.
-
-Full breakdown — Dockerfile stages, the exact deploy script, the production container topology, required secrets — lives in [docs/deploy-strategy.md](./docs/deploy-strategy.md).
-
----
-
-## Roadmap
-
-### Done
-
-- [x] OAuth sign-in (GitHub + Google) with Prisma Adapter
-- [x] Full-text search bar (+ filters by category, time range, source, read status)
-- [x] **Migrated search from Meilisearch to native Postgres full-text search** — removed the Meilisearch service entirely (RAM cost on the production host); `FeedItem`/`SavedLink` now carry a generated `tsvector` column (GIN-indexed, weighted title/content) queried via parameterized `$queryRaw`. Saved links are now searchable, unified and ranked alongside feed items in the same search bar for the first time. The home page's Meilisearch-based "similar items" recommendation engine is temporarily disabled (source-affinity ranking still active) pending a Postgres-native redesign.
-- [x] Sidebar toggle (open/close)
-- [x] Collapsible sidebar categories
-- [x] Alphabetical feed sorting within categories
-- [x] Manual sync button (syncs all feeds for the logged-in user)
-- [x] Accelerated sync with concurrency, delta upserts, timeout, non-blocking overlay
-- [x] Read / unread toggle (pallino + opacity)
-- [x] Light / dark mode with paper as default, persisted in localStorage
-- [x] Marketing landing page (`/`) with hero, pillars, live preview, tips, pricing
-- [x] Protected staging via Basic Auth (`STAGING_PASSWORD` in proxy.ts)
-- [x] Edit source modal (rename + change category with merge)
-- [x] Category rename with auto-merge when target name exists
-- [x] Server Actions test suite (56 Vitest tests across 7 files)
-- [x] Dynamic route restructure: all private routes under `/u/{username}/`
-
-### In progress / planned
-
-- [x] **Search UX revision** — removed redundant `/search` page, search lives inline on the dashboard via `?q=`
-- [x] **REST API** — `GET /api/feeds/sources` (list feed sources) and `POST /api/feeds/sources` (subscribe) with CORS support for Chrome Extension; authenticated via NextAuth session cookie
-- [x] **API docs** — OpenAPI spec at `/api/openapi`; interactive Scalar UI at `/docs`
-- [x] **Mobile category filter (Option B)** — pinned `CAT` pill at the left of the telemetry row (mobile only, never scrolls away); taps to open a bottom-sheet listing all categories; writes `?cat=`; desktop inline dropdown unchanged
-- [x] **Self-service account deletion** — danger-zone flow at `/u/{username}/settings/account` (type-to-confirm + password re-check for credentials accounts); deletes immediately via the existing `onDelete: Cascade` chain on every `User` relation, no new schema needed; rate-limited, sends a courtesy "account deleted" email. Replaces the old "email us to delete" flow in the FAQ and Privacy Policy.
-
-### Sync Performance & Scalability
-
-- [x] **Staleness filter in the cron** — sync only feeds with `lastSync < 30min ago` or `null`, instead of every feed on each tick
-- [x] **Batch UPDATE for changed items** — replace one-by-one updates inside the loop with `prisma.$transaction`
-- [x] ~~Meilisearch fire-and-forget indexing~~ — superseded: search moved to native Postgres full-text search (generated `tsvector` column, no separate index-sync step), see "Migrated search from Meilisearch to native Postgres full-text search" above
-- [x] **Priority for never-synced feeds** — `orderBy: { lastSync: { sort: 'asc', nulls: 'first' } }` in the cron and `syncAllFeeds`
-- [x] **Rate limiting per domain** — `DomainGate` semaphore: max 2 concurrent requests per hostname
-- [x] **Job queue (BullMQ + Redis)** — replace chunked `Promise.all` with a job queue for retry, backoff, monitoring; each feed becomes an independent job
-- [x] **Respect feed TTL** — read `<ttl>` or `Cache-Control` from the feed and skip re-sync before the declared expiry
-- [x] **Per-account feed limit** — max 200 feeds per account (protects the cron from abuse)
-- [x] **Per-user feed limits** — hard cap to protect the cron from users with hundreds of feeds
-
-### Production Readiness Plan
-
-A phased plan to make the app ready for real users at scale. Phases are ordered by priority and dependency.
-
-#### Phase 1 — Quick wins (no architecture change)
-
-- [x] **Gate Prisma query logging** — wrap `log: ['query']` in `src/lib/prisma.ts` behind `NODE_ENV !== 'production'`
-- [x] **Email verification at signup** — `EmailVerificationToken` model, Resend email, `/verify-email` route, login blocked until `emailVerified` set (existing users backfilled)
-- [x] **Per-user feed limit** — max 200 feeds per account enforced in `createFeedSource` action
-- [x] **Fix FeedList semantic HTML** — added `role="list"` / `role="listitem"` to feed containers and items
-- [x] **CSP script-src hardening** — replaced `'unsafe-inline'` with a build-time SHA-256 hash of the single inline script (`src/lib/theme-script.ts`, computed in `next.config.ts`); blocks inline XSS even if an injection point is found. A per-request nonce was considered but rejected: it requires dynamic rendering on every page, which conflicts with `cacheComponents` (PPR)
-
-#### Phase 2 — Infrastructure
-
-- [x] **Redis** — single Redis instance shared by rate limiter (replaces in-memory store) and BullMQ job queue; required before Phase 3
-- [x] **Sentry integration** — `@sentry/nextjs` SDK installed and wired: `instrumentation.ts` (`onRequestError`) captures errors from Server Actions, Route Handlers (including cron routes), and Server Components automatically; `instrumentation-client.ts` + `global-error.tsx` cover client-side and root render crashes. DSN flows end-to-end — local `.env`, GitHub repo Variable for the build-time client bundle (`NEXT_PUBLIC_SENTRY_DSN` baked into the Docker image via `build-args`), `.env.production`/`.env.staging` on the server — and was verified with a real test event reaching the Sentry dashboard.
-  - [ ] **Session Replay** — not yet enabled (`Sentry.replayIntegration()`)
-  - [ ] **Prisma performance tracing** — `tracesSampleRate` is set, but no explicit span instrumentation for Prisma calls added yet
-  - [ ] **Alerting on error spikes** — configure alert rules in the Sentry dashboard
-- [ ] **Uptime & metrics monitoring** — Prometheus + Grafana or BetterStack for infrastructure metrics and uptime checks
-
-#### Phase 3 — Feed sync refactor (critical for scale)
-
-- [x] **BullMQ job queue** — each feed becomes an independent job with retry, exponential backoff, and dead-letter queue; the stale-feed scan enqueues jobs, workers execute them
-- [x] **Separate worker process** — run BullMQ workers outside the Next.js process so sync load does not affect web response times (`npm run worker`)
-- [x] **TTL-aware scheduling** — read `<ttl>` or `Cache-Control` from feed response; skip re-sync until declared expiry
-- [x] **Self-scheduled stale-feed scan** — worker process registers a BullMQ repeatable job (`upsertJobScheduler`, every 5 min) on startup instead of depending on an external host cron hitting `/api/cron/sync`; that route now only wraps the same scan logic (`src/lib/feed-sync-scheduler.ts`) as a manual/backup trigger
-- [ ] **BullBoard dashboard** — mount BullMQ dashboard (admin-only route) for queue monitoring and manual job retry
-
-#### Phase 4 — Evaluate Go worker (after measuring)
-
-If Phase 3 metrics show CPU bottlenecks in feed parsing (not I/O), a dedicated Go service for feed fetching and XML parsing would be a natural next step. Go goroutines map directly to the `DomainGate` semaphore pattern already in place. Node.js handles I/O-bound concurrency well; Go adds value primarily when CPU-bound parsing at volume is the confirmed bottleneck. Measure first, then decide.
-
-#### Phase 5 — Load testing
-
-- [ ] **Load test suite** — simulate concurrent users and high feed-sync volume to find bottlenecks before production traffic does. Candidate tools: [k6](https://k6.io) (scripted, CI-friendly) or Artillery. Key scenarios: authenticated feed list page under N concurrent users, cron sync with M feeds in queue, full-text search under load. Gate: run before any capacity-related infrastructure change and before each major release.
-
-### DevOps & CI/CD
-
-- [x] **Three explicit environments** — Local (`localhost:3002`), Staging (`dev` → `staging.multivrss.com`), Production (`main` → `multivrss.com`)
-- [x] **`dev` push → staging deploy** — quality gate → Docker build → SSH deploy → health check → auto-rollback
-- [x] **`main` push → production deploy** — same pipeline, trigger restricted to the `main` branch
-- [x] **Prisma migration before code swap** — runs in an isolated one-shot container before `docker compose up`
-- [x] **`/api/health` route** — checks DB and Redis connectivity
-- [x] **Rollback on failure** — automated rollback to previous SHA if health check fails after deploy
-- [x] **GitHub Environments** — `staging` and `production` with scoped secrets
-- [ ] **Manual approval gate on production deploy** — required reviewers on the `production` environment need GitHub Pro (or a public repo); not available on the current private-repo free plan. Same limitation blocks native branch protection on `main`. Revisit if upgrading the plan or open-sourcing the repo.
-- [ ] **Secret rotation procedure** — runbook for rotating `NEXTAUTH_SECRET`, `CRON_SECRET`, DB credentials without downtime
-
-### Quality Guardrails (Testing & CI)
-
-Staged plan to layer automated guardrails on top of the existing quality gate — coverage measurement, mutation testing, BDD acceptance tests, code-quality linting — so changes are validated by objective checks rather than manual review alone. Each check starts advisory (non-blocking in CI) and flips to blocking once a real baseline is established.
-
-- [ ] **Land in-flight tag/saved-link changes** — commit the current uncommitted work (tag case-insensitive normalization, `SaveLinkBar` removal) on its own first, so the guardrails work below starts from a clean tree
-- [ ] **Test coverage baseline** — `@vitest/coverage-v8`, coverage config in `vitest.config.ts` scoped to `src/lib`, `src/app/actions`, `src/app/api/**/route.ts`, `src/proxy.ts`, `src/workers`; `npm run test:coverage`; advisory CI step reporting % via `$GITHUB_STEP_SUMMARY`
-- [ ] **Mutation testing on critical modules** — Stryker scoped to `src/lib/{rss,search,auth,utils,domain-gate,rate-limit}.ts` (SSRF guard, raw-SQL search, auth, validation primitives, concurrency gate, rate limiter); separate scheduled/manual-dispatch workflow, not per-PR, given runtime cost
-- [ ] **Gherkin/BDD acceptance tests** — `@amiceli/vitest-cucumber`; start with the feed lifecycle (add source → sync → read → save) and registration/email-verification/password-reset, both currently untested end-to-end
-- [ ] **Code-quality/complexity linting** — `eslint-plugin-sonarjs` (advisory, rules at `warn`) + `knip` for unused-export/dependency detection (doubles as partial automation of the "npm audit ... dependency hygiene" item above)
-- [ ] **Progressive CI wiring** — flip each advisory check (coverage threshold, mutation score, sonarjs rules, knip) to blocking once its baseline stabilizes; exact numbers TBD per-check once real baselines exist
-- [ ] **Docs + optional pre-commit hooks** — update `CLAUDE.md` Commands/Verification Order and `docs/CICD.md` with the new tooling and recorded baselines; optionally add Husky + lint-staged for local fast pre-commit checks (lint only, not the full test suite)
-
-### Self-Hosting _(optional / not yet decided)_
-
-Steps to make the repo public and let users run their own instance.
-
-- [ ] **Git history audit** — scan full history for committed secrets (`trufflehog filesystem .`); rewrite with `git filter-repo` if anything is found
-- [ ] **`.env.example`** — document all required env vars with placeholder values and comments on where to obtain each (OAuth credentials, Resend API key, etc.)
-- [ ] **All-in-one `docker-compose.yml`** — add an `app` service so `docker compose up` starts DB + Redis + Next.js together; current compose assumes the app runs outside Docker
-- [ ] **Init entrypoint** — run `prisma migrate deploy` + `prisma generate` automatically on first container start
-- [ ] **Self-hosting guide in README** — prerequisites, clone, copy env, `docker compose up`, first login
-
-### Reading List (Instapaper/Pocket-style)
-
-- [x] **Save from feed** — one-click bookmark on any feed item (SearchBar + FeedItem)
-- [x] **Save external link** — SaveLinkBar with auto-fetch of og:title/og:description
-- [x] **Private saved list** — `/u/{username}/saved` with tag filter, remove, and inline tag management
-- [x] **Feed item retention / auto-purge** — cron deletes unsaved `FeedItem` rows (`savedAt = null`) whose `lastSeenAt` (the last sync that still found the item in the feed) is more than 90 days old — i.e. 90 days after the item drops off its source feed, not 90 days after it was published
-- [x] **Reader Mode** — `/u/{username}/read/{itemId}` renders the full article text in-app (Mozilla Readability extraction + `sanitize-html` allowlist), triggered by a `READ` button on FeedItem/SearchBar/SavedView rows. SSRF-guarded fetch (`validateFeedUrl`/`safeFetchText`, same guard as `resolvePageTitle`), Redis-cached by article link (7-day TTL, cache is a pure optimization — never a hard dependency), rate-limited per user. Works for both `FeedItem` and `SavedLink` (the latter via `?type=savedLink` on the URL, since caching is keyed by URL, not by item) — so links saved externally (e.g. from mobile via the share target) get Reader Mode too, not just feed-sourced articles.
-
-### TBD / Future
-
-- [ ] **Public toggle** — mark any saved link as "public" to include it in the user's public profile
-- [ ] **Public profile page** — `multivrss.com/[username]` readable without login
-- [ ] **Advertising** — monetization via public pages
-
-### Core features
-
-- [ ] **Reader Mode: copy text + download as Markdown** — buttons in the reader view (`/u/{username}/read/{itemId}`) to copy the extracted article text to clipboard and export it as a `.md` file. Requires adding a `markdown` field to `ReaderResult` (`src/lib/reader.ts`), computed server-side alongside the existing sanitized `contentHtml` (candidate: `turndown` for HTML→Markdown, run on the already-sanitized HTML — flag as new dependency per `CLAUDE.md`); client side is a small `ReaderActions` component with `navigator.clipboard.writeText()` + Blob download, both with `aria-live` feedback per the a11y checklist.
-- [ ] **Android app (Capacitor wrapper)** — wrap the existing Next.js PWA in a native WebView shell via [Capacitor](https://capacitorjs.com/); publishable to Google Play. Reuses the current frontend as-is; unlocks native plugins (push notifications, native share target replacing/augmenting `share-target/`) beyond what the web share-target endpoint can do. Key steps: add `@capacitor/core` + `@capacitor/android`, configure `capacitor.config.ts` to point at the deployed production URL (or bundle a local build), wire native push via `@capacitor/push-notifications` if adopted, sign and publish the APK/AAB.
-- [ ] **Chrome extension** — detect RSS feeds on the current page and add them with one click; save articles to reading list; REST API already in place
-- [x] **Import / Export settings page** — dedicated `/u/{username}/settings/import-export` page (linked from `SettingsMenu`, which no longer holds the controls inline) with two sections: "RSS sources" (OPML import/export, CSV import/export) and "Saved links" (Pocket, Instapaper, and generic CSV import; CSV export). Each import card opens a shared drop-zone/file-picker `ImportModal`
-- [x] **Export as CSV** — `exportFeedsCsv()` (all feed sources: URL, category, title) and `exportSavedLinksCsv()` (all saved links: URL, title, description, tags, saved date) — both in `src/app/actions/csv.ts`, triggered from the Import/Export settings page
-- [x] **Import from CSV** — `importFeedsCsv()` (feed list, CSV with URL + optional category/title) and `importSavedLinksCsv()` (saved links — maps to `SavedLink` rows, tags via `Tag`/`SavedLinkTag`) — both in `src/app/actions/csv.ts`. Saved-links import auto-detects Instapaper's headerless export format (fixed `url,title,selection,folder,timestamp` columns) alongside any header-based CSV with a recognizable URL column (Pocket, Raindrop, generic exports)
-- [x] **Import/Export OPML (RSS sources)** — `importFeedsOpml()`/`exportFeedsOpml()` in `src/app/actions/opml.ts`, parsing via a dependency-free regex-based reader/writer in `src/lib/opml.ts` (deliberately skips DOCTYPE/entity processing so an uploaded file can't trigger XXE); nested `<outline>` folders map to categories, feeds dedupe by URL within a category
-- [ ] **Pocket `.zip` import** — Pocket's `.zip` mail export isn't parsed yet; only its CSV export is supported (via the generic saved-links CSV importer)
-- [ ] **Full backup export/restore** — a single `.zip` covering feeds, categories, saved links, tags, and read state, with a restore flow — deferred; flagged as an open scope question in the original design handoff
-- [ ] **Export scoped by tag/category** — a "filter by tag" export variant isn't built yet; exports are always all-or-nothing
-- [ ] **Onboarding — interest picker** — on first login, new users see a "Don't know where to start?" screen. They pick interest categories (e.g. News, Tech, Sports) and the app auto-creates categories with curated seed feeds (list in `docs/notes.md`).
-- [ ] **RSS feed creator** — generate a feed for websites that don't provide one
-- [ ] **RSSHub integration** — allow users to subscribe to [RSSHub](https://docs.rsshub.app/) routes directly from the add-feed UI
-- [ ] **Accessibility (a11y)** — WCAG 2.1 AA compliance
-  - **CRITICAL**
-    - [x] **Focus indicator** — global `:focus-visible` outline (terracotta 2px, 2px offset) defined in `src/app/globals.css`; stray per-component overrides (`PageHeader`, `SuggestedPageClient`) now restore a visible ring instead of `outline-none`
-    - [x] **Form label** — all inputs now have an associated `<label htmlFor>` (`sr-only` where hidden), including `PageHeader` search fields, the Import/Export settings page's file inputs, and the `SuggestedPageClient` directory filter
-    - [x] **Skip-to-content** — `href="#main-content"` link in `src/app/layout.tsx`, matching `id="main-content"` on `<main>` across all top-level pages
-  - **HIGH**
-    - [ ] **Color contrast** — terracotta `#E2725B` on paper `#F6F3EC` = 3.89:1 (threshold 4.5:1); text at `/30`, `/40` opacity drops to 2.1:1 (Sidebar, FeedItem, SearchBar, PageHeader, CollapsibleCategory). Darken the terracotta or avoid opacity below `/55` for informational text
-    - [ ] **Unassociated error messages** — errors in AddFeedForm, EditSourceForm, login, register without `aria-describedby` linked to the input
-    - [ ] **Dropdowns without keyboard navigation** — ThreeDotMenu, AddFeedForm, EditSourceForm: no arrow keys, no focus management on open/close
-    - [ ] **Mobile sidebar focus trap** — SidebarContainer overlay does not trap focus; implement a focus trap
-    - [ ] **Hover-only bookmark buttons** — FeedItem, SearchBar, SavedView: `opacity-0 group-hover/item:opacity-100`. Add `group-focus-within/item:opacity-100`
-    - [ ] **Silent dynamic states** — loading spinner, errors, success feedback, optimistic read/save changes without `role="alert"`, `aria-live="polite"`, `role="status"`
-    - [ ] **Unlabeled nav landmarks** — two `<nav>` elements (Sidebar, MobileTabBar) without a distinct `aria-label`
-
-### Monetization
-
-- [ ] **Freemium plan** — Free tier: limited feeds and categories, no full-text search. Pro tier (~€5/month): unlimited feeds, full-text search, CSV export, API access.
-- [ ] **Display free tier limits on marketing landing page** — even before a paid tier exists, the pricing/plans section must show the hard limits already enforced in the app: **max 200 feeds** per account and **90-day article retention** (an unsaved item is purged ~90 days after it drops out of its source feed; saved items are exempt). This sets honest expectations and primes users for a future upgrade path. Copy must be kept in sync whenever these limits change in the code.
-- [ ] **RSS feed generator (Pro)** — Pro-only feature: generate a valid RSS feed for any website that doesn't publish one. User provides a URL; the backend fetches the page, extracts a list of links + titles (via `@mozilla/readability` + `jsdom` or a CSS selector the user configures), and serves a synthetic `/feeds/[id].xml` endpoint that aggregates updates on each cron tick. The generated feed appears in the user's source list like any other feed. Key considerations: rate-limit fetching per domain (reuse `DomainGate`); store the CSS selector / extraction config in a new `GeneratedFeed` model linked to `FeedSource`; gate the feature behind a `plan === 'pro'` check in the Server Action; respect `robots.txt` (fetch and cache it alongside the feed). Candidate scraping strategies in order of reliability: (1) structured `<article>` / `<li>` extraction via Readability, (2) user-supplied CSS selector, (3) sitemap.xml fallback.
-
-### Marketing & Infrastructure
-
-- [ ] **Marketing site i18n** — multi-language support for the public marketing pages at `/` (hero, pricing, tips). Scope is marketing only — the authenticated dashboard stays English-only. Use Next.js 16 built-in i18n routing (`i18n` config in `next.config.ts`) with locale-prefixed URLs (e.g. `/it`, `/es`). Launch languages TBD; suggested starting pair: English (default) + Italian. Requires extracting all marketing copy into locale message files; `next-intl` is the recommended library for App Router.
-- [ ] **Privacy Policy & Cookie Policy pages** — `/privacy` and `/cookies` under the marketing site (i18n en/it), required before public launch for EU users. Must disclose: third-party sub-processors that process personal data (Sentry once enabled — IP address, user agent, stack traces, breadcrumbs), `localStorage` usage (theme preference), and any analytics added later. No cookies are set today (Sentry uses request headers for tracing, not cookies), but GDPR requires disclosing personal-data processing regardless of cookie use.
-- [x] **FAQ page** — `/faq` under the marketing site (i18n en/it), covering product & features, account & privacy, pricing & limits, and technical questions (feed types, YouTube, CSV import/export, browser extension status, PWA install). Content grounded in the confirmed free-tier limits (max 200 feeds/account, 90-day retention on unsaved articles) and honest, non-overclaiming answers on self-hosting/open-source status and pricing.
-- [x] **Public changelog page** — `/changelog` under the marketing site (i18n en/it), curated plain-language release notes separate from the dev-facing root `CHANGELOG.md`.
-- [ ] **CDN + security** — Bunny CDN + Bunny Shield: cache static assets and public pages, WAF, DDoS protection, bot mitigation. Never cache authenticated traffic.
-- [ ] **Server hardening** — Nginx rate limiting on sensitive endpoints (login, API); Fail2ban on VPS
-- [ ] **OWASP secure development** — apply OWASP Top 10 across every feature:
-  - [ ] **Security headers** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy (via `next.config.ts` or Nginx)
-  - [ ] **Rate limiting** — login, password reset, API endpoints (Nginx + app-level)
-  - [ ] **Input validation library** — introduce Zod (or similar) for all Server Action inputs: username, email, category name length/format, source URL normalization
-  - [ ] **SSRF guard for `resolvePageTitle`** — add `validateFeedUrl()`-style check before fetching arbitrary URLs in `actions.ts`
-  - [x] **Disable Prisma query logging in production** — gated behind `NODE_ENV !== 'production'` in `src/lib/prisma.ts`
-  - [ ] **`npm audit` in CI** — fail build on critical/moderate severities
-  - [ ] **Password reset token** — move from URL query param to POST body to prevent Referrer leakage
-  - [ ] **Security test suite** — adversarial scenarios: invalid ownership, token tampering, boundary inputs, CSRF attempts
-- [ ] **Reader mode** — extract full article content from saved URLs via `@mozilla/readability` + `jsdom`
-- [ ] **Database backups** — periodic automated `pg_dump`; evaluate Hetzner Storage Box, Backblaze B2, or Cloudflare R2
-- [ ] **AI agent integration** — TBD
-- [ ] **Vector database** — TBD
-- [ ] **Markdown-driven home page** — allow updating marketing home page sections (hero copy, pillars, pricing, tips) by editing local `.md` files, without touching React components. Rendered server-side via `next-mdx-remote` or similar; hot-reloads in dev, statically included in production build.
-- [x] **Blog section** — public, i18n (en/it) Markdown-driven blog under `content/blog/`, loaded by `src/lib/blog.ts`. No CMS or database required — content is versioned in Git.
-- [ ] **Public changelog page** — `/changelog` on the marketing site, Markdown-driven like the planned blog. Source of truth is repo-root `CHANGELOG.md` (Keep a Changelog format); render its entries instead of duplicating content. Hold until the blog's Markdown-rendering pattern is actually in use, then reuse it.
-
-### Personalization
-
-- [ ] **"Similar items" recommendation engine (redesign needed)** — the home page's "For You" strip ranks items via two engines merged in `src/lib/frontpage.ts`: Engine A (source affinity, pure Prisma — active) and Engine B (title-similarity search — **temporarily disabled** as of the Meilisearch → Postgres full-text search migration; it depended on `meili.multiSearch()` with `showRankingScore`, which has no direct equivalent in Postgres FTS). Signal available for a redesign: `FeedItem.savedAt` (strong, explicit) and `FeedItem.read` (weak, implicit). Options, in order of complexity:
-
-  ~~**Option A — Meilisearch keyword similarity**~~ — this is what Engine B was; no longer applicable, Meilisearch is removed from the stack (RAM cost).
-
-  ~~**Option B — Meilisearch with AI embedder**~~ — same dependency, ruled out for the same reason.
-
-  **Option C — pgvector in PostgreSQL (maximum control, unaffected by the Meilisearch removal)**
-  - Add `pgvector` extension to Docker, add `embedding vector(1024)` column to `FeedItem`, generate and store embeddings on every feed sync (via Voyage AI or similar).
-  - Query: average the embeddings of the last N saved/read items → `ORDER BY embedding <=> $avg_embedding LIMIT 20`.
-  - This is the "Vector database — TBD" item above, made concrete.
-  - Quality: high + most flexible. Effort: high (~6–8 sessions).
-
-  **Option D — Postgres keyword similarity (no new infrastructure, lowest effort)**
-  - Reuse the `tsvector`/GIN columns already added for search: for each of the last N saved/read `FeedItem` titles, rank other unread items by `ts_rank_cd` against a `websearch_to_tsquery` built from that title (or `pg_trgm` similarity for a fuzzier match), excluding already-seen items.
-  - Quality: medium (term-based, not semantic — same ceiling the old Meilisearch-based Engine B had).
-  - Effort: low — no new service, no embeddings, reuses `src/lib/search.ts`'s existing query patterns.
-
-  **Recommended path:** Option D restores Engine B's original UX cheaply on the now-Postgres-only stack; revisit Option C only if term-based similarity proves insufficient in practice.
-
----
-
-## Home Page — Tips & Tricks Section
-
-Content planned for the marketing landing page. A curated list of tricks to help users find and create RSS feeds for sites that make them hard to discover.
-
-### Google News
-
-Any Google News search URL becomes an RSS feed by inserting `/rss` after the TLD:
-
-```
-https://news.google.com/search?q=site%3Areuters.com&hl=en-US&gl=US&ceid=US%3Aen
-→
-https://news.google.com/rss/search?q=site%3Areuters.com&hl=en-US&gl=US&ceid=US%3Aen
-```
-
-### Substack
-
-Every Substack publication exposes a feed at `/feed`:
-
-```
-https://stratechery.com/feed
-```
-
-### Reddit
-
-Append `.rss` to any subreddit URL:
-
-```
-https://www.reddit.com/r/programming.rss
-https://www.reddit.com/r/worldnews.rss
-```
-
-### YouTube
-
-Every YouTube channel has a hidden Atom feed. Find the channel ID in the URL and use:
-
-```
-https://www.youtube.com/feeds/videos.xml?channel_id=CHANNEL_ID
-```
-
-### Medium
-
-Medium publications and user pages expose a feed at `/feed/`:
-
-```
-https://medium.com/feed/@username
-https://medium.com/feed/publication-name
-```
-
-### WordPress sites
-
-Nearly every WordPress site has a feed at `/feed`:
-
-```
-https://example.com/feed
-```
-
-### GitHub
-
-GitHub exposes Atom feeds for releases, commits, and tags — no authentication needed:
-
-```
-https://github.com/owner/repo/releases.atom
-https://github.com/owner/repo/commits.atom
-https://github.com/owner/repo/tags.atom
-```
-
-### Podcast apps
-
-Every podcast is natively an RSS feed. Copy the podcast's feed URL from any podcast directory (Apple Podcasts, Spotify for Podcasters, Listen Notes) and paste it directly into MultivRSS.
-
-### Kill the Newsletter
-
-[Kill the Newsletter](https://kill-the-newsletter.com/) converts any email newsletter into an RSS feed. It generates a unique inbox address — subscribe to the newsletter with that address and get every issue as a feed item.
-
-### RSS-Bridge (self-hosted)
-
-[RSS-Bridge](https://github.com/RSS-Bridge/rss-bridge) is an open-source tool that generates RSS feeds for hundreds of sites that don't provide one natively (Instagram, Twitter/X, Telegram channels, and more). Can be self-hosted or used via public instances.

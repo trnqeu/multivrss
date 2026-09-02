@@ -327,6 +327,7 @@ Project-level skill definitions: `.agent-skills/skills/`. System skills: pre-ins
 
 ## References
 
-- `README.md` — product vision + roadmap (keep the roadmap section updated after each feature)
+- `README.md` — public-facing product overview, feature list, and setup (product-first; keep the feature list accurate as behavior changes)
+- `docs/ROADMAP.md` — forward-looking roadmap (shipped work goes in `CHANGELOG.md`, not here)
 - `docs/notes.md` — Adminer recipe, curated feed seed list for onboarding, personal notes
-- Every task should be checked against the roadmap in `README.md` to mark items done or adjust scope
+- Every task should be checked against `docs/ROADMAP.md` to adjust scope, and against `CHANGELOG.md` when it ships

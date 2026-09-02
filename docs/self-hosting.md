@@ -1,8 +1,8 @@
 # Self-Hosting MultivRSS
 
-A guide to running your own long-lived MultivRSS instance — for personal use, not just to hack on the code. If you only want to run the app briefly to explore the codebase, the shorter [Setup section in the README](../README.md#setup) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
+A guide to running your own long-lived MultivRSS instance — for personal use, not just to hack on the code. If you only want to run the app briefly to explore the codebase, the shorter [Running locally section in the README](../README.md#running-locally) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
 
-There is currently no all-in-one `docker compose up` that starts the app itself — `app` runs as a plain Node process outside Docker, with Postgres and Redis in containers. That's a known gap, tracked in the README's [Roadmap](../README.md#roadmap) as optional/not yet decided. Until then, this guide is the accurate path.
+There is currently no all-in-one `docker compose up` that starts the app itself — `app` runs as a plain Node process outside Docker, with Postgres and Redis in containers. That's a known gap, tracked in the [Roadmap](./ROADMAP.md#infrastructure--scaling). Until then, this guide is the accurate path.
 
 ## 1. Prerequisites
 

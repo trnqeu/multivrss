@@ -241,5 +241,5 @@ Add to server crontab (`crontab -e`):
 | `.env.production` on server | **todo** |
 | OAuth redirect URIs for prod | **todo** |
 | Sentry | **done** |
-| CSP nonce | not planned — build-time SHA-256 hash of the inline script used instead (see README "Phase 1 — Quick wins") |
+| CSP nonce | not planned — build-time SHA-256 hash of the inline script used instead (`src/lib/theme-script.ts`, hashed in `next.config.ts`) |
 | Database backups | post-launch day 1 |
