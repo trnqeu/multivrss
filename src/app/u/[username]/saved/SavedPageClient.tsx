@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import SavedView from './SavedView';
@@ -8,10 +8,12 @@ import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { deleteSavedLink } from '@/app/actions/saved-links';
 import { unsaveFeedItem } from '@/app/actions/feed-items';
-import { removeTagFromLink, removeTagFromFeedItem, renameTag, deleteTag } from '@/app/actions/tags';
+import { renameTag, deleteTag, getTags } from '@/app/actions/tags';
 import { getMoreSavedItems } from '@/app/actions/saved-items';
 import SavedTagPill from '@/components/SavedTagPill';
+import { Search } from '@/components/icons/Search';
 import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
+import { useOnReshow } from '@/components/useOnReshow';
 
 interface SavedPageClientProps {
     username: string;
@@ -31,6 +33,7 @@ export default function SavedPageClient({
     const [links, setLinks] = useState(initialLinks);
     const [tags, setTags] = useState(initialTags);
     const [tagsExpanded, setTagsExpanded] = useState(false);
+    const [tagQuery, setTagQuery] = useState('');
     const [feedOffset, setFeedOffset] = useState(initialFeedOffset);
     const [linkOffset, setLinkOffset] = useState(initialLinkOffset);
     const [hasMore, setHasMore] = useState(initialHasMore);
@@ -63,15 +66,61 @@ export default function SavedPageClient({
         }
     }, [activeTag, query, feedOffset, linkOffset]);
 
+    // `cacheComponents` keeps this route mounted-but-hidden after the user
+    // navigates away, so `articles`/`links`/`tags` (seeded once from server
+    // props) go stale if an item is saved/tagged elsewhere in the meantime —
+    // e.g. hitting the bookmark on the feed list, then coming back here. Refetch
+    // the first page + tag list whenever the route becomes visible again. A
+    // monotonic token drops a slow response that a newer refetch already
+    // superseded.
+    const refreshTokenRef = useRef(0);
+    const refreshFromServer = useCallback(async () => {
+        const token = ++refreshTokenRef.current;
+        const [page, freshTags] = await Promise.all([
+            getMoreSavedItems({
+                tag: activeTag ?? undefined,
+                q: query || undefined,
+                feedOffset: 0,
+                linkOffset: 0,
+            }),
+            getTags(),
+        ]);
+        if (token !== refreshTokenRef.current) return;
+        if (!('error' in page)) {
+            setArticles(page.articles);
+            setLinks(page.links);
+            setFeedOffset(page.nextFeedOffset);
+            setLinkOffset(page.nextLinkOffset);
+            setHasMore(page.hasMore);
+        }
+        setTags(freshTags);
+    }, [activeTag, query]);
+    useOnReshow(refreshFromServer);
+
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
+    }, []);
+
+    // The filter-bar tag list is seeded once from the server at mount and only
+    // mutated by rename/delete below — so a tag *created* while assigning it to
+    // an item (in the edit modal here, or the header Add popover feeding the
+    // sync context) never lands in it, even though the item shows the new chip.
+    // Merge any unknown tags coming back from a details edit so the bar stays
+    // complete without a full reload.
+    const mergeNewTags = useCallback((incoming: TagVM[]) => {
+        setTags(prev => {
+            const seen = new Set(prev.map(t => t.id));
+            const additions = incoming.filter(t => !seen.has(t.id));
+            return additions.length > 0 ? [...prev, ...additions] : prev;
+        });
     }, []);
 
     const handleSetLinkDetails = useCallback((linkId: string, title: string | null, newTags: TagVM[]) => {
         setLinks(prev => prev.map(l =>
             l.id === linkId ? { ...l, title, tags: newTags } : l
         ));
-    }, []);
+        mergeNewTags(newTags);
+    }, [mergeNewTags]);
 
     const { register } = useSavedLinksSync();
     useEffect(() => {
@@ -93,25 +142,8 @@ export default function SavedPageClient({
         setArticles(prev => prev.map(a =>
             a.id === articleId ? { ...a, title, tags } : a
         ));
-    }, []);
-
-    const handleRemoveTagFromArticle = useCallback(async (articleId: string, tagId: string) => {
-        setArticles(prev => prev.map(a =>
-            a.id === articleId
-                ? { ...a, tags: a.tags.filter(t => t.id !== tagId) }
-                : a
-        ));
-        await removeTagFromFeedItem(articleId, tagId);
-    }, []);
-
-    const handleRemoveTagFromLink = useCallback(async (linkId: string, tagId: string) => {
-        setLinks(prev => prev.map(l =>
-            l.id === linkId
-                ? { ...l, tags: l.tags.filter(t => t.id !== tagId) }
-                : l
-        ));
-        await removeTagFromLink(linkId, tagId);
-    }, []);
+        mergeNewTags(tags);
+    }, [mergeNewTags]);
 
     const handleRenameTag = useCallback(async (tagId: string, newName: string) => {
         const trimmed = newName.trim();
@@ -146,60 +178,92 @@ export default function SavedPageClient({
         await deleteTag(tagId);
     }, []);
 
+    const TAG_PREVIEW_COUNT = 8;
     const sortedTags = useMemo(
         () => [...tags].sort((a, b) => a.name.localeCompare(b.name)),
         [tags]
     );
-    const TAG_PREVIEW_COUNT = 8;
-    const visibleTags = tagsExpanded ? sortedTags : sortedTags.slice(0, TAG_PREVIEW_COUNT);
-    const hiddenTagCount = sortedTags.length - visibleTags.length;
+    // The tag search narrows the *pill list*, never the item list — it is tag
+    // navigation, not a second stream filter. With a query active the preview
+    // cap of 8 does not apply, so a rare tag is found by typing.
+    const matchedTags = useMemo(() => {
+        const q = tagQuery.trim().toUpperCase();
+        return q ? sortedTags.filter(t => t.name.toUpperCase().includes(q)) : sortedTags;
+    }, [sortedTags, tagQuery]);
+    const showAllTags = tagQuery.trim().length > 0 || tagsExpanded;
+    const visibleTags = showAllTags ? matchedTags : matchedTags.slice(0, TAG_PREVIEW_COUNT);
+    const hiddenTagCount = matchedTags.length - visibleTags.length;
 
     const total = articles.length + links.length;
 
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
             <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
-                <Link
-                    href={`/u/${username}`}
-                    className="label-system text-[10px] hover:bg-foreground hover:text-background w-fit px-1 transition-all border border-foreground font-bold"
-                >
-                    ← BACK_TO_ALL
-                </Link>
                 <div className="flex items-center gap-2.5">
                     <Bookmark filled className="text-terracotta" size={13} />
                     <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
-                    {activeTag && (
+                </div>
+
+                {/* Tag filter bar — the search narrows the pill list (not the items)
+                    and lifts the preview cap of 8. */}
+                {tags.length > 0 && !activeTag && (
+                    <div className="flex flex-col gap-3 border-b border-foreground/12 pb-4 sm:flex-row sm:items-start">
+                        <div className="relative shrink-0 sm:w-[178px]">
+                            <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
+                            <input
+                                id="saved-tag-search"
+                                value={tagQuery}
+                                onChange={e => setTagQuery(e.target.value)}
+                                placeholder="SEARCH TAGS…"
+                                className="w-full border border-foreground/25 bg-background py-[7px] pl-6 pr-2.5 text-[9.5px] font-bold uppercase tracking-[0.06em] outline-none placeholder:font-semibold placeholder:text-foreground/40 focus:border-terracotta"
+                            />
+                            <Search
+                                size={11}
+                                className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-foreground/40"
+                            />
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-[7px]">
+                            {visibleTags.map(tag => (
+                                <SavedTagPill
+                                    key={tag.id}
+                                    tag={tag}
+                                    username={username}
+                                    onRename={handleRenameTag}
+                                    onDelete={handleDeleteTag}
+                                />
+                            ))}
+                            {matchedTags.length === 0 && (
+                                <span role="status" className="py-[7px] text-[9.5px] font-bold uppercase tracking-[0.06em] text-foreground/45">
+                                    No tags match
+                                </span>
+                            )}
+                            {!tagQuery && (hiddenTagCount > 0 || tagsExpanded) && (
+                                <button
+                                    type="button"
+                                    onClick={() => setTagsExpanded(v => !v)}
+                                    aria-expanded={tagsExpanded}
+                                    className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
+                                >
+                                    {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
+                                    <span aria-hidden="true" className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Active-filter context bar — the single way out of a tag filter. */}
+                {activeTag && (
+                    <div className="flex flex-wrap items-center gap-2.5 border-b border-foreground/12 pb-4 text-[9.5px] font-bold uppercase tracking-[0.08em] text-foreground/55">
+                        <span>Filter: <span className="text-foreground">{activeTag}</span></span>
+                        <span aria-hidden="true">·</span>
+                        <span>{total}{hasMore ? '+' : ''} {total === 1 && !hasMore ? 'item' : 'items'}</span>
                         <Link
                             href={`/u/${username}/saved`}
-                            className="ml-2 text-[10px] uppercase tracking-widest border border-terracotta px-2 py-0.5 text-terracotta hover:bg-terracotta hover:text-background transition-colors"
+                            className="border border-foreground/25 px-2 py-1 tracking-[0.06em] text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
                         >
-                            ✕ {activeTag}
+                            Show all
                         </Link>
-                    )}
-                </div>
-                {/* Tag filter bar */}
-                {tags.length > 0 && !activeTag && (
-                    <div className="flex flex-wrap gap-1.5">
-                        {visibleTags.map(tag => (
-                            <SavedTagPill
-                                key={tag.id}
-                                tag={tag}
-                                username={username}
-                                onRename={handleRenameTag}
-                                onDelete={handleDeleteTag}
-                            />
-                        ))}
-                        {(hiddenTagCount > 0 || tagsExpanded) && (
-                            <button
-                                type="button"
-                                onClick={() => setTagsExpanded(v => !v)}
-                                aria-expanded={tagsExpanded}
-                                className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
-                            >
-                                {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
-                                <span className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
-                            </button>
-                        )}
                     </div>
                 )}
             </header>
@@ -214,8 +278,6 @@ export default function SavedPageClient({
                 onLoadMore={handleLoadMore}
                 onRemoveArticle={handleRemoveArticle}
                 onRemoveLink={handleRemoveLink}
-                onRemoveTagFromArticle={handleRemoveTagFromArticle}
-                onRemoveTagFromLink={handleRemoveTagFromLink}
                 onSetArticleDetails={handleSetArticleDetails}
                 onSetLinkDetails={handleSetLinkDetails}
             />

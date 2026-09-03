@@ -33,14 +33,14 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
                     if (e.key === 'Escape') { setValue(tag.name); setMode('idle'); }
                 }}
                 aria-label={`Rename tag ${tag.name}`}
-                className="text-[10px] uppercase tracking-widest px-2 py-1 border border-terracotta bg-terracotta/10 text-terracotta font-bold w-28"
+                className="text-[9.5px] uppercase tracking-widest px-2.5 py-1.5 border border-terracotta bg-terracotta/10 text-terracotta font-bold w-28"
             />
         );
     }
 
     if (mode === 'confirm-delete') {
         return (
-            <span className="flex items-center px-2 py-1 border border-terracotta">
+            <span className="flex items-center px-2.5 py-1.5 border border-terracotta">
                 <InlineDeleteConfirm
                     label={tag.name}
                     onCancel={() => setMode('idle')}
@@ -55,7 +55,7 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
             <button
                 type="button"
                 onClick={() => router.push(`/u/${username}/saved?tag=${encodeURIComponent(tag.name)}`)}
-                className="text-[10px] uppercase tracking-widest px-2 py-1 bg-transparent border-0 text-foreground hover:bg-foreground hover:text-background transition-colors"
+                className="text-[9.5px] uppercase tracking-widest px-2.5 py-1.5 bg-transparent border-0 text-foreground hover:bg-foreground hover:text-background transition-colors"
             >
                 {tag.name}
             </button>
