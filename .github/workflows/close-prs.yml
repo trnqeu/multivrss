@@ -9,10 +9,13 @@ permissions:
 
 jobs:
   close-pr:
-    # Dependabot opens PRs from branches in this repo, not from a fork — these
-    # are automated dependency updates, not "external contributions", and are
-    # welcome. Skip the job entirely for them so they stay open for review.
-    if: github.actor != 'dependabot[bot]'
+    # Only auto-close PRs that come from a fork — i.e. actual external
+    # contributions. PRs opened from a branch in this repo (the maintainer's
+    # own work, and Dependabot's dependency updates) are not forks and stay
+    # open for review. The explicit Dependabot check is kept as belt-and-braces.
+    if: >-
+      github.event.pull_request.head.repo.fork == true &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Comment and close
