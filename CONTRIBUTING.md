@@ -14,7 +14,7 @@ your browser/OS if relevant.
 Feature ideas are welcome as Issues too. There's no guarantee a request will
 be picked up, scheduled, or responded to — treat it as a suggestion box, not
 a roadmap commitment. The current roadmap lives in
-[docs/ROADMAP.md](./docs/ROADMAP.md).
+[ROADMAP.md](./ROADMAP.md).
 
 ## Pull Requests — not accepted
 

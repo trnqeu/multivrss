@@ -53,15 +53,10 @@ MARKETING_PLAN.md
 EDITORIAL.md
 OPEN_SOURCE_PLAN.md
 
-# docs/ is local-by-default working notes; publish only the allow-listed files
-# (the ones linked from README / CONTRIBUTING). Anything else dropped in docs/
-# — design handoffs, launch/marketing notes, scratch — stays local.
-/docs/*
-!/docs/self-hosting.md
-!/docs/ROADMAP.md
-!/docs/deploy-strategy.md
-!/docs/backup-strategy.md
-!/docs/launch-plan.md
+# docs/ is entirely local — working notes, launch/marketing plans, design
+# handoffs, ops runbooks. Published docs live at the repo root (README.md,
+# ROADMAP.md, SELF_HOSTING.md, CONTRIBUTING.md, CHANGELOG.md).
+/docs/
 
 # agent configuration
 .agent-skills/

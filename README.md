@@ -6,7 +6,7 @@ links you save, in an open format that stays yours. No algorithmic timeline,
 no engagement metrics: just your updates and your bookmarks.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-000.svg)](./LICENSE)
-&nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./docs/ROADMAP.md) · [Self-hosting](./docs/self-hosting.md)
+&nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md) · [Self-hosting](./SELF_HOSTING.md)
 
 ## Try it
 
@@ -20,7 +20,7 @@ no engagement metrics: just your updates and your bookmarks.
 
 ## Screenshots
 
-<!-- TODO: add screenshots to docs/images/ (dashboard, Reader Mode, search) and embed them here -->
+<!-- TODO: add screenshots to .github/images/ (dashboard, Reader Mode, search) and embed them here -->
 
 _Screenshots coming soon — for now, see the live instance at [multivrss.com](https://multivrss.com)._
 
@@ -104,7 +104,7 @@ npx tsx --tsconfig tsconfig.test.json scripts/create-test-users.ts 1 MyPass1!
 ```
 
 It refuses to run against anything but `localhost`. Full usage is in
-[docs/self-hosting.md](./docs/self-hosting.md#8-first-login).
+[SELF_HOSTING.md](./SELF_HOSTING.md#8-first-login).
 
 ### Common commands
 
@@ -122,7 +122,7 @@ Running a long-lived instance for personal use takes a few more steps than
 the quickstart — registering OAuth apps, generating secrets, keeping the
 worker process alive, and (optionally) putting the app behind your own
 domain. The full walkthrough, plus updates and troubleshooting, is in
-[docs/self-hosting.md](./docs/self-hosting.md).
+[SELF_HOSTING.md](./SELF_HOSTING.md).
 
 ## Project layout
 
@@ -161,8 +161,9 @@ SSH into the server to run migrations and recreate the containers, with a
 health-check-gated automatic rollback.
 
 Full breakdown — Dockerfile stages, the deploy script, production container
-topology, required secrets — in
-[docs/deploy-strategy.md](./docs/deploy-strategy.md).
+topology — in [`.github/workflows/`](./.github/workflows/) and
+[`docker-compose.prod.yml`](./docker-compose.prod.yml). Required secrets live
+in GitHub Environments, never in the repo.
 
 ## Roadmap
 
@@ -177,7 +178,7 @@ A few of the larger things on the list:
 - Full backup export / restore (feeds, categories, saved links, tags, read
   state) as a single archive.
 
-The full list is in [docs/ROADMAP.md](./docs/ROADMAP.md).
+The full list is in [ROADMAP.md](./ROADMAP.md).
 
 ## Contributing
 

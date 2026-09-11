@@ -237,7 +237,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 
 ## Known Gotchas
 
-- `docs/` is local-by-default: `.gitignore`'s `/docs/*` block ignores everything under it and then allow-lists only the published files (`self-hosting.md`, `ROADMAP.md`, `deploy-strategy.md`, `backup-strategy.md`, `launch-plan.md`). Any other file dropped in `docs/` — `docs/notes.md`, `docs/MARKETING_PLAN.md`, `docs/CICD.md`, `docs/EDITORIAL.md`, `docs/OPEN_SOURCE_PLAN.md`, and anything new — stays local and is never committed. Same for `AGENTS.md`/`GEMINI.md` if a CLI tool writes them at the repo root.
+- `docs/` is entirely local (`.gitignore`: `/docs/`) — working notes, launch/marketing plans, design handoffs, ops runbooks (`docs/notes.md`, `docs/MARKETING_PLAN.md`, `docs/CICD.md`, `docs/EDITORIAL.md`, `docs/OPEN_SOURCE_PLAN.md`, `docs/backup-strategy.md`, `docs/deploy-strategy.md`, `docs/launch-plan.md`, and anything new dropped in there). Nothing under it is ever committed. The docs meant for a public audience live at the repo root instead: `README.md`, `ROADMAP.md`, `SELF_HOSTING.md`, `CONTRIBUTING.md`, `CHANGELOG.md`. Same local-only treatment applies to `AGENTS.md`/`GEMINI.md` if a CLI tool writes them at the repo root.
 - No `opencode.json` in the repo.
 - `slugify()` uses underscores; category names stored uppercase; route lookup replaces hyphens with spaces.
 - `.env.example` lists every required var with a note on where to obtain each; the local `.env` holds the real values.
@@ -329,6 +329,6 @@ Project-level skill definitions: `.agent-skills/skills/`. System skills: pre-ins
 ## References
 
 - `README.md` — public-facing product overview, feature list, and setup (product-first; keep the feature list accurate as behavior changes)
-- `docs/ROADMAP.md` — forward-looking roadmap (shipped work goes in `CHANGELOG.md`, not here)
-- `docs/notes.md` — Adminer recipe, curated feed seed list for onboarding, personal notes
-- Every task should be checked against `docs/ROADMAP.md` to adjust scope, and against `CHANGELOG.md` when it ships
+- `ROADMAP.md` — forward-looking roadmap (shipped work goes in `CHANGELOG.md`, not here)
+- `docs/notes.md` (local-only) — Adminer recipe, curated feed seed list for onboarding, personal notes
+- Every task should be checked against `ROADMAP.md` to adjust scope, and against `CHANGELOG.md` when it ships

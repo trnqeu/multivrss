@@ -1,7 +1,7 @@
 # Roadmap
 
 Forward-looking work only. Shipped features are recorded in
-[`CHANGELOG.md`](../CHANGELOG.md), not here.
+[`CHANGELOG.md`](./CHANGELOG.md), not here.
 
 This is a solo project maintained in spare time — items are directional, not
 commitments, and ordering can change. Feature ideas are welcome as
@@ -128,5 +128,5 @@ retention** on unsaved articles. Any pricing/plans surface must show these
 honestly and stay in sync with the values enforced in code.
 
 Self-hosting sidesteps all of this — the code is MIT-licensed and the
-[self-hosting guide](./self-hosting.md) is the supported path for running
+[self-hosting guide](./SELF_HOSTING.md) is the supported path for running
 your own instance without limits.

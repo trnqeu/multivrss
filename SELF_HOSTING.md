@@ -1,6 +1,6 @@
 # Self-Hosting MultivRSS
 
-A guide to running your own long-lived MultivRSS instance — for personal use, not just to hack on the code. If you only want to run the app briefly to explore the codebase, the shorter [Running locally section in the README](../README.md#running-locally) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
+A guide to running your own long-lived MultivRSS instance — for personal use, not just to hack on the code. If you only want to run the app briefly to explore the codebase, the shorter [Running locally section in the README](./README.md#running-locally) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
 
 There is currently no all-in-one `docker compose up` that starts the app itself — `app` runs as a plain Node process outside Docker, with Postgres and Redis in containers. That's a known gap, tracked in the [Roadmap](./ROADMAP.md#infrastructure--scaling). Until then, this guide is the accurate path.
 
@@ -87,7 +87,42 @@ This runs `src/workers/feed-sync.ts`, which processes the BullMQ job queue and p
 
 ## 7. Expose it to the internet (optional)
 
-If you want the instance reachable outside your own machine/network, put a reverse proxy in front of it with your own domain and a TLS certificate. `docs/launch-plan.md` (Phase 4) has a genericized Nginx example — rate limiting on the auth endpoints, security headers left to the app itself (`next.config.ts` already sets them; don't duplicate them in Nginx, see the note at the top of that file). `docs/deploy-strategy.md` documents the full production-style setup (Docker Compose topology, health checks, zero-downtime caveats) this project's own hosted instance uses, if you want to go further than a single Node process.
+If you want the instance reachable outside your own machine/network, put a reverse proxy in front of it with your own domain and a TLS certificate. A minimal Nginx front (TLS via certbot, rate limiting on the auth endpoints, everything proxied to the app):
+
+```nginx
+limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/m;
+
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name yourdomain.com www.yourdomain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+
+    location ~ ^/(login|register|forgot-password|reset-password|api/auth) {
+        limit_req zone=auth burst=10 nodelay;
+        proxy_pass http://127.0.0.1:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Leave the security headers (HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`) to the app — `next.config.ts` already sets them; adding `add_header` lines in Nginx just produces conflicting duplicates. For a full container-based production setup (Docker Compose topology, health checks, migrations before code swap), see `docker-compose.prod.yml` and the workflows in `.github/workflows/`.
 
 Remember to update `NEXTAUTH_URL` and the OAuth callback URLs (steps 3 above) to your real domain once you have one — mismatched values break OAuth login and session cookies.
 
