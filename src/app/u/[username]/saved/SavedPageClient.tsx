@@ -15,6 +15,8 @@ import { Search } from '@/components/icons/Search';
 import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 import { useOnReshow } from '@/components/useOnReshow';
 
+const TAG_PANEL_STORAGE_KEY = 'saved.tagPanelOpen';
+
 interface SavedPageClientProps {
     username: string;
     initialArticles: ArticleVM[];
@@ -34,6 +36,9 @@ export default function SavedPageClient({
     const [tags, setTags] = useState(initialTags);
     const [tagsExpanded, setTagsExpanded] = useState(false);
     const [tagQuery, setTagQuery] = useState('');
+    // The tag filter section (search + pills) is collapsed by default so it
+    // doesn't dominate the header. The choice is remembered per-device.
+    const [tagPanelOpen, setTagPanelOpen] = useState(false);
     const [feedOffset, setFeedOffset] = useState(initialFeedOffset);
     const [linkOffset, setLinkOffset] = useState(initialLinkOffset);
     const [hasMore, setHasMore] = useState(initialHasMore);
@@ -96,6 +101,26 @@ export default function SavedPageClient({
         setTags(freshTags);
     }, [activeTag, query]);
     useOnReshow(refreshFromServer);
+
+    // Restore the remembered open/closed choice after mount (SSR renders closed,
+    // so defer the setState past hydration — matching SidebarCategories).
+    const tagPanelRestored = useRef(false);
+    useEffect(() => {
+        if (tagPanelRestored.current) return;
+        tagPanelRestored.current = true;
+        try {
+            if (localStorage.getItem(TAG_PANEL_STORAGE_KEY) === '1') {
+                requestAnimationFrame(() => setTagPanelOpen(true));
+            }
+        } catch { /* private mode / disabled storage */ }
+    }, []);
+    const toggleTagPanel = useCallback(() => {
+        setTagPanelOpen(prev => {
+            const next = !prev;
+            try { localStorage.setItem(TAG_PANEL_STORAGE_KEY, next ? '1' : '0'); } catch { /* ignore */ }
+            return next;
+        });
+    }, []);
 
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
@@ -199,15 +224,29 @@ export default function SavedPageClient({
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
             <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
-                <div className="flex items-center gap-2.5">
-                    <Bookmark filled className="text-terracotta" size={13} />
-                    <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="inline-flex items-center gap-2.5">
+                        <Bookmark filled className="text-terracotta" size={13} />
+                        <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
+                    </span>
+                    {tags.length > 0 && !activeTag && (
+                        <button
+                            type="button"
+                            onClick={toggleTagPanel}
+                            aria-expanded={tagPanelOpen}
+                            aria-controls={tagPanelOpen ? 'saved-tag-panel' : undefined}
+                            className="inline-flex items-center gap-1.5 border border-foreground/25 bg-transparent px-2 py-1 text-[9.5px] font-bold uppercase tracking-[0.08em] text-foreground/55 transition-colors hover:border-terracotta hover:text-terracotta"
+                        >
+                            Tags · {tags.length}
+                            <span aria-hidden="true" className={`text-[8px] transition-transform ${tagPanelOpen ? 'rotate-180' : ''}`}>▾</span>
+                        </button>
+                    )}
                 </div>
 
-                {/* Tag filter bar — the search narrows the pill list (not the items)
-                    and lifts the preview cap of 8. */}
-                {tags.length > 0 && !activeTag && (
-                    <div className="flex flex-col gap-3 border-b border-foreground/12 pb-4 sm:flex-row sm:items-start">
+                {/* Tag filter bar — collapsed by default (toggle above). The search
+                    narrows the pill list (not the items) and lifts the preview cap of 8. */}
+                {tags.length > 0 && !activeTag && tagPanelOpen && (
+                    <div id="saved-tag-panel" className="flex flex-col gap-3 border-b border-foreground/12 pb-4 sm:flex-row sm:items-start">
                         <div className="relative shrink-0 sm:w-[178px]">
                             <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
                             <input

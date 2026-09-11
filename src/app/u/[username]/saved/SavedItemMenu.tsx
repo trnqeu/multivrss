@@ -61,10 +61,12 @@ export default function SavedItemMenu({ readerHref, onEditTags, onRemove }: Prop
         }
     }
 
+    // `globals.css` styles every bare <button> with a solid bg-foreground fill +
+    // 2px border, so each control here must explicitly neutralise that.
     const itemClass =
-        'flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[9.5px] font-bold uppercase tracking-[0.07em] outline-none transition-colors hover:bg-foreground hover:text-background focus:bg-foreground focus:text-background';
+        'flex w-full items-center gap-2.5 border-0 bg-background px-2.5 py-2 text-left text-[9.5px] font-bold uppercase tracking-[0.07em] text-foreground outline-none transition-colors hover:bg-foreground hover:text-background focus:bg-foreground focus:text-background';
     const dangerClass =
-        'flex w-full items-center gap-2.5 border-t border-foreground/10 px-2.5 py-2 text-left text-[9.5px] font-bold uppercase tracking-[0.07em] text-terracotta outline-none transition-colors hover:bg-terracotta hover:text-background focus:bg-terracotta focus:text-background';
+        'flex w-full items-center gap-2.5 border-x-0 border-b-0 border-t border-t-foreground/10 bg-background px-2.5 py-2 text-left text-[9.5px] font-bold uppercase tracking-[0.07em] text-terracotta outline-none transition-colors hover:bg-terracotta hover:text-background focus:bg-terracotta focus:text-background';
 
     return (
         <div ref={containerRef} className="justify-self-end">
@@ -76,8 +78,8 @@ export default function SavedItemMenu({ readerHref, onEditTags, onRemove }: Prop
                 aria-expanded={open}
                 aria-controls={open ? menuId : undefined}
                 onClick={() => setOpen(v => !v)}
-                className={`px-1.5 py-[3px] text-[15px] font-extrabold leading-none transition-colors hover:text-terracotta ${
-                    open ? 'text-foreground/60' : 'text-foreground/30 group-hover:text-foreground/60'
+                className={`border-0 bg-transparent px-1.5 py-[3px] text-[15px] font-extrabold leading-none transition-colors hover:text-terracotta ${
+                    open ? 'text-foreground/70' : 'text-foreground/40 group-hover:text-foreground/70'
                 }`}
             >
                 ⋯

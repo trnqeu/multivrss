@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RowActionIcons from './RowActionIcons';
 import InlineDeleteConfirm from './InlineDeleteConfirm';
+import { useCloseOnNavigate } from './useCloseOnNavigate';
 
 interface Props {
     tag: { id: string; name: string };
@@ -17,6 +18,7 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
     const [value, setValue] = useState(tag.name);
     const [actionsOpen, setActionsOpen] = useState(false);
     const router = useRouter();
+    useCloseOnNavigate(() => { setActionsOpen(false); setMode('idle'); });
 
     if (mode === 'editing') {
         return (
@@ -50,8 +52,13 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
         );
     }
 
+    // The rename/delete cluster is an ABSOLUTE overlay pinned to the pill's
+    // right edge — never an inline child. Revealing it inline on hover grew the
+    // pill, which in the wrapped flex row made the pill wrap under the cursor,
+    // un-hovering itself → shrink → re-hover → infinite flicker. Positioned
+    // absolutely, the pill's box never changes, so there is no reflow.
     return (
-        <span className="group/tag inline-flex items-center border border-foreground/40 hover:border-foreground transition-colors">
+        <span className="group/tag relative inline-flex items-center border border-foreground/40 hover:border-foreground transition-colors">
             <button
                 type="button"
                 onClick={() => router.push(`/u/${username}/saved?tag=${encodeURIComponent(tag.name)}`)}
@@ -73,7 +80,7 @@ export default function SavedTagPill({ tag, username, onRename, onDelete }: Prop
                 onDeleteClick={() => setMode('confirm-delete')}
                 renameLabel={`Rename tag ${tag.name}`}
                 deleteLabel={`Delete tag ${tag.name}`}
-                className={`${actionsOpen ? 'flex' : 'hidden'} group-hover/tag:flex group-focus-within/tag:flex pr-1.5`}
+                className={`absolute left-full top-0 z-10 -ml-px h-full border border-foreground bg-background px-1.5 ${actionsOpen ? 'flex' : 'hidden'} group-hover/tag:flex group-focus-within/tag:flex`}
             />
         </span>
     );
