@@ -24,7 +24,7 @@ npm run test:watch   # Vitest watch mode
 Database and services:
 
 ```bash
-docker-compose up -d                          # Postgres (5435) + Redis (6379)
+docker compose up -d                          # Postgres (5435) + Redis (6379)
 npx prisma migrate dev --create-only --name <name>   # Generate migration WITHOUT applying — always use this first, see Known Gotchas
 npx prisma migrate dev                                # Apply after stripping the bogus searchVector lines (see Known Gotchas)
 npx prisma migrate deploy                     # Apply existing migrations

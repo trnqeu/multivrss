@@ -16,7 +16,10 @@ There is currently no all-in-one `docker compose up` that starts the app itself 
 git clone git@github.com:trnqeu/multivrss.git
 cd multivrss
 npm install
+npx prisma generate
 ```
+
+`npm install` alone does not generate the Prisma client — skip `prisma generate` and every route that touches the database fails with `Cannot find module '.prisma/client/default'`.
 
 ## 3. Configure the environment
 
@@ -52,7 +55,7 @@ Never reuse the same value across secrets.
 ## 4. Start Postgres and Redis
 
 ```bash
-docker-compose up -d
+docker compose up -d
 npx prisma migrate deploy
 ```
 
@@ -158,4 +161,4 @@ curl http://localhost:3002/api/health
 # {"status":"ok","db":"ok","redis":"ok"}
 ```
 
-A `"degraded"` status with `db` or `redis` not `"ok"` means Postgres or Redis isn't reachable — check `docker-compose ps` and that `DATABASE_URL`/`REDIS_HOST`/`REDIS_PORT` in `.env` match the containers' actual ports.
+A `"degraded"` status with `db` or `redis` not `"ok"` means Postgres or Redis isn't reachable — check `docker compose ps` and that `DATABASE_URL`/`REDIS_HOST`/`REDIS_PORT` in `.env` match the containers' actual ports.

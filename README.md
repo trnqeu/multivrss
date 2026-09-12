@@ -89,8 +89,9 @@ Prerequisites: Node.js 24+, Docker.
 git clone git@github.com:trnqeu/multivrss.git
 cd multivrss
 npm install
+npx prisma generate           # generate the Prisma client — required, npm install alone doesn't do it
 cp .env.example .env          # fill in the values — see comments in the file
-docker-compose up -d          # Postgres (5435) + Redis (6379)
+docker compose up -d          # Postgres (5435) + Redis (6379)
 npx prisma migrate deploy     # apply the existing schema
 npm run dev                   # http://localhost:3002
 npm run worker                # in a second terminal — feeds don't sync without it
