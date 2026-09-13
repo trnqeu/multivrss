@@ -20,9 +20,10 @@ no engagement metrics: just your updates and your bookmarks.
 
 ## Screenshots
 
-<!-- TODO: add screenshots to .github/images/ (dashboard, Reader Mode, search) and embed them here -->
-
-_Screenshots coming soon — for now, see the live instance at [multivrss.com](https://multivrss.com)._
+|  |  |
+|---|---|
+| ![Front Page — curated daily digest](public/assets/github/front_page.png) | ![River — dense unread stream](public/assets/github/river.png) |
+| ![Saved reading list with tag filters](public/assets/github/saved_items.png) | ![Tagging a saved link](public/assets/github/save_modal.png) |
 
 ## Features
 
