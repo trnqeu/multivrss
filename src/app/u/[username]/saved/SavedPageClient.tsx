@@ -114,6 +114,7 @@ export default function SavedPageClient({
             }
         } catch { /* private mode / disabled storage */ }
     }, []);
+
     const toggleTagPanel = useCallback(() => {
         setTagPanelOpen(prev => {
             const next = !prev;
@@ -121,6 +122,18 @@ export default function SavedPageClient({
             return next;
         });
     }, []);
+
+    useEffect(() => {
+    if (!tagPanelOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') toggleTagPanel();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+}, [tagPanelOpen, toggleTagPanel]);
+
+
+    
 
     const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
         setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
@@ -223,7 +236,7 @@ export default function SavedPageClient({
 
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
-            <header className="p-8 md:p-12 border-b-2 border-foreground bg-background sticky top-0 z-10 flex flex-col gap-4">
+            <header className="p-8 md:p-12 border-b-2 border-foreground bg-background flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     <span className="inline-flex items-center gap-2.5">
                         <Bookmark filled className="text-terracotta" size={13} />
@@ -246,49 +259,68 @@ export default function SavedPageClient({
                 {/* Tag filter bar — collapsed by default (toggle above). The search
                     narrows the pill list (not the items) and lifts the preview cap of 8. */}
                 {tags.length > 0 && !activeTag && tagPanelOpen && (
-                    <div id="saved-tag-panel" className="flex flex-col gap-3 border-b border-foreground/12 pb-4 sm:flex-row sm:items-start">
-                        <div className="relative shrink-0 sm:w-[178px]">
-                            <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
-                            <input
-                                id="saved-tag-search"
-                                value={tagQuery}
-                                onChange={e => setTagQuery(e.target.value)}
-                                placeholder="SEARCH TAGS…"
-                                className="w-full border border-foreground/25 bg-background py-[7px] pl-6 pr-2.5 text-[9.5px] font-bold uppercase tracking-[0.06em] outline-none placeholder:font-semibold placeholder:text-foreground/40 focus:border-terracotta"
-                            />
-                            <Search
-                                size={11}
-                                className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-foreground/40"
-                            />
-                        </div>
-                        <div className="flex min-w-0 flex-1 flex-wrap gap-[7px]">
-                            {visibleTags.map(tag => (
-                                <SavedTagPill
-                                    key={tag.id}
-                                    tag={tag}
-                                    username={username}
-                                    onRename={handleRenameTag}
-                                    onDelete={handleDeleteTag}
+                    <>
+                        {/* Backdrop — solo mobile, chiude il pannello al tap fuori */}
+                        <div
+                            className="fixed inset-0 z-30 bg-black/50 sm:hidden"
+                            aria-hidden="true"
+                            onClick={toggleTagPanel}
+                        />
+                        <div
+                            id="saved-tag-panel"
+                            className="fixed inset-x-0 bottom-0 z-40 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-2 border-foreground bg-background p-4 sm:static sm:z-auto sm:max-h-none sm:flex-row sm:items-start sm:overflow-visible sm:border-t-0 sm:border-b sm:border-foreground/12 sm:bg-transparent sm:p-0 sm:pb-4"
+                        >
+                            <button
+                                type="button"
+                                onClick={toggleTagPanel}
+                                aria-label="Close tag filter"
+                                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/25 text-foreground/60 sm:hidden"
+                            >
+                                ×
+                            </button>
+                            <div className="relative shrink-0 sm:w-[178px]">
+                                <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
+                                <input
+                                    id="saved-tag-search"
+                                    value={tagQuery}
+                                    onChange={e => setTagQuery(e.target.value)}
+                                    placeholder="SEARCH TAGS…"
+                                    className="w-full border border-foreground/25 bg-background py-[7px] pl-6 pr-2.5 text-[9.5px] font-bold uppercase tracking-[0.06em] outline-none placeholder:font-semibold placeholder:text-foreground/40 focus:border-terracotta"
                                 />
-                            ))}
-                            {matchedTags.length === 0 && (
-                                <span role="status" className="py-[7px] text-[9.5px] font-bold uppercase tracking-[0.06em] text-foreground/45">
-                                    No tags match
-                                </span>
-                            )}
-                            {!tagQuery && (hiddenTagCount > 0 || tagsExpanded) && (
-                                <button
-                                    type="button"
-                                    onClick={() => setTagsExpanded(v => !v)}
-                                    aria-expanded={tagsExpanded}
-                                    className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
-                                >
-                                    {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
-                                    <span aria-hidden="true" className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
-                                </button>
-                            )}
+                                <Search
+                                    size={11}
+                                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-foreground/40"
+                                />
+                            </div>
+                            <div className="flex min-w-0 flex-1 flex-wrap gap-[7px]">
+                                {visibleTags.map(tag => (
+                                    <SavedTagPill
+                                        key={tag.id}
+                                        tag={tag}
+                                        username={username}
+                                        onRename={handleRenameTag}
+                                        onDelete={handleDeleteTag}
+                                    />
+                                ))}
+                                {matchedTags.length === 0 && (
+                                    <span role="status" className="py-[7px] text-[9.5px] font-bold uppercase tracking-[0.06em] text-foreground/45">
+                                        No tags match
+                                    </span>
+                                )}
+                                {!tagQuery && (hiddenTagCount > 0 || tagsExpanded) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTagsExpanded(v => !v)}
+                                        aria-expanded={tagsExpanded}
+                                        className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
+                                    >
+                                        {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
+                                        <span aria-hidden="true" className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </>
                 )}
 
                 {/* Active-filter context bar — the single way out of a tag filter. */}
