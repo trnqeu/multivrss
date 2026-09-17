@@ -5,15 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project follows [Semantic Versioning](https://semver.org/).
 
-## [0.2.2] - 2026-08-09
+## [1.0.0] - 2026-09-17
+
+MultivRSS's first public release, open source under the MIT license.
 
 ### Added
+- MIT license: the project is now open source
+- Reader Mode now works on saved external links, not just feed items
 - Import saved links from CSV (Instapaper, Pocket, or any generic URL/title/tags CSV)
 - Export saved links as CSV
+- Front Page keeps every category visible and shows a dek (excerpt) on every item, with live edition-progress tracking
+- MultivRSS Digest: a blog rubric that lets readers save articles or subscribe to feeds inline, without leaving the post
+- New suggested feeds: Henrik Karlsson, Stanford Encyclopedia of Philosophy
+- Animated app loading screen
+
+### Changed
+- Redesigned the Saved list; it now refreshes automatically when you navigate back to it
+- Feed items are now retained by last-seen-in-feed instead of publish date, so purge timing matches when an item actually drops off its source feed
+- The saved-page tag filter bar is fully collapsible on mobile, no longer flickers on hover, and no longer gets clipped by the header
+- Restructured the repository for public release: a product-first README with screenshots, a dedicated ROADMAP.md and SELF_HOSTING.md, CONTRIBUTING.md and issue/PR templates, and a fully local (gitignored) `docs/` for internal notes
 
 ### Fixed
+- Self-hosting instructions were missing a required `npx prisma generate` step, and referenced the discontinued `docker-compose` binary instead of `docker compose`
 - Raised the Server Actions body size limit to 10MB so larger CSV imports (Pocket/Instapaper exports) no longer fail with "Body exceeded 1 MB limit"
-- Paginated the Saved page (was loading and rendering every saved article/link at once — froze the browser for accounts with a large saved list, e.g. after a big CSV import); added "LOAD MORE", moved tag/search filtering server-side, added supporting DB indexes
+- Paginated the Saved page (was loading and rendering every saved article/link at once): added "LOAD MORE", moved tag/search filtering server-side, added supporting DB indexes
+- Fixed stale `useActionState` results reopening the wrong modal (the share-target flow and the saved-link tag editor)
+- Retried Reader Mode extraction scoped to the page's main/article landmark when the first attempt returned nothing useful
+- Fixed a false-positive history-length check that could bounce users out of the app entirely
+- Patched all HIGH/CRITICAL dependency advisories; the PR auto-close bot no longer catches Dependabot's own updates
 
 ## [0.2.1] - 2026-08-08
 

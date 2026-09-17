@@ -1,9 +1,24 @@
 ---
 title: Changelog
-updated: "2026-08-08"
+updated: "2026-09-17"
 ---
 
 What's new in MultivRSS, in plain language.
+
+## v1.0.0 · September 2026
+
+**New**
+- MultivRSS is now open source, under the MIT license: read the code, self-host your own instance, or fork it
+- Reader Mode now works on links you save from anywhere on the web, not just from your feeds
+- Import and export your saved links as a CSV file, compatible with Instapaper and Pocket exports
+- The Front Page now shows every category and a short excerpt on every item, plus a running progress count for the day
+- A new "Digest" feature on the blog lets you save an article or subscribe to a feed without leaving the post
+
+**Improved**
+- Redesigned the Saved page; it now updates automatically when you come back to it
+- The tag filter bar on the Saved page works better on mobile: fully collapsible, no more flicker
+- Faster, more reliable loading for large saved lists
+- Fixed a couple of bugs where the wrong popup would reappear after saving a link or sharing into the app
 
 ## v0.2.1 — August 2026
 

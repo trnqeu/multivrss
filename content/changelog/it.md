@@ -1,9 +1,24 @@
 ---
 title: Changelog
-updated: "2026-08-08"
+updated: "2026-09-17"
 ---
 
 Le novità di MultivRSS, spiegate semplicemente.
+
+## v1.0.0 · Settembre 2026
+
+**Novità**
+- MultivRSS è ora open source, con licenza MIT: puoi leggere il codice, ospitare una tua istanza, o farne un fork
+- La Modalità Lettura funziona ora anche sui link salvati da qualsiasi punto del web, non solo dai tuoi feed
+- Importa ed esporta i tuoi link salvati come file CSV, compatibile con le esportazioni di Instapaper e Pocket
+- La Front Page mostra ora tutte le categorie e un breve estratto per ogni articolo, con un conteggio dei progressi della giornata
+- Una nuova funzione "Digest" sul blog permette di salvare un articolo o iscriversi a un feed senza uscire dal post
+
+**Miglioramenti**
+- Ridisegnata la pagina Salvati, ora si aggiorna automaticamente quando ci torni
+- La barra dei filtri per tag nella pagina Salvati funziona meglio su mobile: completamente comprimibile, niente più flickering
+- Caricamento più rapido e affidabile per elenchi di salvati molto lunghi
+- Corretti un paio di bug per cui il popup sbagliato riappariva dopo aver salvato un link o condiviso nell'app
 
 ## v0.2.1 — Agosto 2026
 

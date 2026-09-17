@@ -11,9 +11,10 @@ MultivRSS exists because Google Reader and Pocket don't. Both got shut down and 
 - **Self-hosted:** run your own instance with Docker, see
   [Self-hosting](#self-hosting) below.
 
-> This repository is public for transparency and portfolio purposes. Bug
-> reports are welcome via [Issues](https://github.com/trnqeu/multivrss/issues);
-> it does not accept external pull requests. See [CONTRIBUTING.md](./CONTRIBUTING.md).
+> This repository is public because I wanted MultivRSS to be genuinely open
+> source. Bug reports are welcome via [Issues](https://github.com/trnqeu/multivrss/issues);
+> it does not accept external pull requests, since I don't have the time to
+> review and maintain them on an ongoing basis. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Screenshots
 

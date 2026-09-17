@@ -20,7 +20,7 @@ a roadmap commitment. The current roadmap lives in
 
 This repository does not accept external Pull Requests. Any PR opened from
 outside the project is automatically closed by a bot with a link back to
-this file. Nothing personal — reviewing, iterating on, and maintaining
+this file. Nothing personal: reviewing, iterating on, and maintaining
 someone else's code on top of a solo project isn't a workflow there's time
 to support.
 
@@ -33,5 +33,6 @@ this codebase in your own direction.
 
 ## Why the code is public
 
-This repository is public for transparency and portfolio purposes. It is
-not seeking outside contributors.
+This repository is public because I wanted MultivRSS to be genuinely open
+source, not for portfolio or promotional reasons. It's just not seeking
+outside contributors: see "Pull Requests" above for why.
