@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import SavedView from './SavedView';
@@ -258,17 +259,19 @@ export default function SavedPageClient({
 
                 {/* Tag filter bar — collapsed by default (toggle above). The search
                     narrows the pill list (not the items) and lifts the preview cap of 8. */}
-                {tags.length > 0 && !activeTag && tagPanelOpen && (
+                {tags.length > 0 && !activeTag && tagPanelOpen && typeof document !== 'undefined' && createPortal(
                     <>
-                        {/* Backdrop — solo mobile, chiude il pannello al tap fuori */}
+                        {/* Backdrop — portaled to <body> so it isn't trapped inside this
+                            header's stacking order (same fix as AddPopover's backdrop);
+                            solo mobile, chiude il pannello al tap fuori */}
                         <div
-                            className="fixed inset-0 z-30 bg-black/50 sm:hidden"
+                            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
                             aria-hidden="true"
                             onClick={toggleTagPanel}
                         />
                         <div
                             id="saved-tag-panel"
-                            className="fixed inset-x-0 bottom-0 z-40 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-2 border-foreground bg-background p-4 sm:static sm:z-auto sm:max-h-none sm:flex-row sm:items-start sm:overflow-visible sm:border-t-0 sm:border-b sm:border-foreground/12 sm:bg-transparent sm:p-0 sm:pb-4"
+                            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-2 border-foreground bg-background p-4 sm:static sm:z-auto sm:max-h-none sm:flex-row sm:items-start sm:overflow-visible sm:border-t-0 sm:border-b sm:border-foreground/12 sm:bg-transparent sm:p-0 sm:pb-4"
                         >
                             <button
                                 type="button"
@@ -320,7 +323,8 @@ export default function SavedPageClient({
                                 )}
                             </div>
                         </div>
-                    </>
+                    </>,
+                    document.body
                 )}
 
                 {/* Active-filter context bar — the single way out of a tag filter. */}
