@@ -1,17 +1,14 @@
 # MultivRSS
 
-**Read the open web, save what matters.** MultivRSS is an RSS aggregator and
-a reading list in one calm, ad-free dashboard — the feeds you follow and the
-links you save, in an open format that stays yours. No algorithmic timeline,
-no engagement metrics: just your updates and your bookmarks.
+MultivRSS exists because Google Reader and Pocket don't. Both got shut down and I wanted them back, in one single product: an **RSS aggregator** and a **reading list** in a calm, minimal dashboard containing just **the feeds you follow** and **the links you save**. I wanted a place to gather, organize and consume the content I find on the internet and this is exactly it. You can read a [short manifesto](https://multivrss.com/en/blog/20260725_why-the-internet-doesnt-love-me-back) if you want.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-000.svg)](./LICENSE)
 &nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md) · [Self-hosting](./SELF_HOSTING.md)
 
 ## Try it
 
-- **Hosted:** [multivrss.com](https://multivrss.com) — free, no setup.
-- **Self-hosted:** run your own instance with Docker — see
+- **Hosted:** [multivrss.com](https://multivrss.com), free, no setup.
+- **Self-hosted:** run your own instance with Docker, see
   [Self-hosting](#self-hosting) below.
 
 > This repository is public for transparency and portfolio purposes. Bug
@@ -22,7 +19,7 @@ no engagement metrics: just your updates and your bookmarks.
 
 |  |  |
 |---|---|
-| ![Front Page — curated daily digest](public/assets/github/front_page.png) | ![River — dense unread stream](public/assets/github/river.png) |
+| ![Front Page: curated daily digest](public/assets/github/front_page.png) | ![River: dense unread stream](public/assets/github/river.png) |
 | ![Saved reading list with tag filters](public/assets/github/saved_items.png) | ![Tagging a saved link](public/assets/github/save_modal.png) |
 
 ## Features
@@ -34,13 +31,13 @@ no engagement metrics: just your updates and your bookmarks.
   jobs with retry and exponential backoff, a per-domain concurrency limit,
   feed-`ttl`/`Cache-Control` awareness, and priority for never-synced feeds.
 - YouTube channels work as feed sources.
-- Every feed URL is treated as untrusted — DNS + private-IP checks guard
+- Every feed URL is treated as untrusted: DNS + private-IP checks guard
   against SSRF before anything is fetched.
 
 **Reading**
 - Read / unread tracking, a per-source-affinity "For You" strip on the home
   page, and a daily edition with a finishable progress count.
-- **Reader Mode** — full article text extracted in-app (Mozilla Readability +
+- **Reader Mode**, full article text extracted in-app (Mozilla Readability +
   `sanitize-html` allowlist, Redis-cached), with copy-to-clipboard and
   export-as-Markdown. Works for both feed items and saved external links.
 - "Paper" light theme and a contrast-checked dark theme, persisted locally.
@@ -79,7 +76,7 @@ TypeScript 5 · Tailwind CSS 4 · PostgreSQL 16 · Prisma 7 (`@prisma/adapter-pg
 NextAuth v4 (JWT) · BullMQ + Redis · Docker · Sentry.
 
 Full-text search is native Postgres (`tsvector` generated columns, GIN
-indexes) rather than a separate search service — a deliberate choice to keep
+indexes) rather than a separate search service, a deliberate choice to keep
 the production footprint small.
 
 ## Running locally
@@ -90,12 +87,12 @@ Prerequisites: Node.js 24+, Docker.
 git clone git@github.com:trnqeu/multivrss.git
 cd multivrss
 npm install
-npx prisma generate           # generate the Prisma client — required, npm install alone doesn't do it
-cp .env.example .env          # fill in the values — see comments in the file
+npx prisma generate           # generate the Prisma client, required, npm install alone doesn't do it
+cp .env.example .env          # fill in the values, see comments in the file
 docker compose up -d          # Postgres (5435) + Redis (6379)
 npx prisma migrate deploy     # apply the existing schema
 npm run dev                   # http://localhost:3002
-npm run worker                # in a second terminal — feeds don't sync without it
+npm run worker                # in a second terminal, feeds don't sync without it
 ```
 
 `scripts/create-test-users.ts` creates verified users directly in the
@@ -121,7 +118,7 @@ npm run worker   # background feed-sync worker
 ## Self-hosting
 
 Running a long-lived instance for personal use takes a few more steps than
-the quickstart — registering OAuth apps, generating secrets, keeping the
+the quickstart: registering OAuth apps, generating secrets, keeping the
 worker process alive, and (optionally) putting the app behind your own
 domain. The full walkthrough, plus updates and troubleshooting, is in
 [SELF_HOSTING.md](./SELF_HOSTING.md).
@@ -137,22 +134,22 @@ default and Server Actions handle mutations.
 
 | Path | Access | What it is |
 |------|--------|------------|
-| `/`, `/en`, `/it` | Public | Marketing site — landing, blog, guide, suggested sources, tips |
+| `/`, `/en`, `/it` | Public | Marketing site: landing, blog, guide, suggested sources, tips |
 | `/login`, `/register`, `/forgot-password` | Public | Auth flows |
 | `/docs` | Public | Interactive API reference (OpenAPI via Scalar) |
-| `/u/{username}` | Owner only | Private dashboard — all feeds, inline full-text search (`?q=`) |
+| `/u/{username}` | Owner only | Private dashboard: all feeds, inline full-text search (`?q=`) |
 | `/u/{username}/category/{slug}`, `/source/{slug}` | Owner only | Category- / source-filtered feed |
 | `/u/{username}/saved` | Owner only | Reading list |
 | `/u/{username}/read/{itemId}` | Owner only | Reader Mode |
 | `/u/{username}/settings/*` | Owner only | Account, API keys, import/export |
 
 Every route under `/u/{username}/` sits behind a layout that enforces
-authentication **and** that the URL's `{username}` matches the session — no
+authentication **and** that the URL's `{username}` matches the session, no
 other user's dashboard is reachable by editing the URL.
 
 The full route-by-route breakdown and every architectural convention live in
-[CLAUDE.md](./CLAUDE.md) — written as coding-agent guidance, but equally
-useful as a technical reference.
+[CLAUDE.md](./CLAUDE.md) (written as coding-agent guidance, but equally
+useful as a technical reference).
 
 ## Deployment & CI/CD
 
@@ -162,8 +159,8 @@ requests run the quality gate only (`tsc --noEmit`, lint, tests,
 SSH into the server to run migrations and recreate the containers, with a
 health-check-gated automatic rollback.
 
-Full breakdown — Dockerfile stages, the deploy script, production container
-topology — in [`.github/workflows/`](./.github/workflows/) and
+The full breakdown of Dockerfile stages, the deploy script, and production
+container topology lives in [`.github/workflows/`](./.github/workflows/) and
 [`docker-compose.prod.yml`](./docker-compose.prod.yml). Required secrets live
 in GitHub Environments, never in the repo.
 
@@ -171,7 +168,7 @@ in GitHub Environments, never in the repo.
 
 A few of the larger things on the list:
 
-- Browser extension — detect feeds on the current page, save articles (the
+- Browser extension: detect feeds on the current page, save articles (the
   REST API it needs already exists).
 - All-in-one `docker compose up` that starts the app alongside Postgres and
   Redis.
@@ -186,10 +183,10 @@ The full list is in [ROADMAP.md](./ROADMAP.md).
 
 Bug reports and feature ideas are welcome as
 [Issues](https://github.com/trnqeu/multivrss/issues). This repository does
-**not** accept external pull requests — it is maintained solo. Forking under
+**not** accept external pull requests: it is maintained solo. Forking under
 the MIT License is welcome if you want to take the codebase in your own
 direction. See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT, see [LICENSE](./LICENSE).
