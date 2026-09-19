@@ -58,6 +58,10 @@ OPEN_SOURCE_PLAN.md
 # ROADMAP.md, SELF_HOSTING.md, CONTRIBUTING.md, CHANGELOG.md).
 /docs/
 
+# content/blog-drafts/ is entirely local too: unpublished blog posts in
+# progress. Move a post to content/blog/{en,it}/ when it's ready to publish.
+/content/blog-drafts/
+
 # agent configuration
 .agent-skills/
 .agents/
