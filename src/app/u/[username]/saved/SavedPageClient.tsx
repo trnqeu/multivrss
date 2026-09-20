@@ -277,7 +277,7 @@ export default function SavedPageClient({
                                 type="button"
                                 onClick={toggleTagPanel}
                                 aria-label="Close tag filter"
-                                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/25 text-foreground/60 sm:hidden"
+                                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/25 bg-transparent p-0 text-base leading-none text-foreground/60 hover:border-terracotta hover:bg-transparent hover:text-terracotta sm:hidden"
                             >
                                 ×
                             </button>
