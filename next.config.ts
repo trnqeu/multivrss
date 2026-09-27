@@ -11,6 +11,20 @@ const nextConfig: NextConfig = {
       // from Instapaper/Pocket/etc.) can exceed that for larger accounts.
       bodySizeLimit: '10mb',
     },
+    // Every private route re-verifies the session at its own top level (per
+    // CLAUDE.md's auth mandate: every server component touching private data
+    // calls getServerSession directly) — a redirect-on-no-session check that
+    // has to run before anything renders, so it can never be pushed behind a
+    // <Suspense> boundary. That's exactly what Cache Components' "instant
+    // navigation" dev-time validation flags on every such page (see
+    // node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/02-route-segment-config/instant.md).
+    // This app has never opted into the instant-navigation feature (no
+    // `instant = true` anywhere), so the framework default of validating
+    // every Page/Default segment produces noise, not signal. Restrict
+    // validation to segments that opt in explicitly.
+    instantInsights: {
+      validationLevel: 'manual-warning',
+    },
   },
   outputFileTracingIncludes: {
     '/**': ['./node_modules/.prisma/**/*'],
