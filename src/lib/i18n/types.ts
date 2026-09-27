@@ -73,6 +73,15 @@ export interface Dictionary {
     aiDisclaimer: string;
     categories: FaqCategory[];
   };
+  openSource: {
+    kicker: string;
+    title: string;
+    body: string;
+    facts: { label: string; value: string }[];
+    githubCta: string;
+    selfHostCta: string;
+    newTabHint: string;
+  };
   closing: {
     kicker: string;
     headlinePre: string;

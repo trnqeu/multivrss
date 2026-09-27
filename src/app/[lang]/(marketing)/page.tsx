@@ -6,6 +6,7 @@ import { getDictionary, isValidLang } from "@/lib/i18n";
 import MarketingHero from "@/components/marketing/MarketingHero";
 import MarketingBlog from "@/components/marketing/MarketingBlog";
 import MarketingSourcesPreview from "@/components/marketing/MarketingSourcesPreview";
+import MarketingOpenSource from "@/components/marketing/MarketingOpenSource";
 import MarketingClosing from "@/components/marketing/MarketingClosing";
 
 interface Props {
@@ -40,6 +41,7 @@ export default async function MarketingPage({ params }: Props) {
       <MarketingHero dict={dict} />
       <MarketingBlog lang={lang} dict={dict} />
       <MarketingSourcesPreview lang={lang} dict={dict} />
+      <MarketingOpenSource dict={dict} />
       <MarketingClosing lang={lang} dict={dict} />
     </>
   );

@@ -29,7 +29,7 @@ export const en: Dictionary = {
   },
   sources: {
     kicker: "CURATED SOURCES",
-    title: "The feeds we actually read.",
+    title: "Our favourite sources.",
     subtitle:
       "A hand-picked shelf to start from: no sponsorships, no rankings. Add any one to your reader; you'll be asked to sign up first.",
     seeAll: "SEE ALL SOURCES →",
@@ -126,7 +126,7 @@ export const en: Dictionary = {
           {
             question: "Is MultivRSS open source? Can I self-host it?",
             answer:
-              "Not today. Self-hosting is something we're evaluating, not something available or decided yet.",
+              "Yes. The code is on GitHub (github.com/trnqeu/multivrss) under the MIT license, and SELF_HOSTING.md in the repository explains how to run your own copy with Docker.",
           },
           {
             question: "Can I delete my account and my data?",
@@ -193,12 +193,26 @@ export const en: Dictionary = {
       },
     ],
   },
+  openSource: {
+    kicker: "OPEN SOURCE",
+    title: "You want it? Host it yourself!",
+    body:
+      "MultivRSS is open source under the MIT license. Use the hosted version, or install your own copy for free on any server with Docker: the code, the setup guide and the issue tracker are all on GitHub.",
+    facts: [
+      { label: "LICENSE", value: "MIT" },
+      { label: "STACK", value: "Next.js · PostgreSQL · Redis" },
+      { label: "DEPLOY", value: "Docker Compose" },
+    ],
+    githubCta: "→ VIEW ON GITHUB ↗",
+    selfHostCta: "SELF-HOSTING GUIDE ↗",
+    newTabHint: "(opens in a new tab)",
+  },
   closing: {
     kicker: "END_OF_FEED",
     headlinePre: "Reclaim your ",
     headlineAccent: "attention",
     headlineSuffix: ".",
-    body: "MultivRSS is where you come to read the internet in peace: just your updates and your bookmarks, in an open format that's yours and built to last. The web was meant to be read, not scrolled.",
+    body: "Remember when the internet was good? MultivRSS is where you come to read the internet in peace: just your updates and your bookmarks, in an open format that's yours and built to last.",
     cta: "→ CREATE YOUR ACCOUNT",
     secondaryCta: "READ THE BLOG ↗",
   },

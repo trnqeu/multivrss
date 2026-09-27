@@ -29,7 +29,7 @@ export const it: Dictionary = {
   },
   sources: {
     kicker: "FONTI CURATE",
-    title: "I feed che leggiamo davvero.",
+    title: "Le nostre fonti preferite.",
     subtitle:
       "Una selezione curata da cui partire: nessun accordo commerciale, nessuna classifica. Aggiungi qualsiasi fonte al tuo lettore; ti verrà chiesto di registrarti.",
     seeAll: "VEDI TUTTE LE FONTI →",
@@ -126,7 +126,7 @@ export const it: Dictionary = {
           {
             question: "MultivRSS è open source? Posso auto-ospitarlo?",
             answer:
-              "Non ancora. L'auto-hosting è qualcosa che stiamo valutando, non è ancora disponibile né deciso.",
+              "Sì. Il codice è su GitHub (github.com/trnqeu/multivrss) con licenza MIT, e il file SELF_HOSTING.md nella repository spiega come installare la tua copia con Docker.",
           },
           {
             question: "Posso eliminare il mio account e i miei dati?",
@@ -193,12 +193,26 @@ export const it: Dictionary = {
       },
     ],
   },
+  openSource: {
+    kicker: "OPEN SOURCE",
+    title: "Ti piace? Prenditelo.",
+    body:
+      "MultivRSS è open source con licenza MIT. Usa la versione ospitata, oppure installa gratuitamente su qualsiasi server con Docker: codice, guida all'installazione e segnalazione dei bug sono tutti su GitHub.",
+    facts: [
+      { label: "LICENZA", value: "MIT" },
+      { label: "STACK", value: "Next.js · PostgreSQL · Redis" },
+      { label: "DEPLOY", value: "Docker Compose" },
+    ],
+    githubCta: "→ VEDI SU GITHUB ↗",
+    selfHostCta: "GUIDA AL SELF-HOSTING ↗",
+    newTabHint: "(si apre in una nuova scheda)",
+  },
   closing: {
     kicker: "END_OF_FEED",
-    headlinePre: "Riprendi la tua ",
+    headlinePre: "Riprenditi la tua ",
     headlineAccent: "attenzione",
     headlineSuffix: ".",
-    body: "MultivRSS è il posto dove vieni a leggere internet in pace: solo i tuoi aggiornamenti e i tuoi segnalibri, in un formato aperto che è tuo e fatto per durare. Il web era fatto per essere letto, non scorrere.",
+    body: "Ti ricordi di quando internet era bellissimo? MultivRSS è il posto dove vieni a leggere internet in pace: solo i tuoi aggiornamenti e i tuoi segnalibri, in un formato aperto che è tuo e fatto per durare.",
     cta: "→ CREA IL TUO ACCOUNT",
     secondaryCta: "LEGGI IL BLOG ↗",
   },
