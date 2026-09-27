@@ -3,9 +3,9 @@ import type { Dictionary, Lang } from "@/lib/i18n";
 
 const SOURCES = [
   { cat: "TECH", name: "Hacker News", domain: "news.ycombinator.com" },
-  { cat: "NEWS", name: "BBC News", domain: "bbc.co.uk" },
+  { cat: "NEWS", name: "The Guardian: World News", domain: "theguardian.com" },
   { cat: "CULTURE", name: "The Verge", domain: "theverge.com" },
-  { cat: "MUSIC", name: "The FADER", domain: "thefader.com" },
+  { cat: "MUSIC", name: "AllMusic", domain: "allmusic.com" },
   { cat: "SCIENCE", name: "Noema Magazine", domain: "noemamag.com" },
   { cat: "PODCAST", name: "Lex Fridman Podcast", domain: "lexfridman.com" },
 ] as const;

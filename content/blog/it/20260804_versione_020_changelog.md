@@ -8,21 +8,19 @@ author: "Stefano Trinchero"
 excerpt: "Nel mio progetto iniziale multivrss.com avrebbe dovuto essere semplice e minimale, ma come può un Product Manager resistere alla tentazione di aggiungere un sacco di features inutili?"
 ---
 
-Nel mio progetto iniziale MultivRSS avrebbe dovuto essere semplice e minimale, ma come può un Product Manager resistere alla tentazione di aggiungere un sacco di features inutili? A forza di aggiungere cose ho dovuto creare una pagina per cercare di tenere traccia delle modifiche e provare a impormi una qualche disciplina nella pubblicazione degli sviluppi.
+Nel mio progetto iniziale MultivRSS avrebbe dovuto essere semplice e minimale, ma come si faceva a resistere alla tentazione di aggiungere un sacco di features inutili? A forza di aggiungere cose ho dovuto creare una pagina per cercare di tenere traccia delle modifiche e provare a impormi una qualche disciplina nella pubblicazione degli sviluppi.
 
-## Changelog e tracciamento delle versioni
-
-Qui trovate la pagina con il [changelog](https://multivrss.com/it/changelog), con una descrizione sintetica di tutti i cambiamenti apportati in ogni versione.
+Qui trovate la pagina con il [changelog](https://multivrss.com/it/changelog). Contiene una descrizione sintetica di tutti i cambiamenti apportati in ogni versione.
 
 
 ## Readability per la lettura in app
 
-La funzionalità di cui sono più orgoglioso è l'integrazione con la libreria [Readability](https://github.com/mozilla/readability) di Mozilla che consente agli utenti di MultivRSS di leggere gli articoli direttamente all'interno della dashboard. 
+La funzionalità più utile, a mio modesto parere, è l'integrazione con la libreria [Readability](https://github.com/mozilla/readability) di Mozilla che consente agli utenti di MultivRSS di leggere gli articoli direttamente all'interno della dashboard. 
 
 ![Vista di un articolo aperto in Reader Mode dentro MultivRSS](/blog/20260804/readability.png)
 
 
-E sono ancora più orgoglioso del fatto che da oggi si possano:
+Inoltre da oggi si può:
 
 - **copiare gli articoli in formato testo** (e magari incollarli dentro al prompt di un modello di linguaggio)
 - **scaricare gli articoli in markdown** (e magari inserirli all'interno del vostro *second brain* preferito. E se non avete un *second brain* vi consiglio di partire [da qui](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f))
