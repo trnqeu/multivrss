@@ -1,8 +1,8 @@
 # Self-Hosting MultivRSS
 
-A guide to running your own long-lived MultivRSS instance — for personal use, not just to hack on the code. If you only want to run the app briefly to explore the codebase, the shorter [Running locally section in the README](./README.md#running-locally) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
+A guide to running your own long-lived MultivRSS instance. If you only want to run the app briefly to explore the codebase, the shorter [Running locally section in the README](./README.md#running-locally) is enough; this guide goes further (OAuth app registration, running the background worker, exposing the app to the internet, updates).
 
-There is currently no all-in-one `docker compose up` that starts the app itself — `app` runs as a plain Node process outside Docker, with Postgres and Redis in containers. That's a known gap, tracked in the [Roadmap](./ROADMAP.md#infrastructure--scaling). Until then, this guide is the accurate path.
+There is currently no all-in-one `docker compose up` that starts the app itself: `app` runs as a plain Node process outside Docker, with Postgres and Redis in containers. That's a known gap, tracked in the [Roadmap](./ROADMAP.md#infrastructure--scaling). Until then, this guide is the accurate path.
 
 ## 1. Prerequisites
 
@@ -78,7 +78,7 @@ npm run build
 npm start
 ```
 
-## 6. Start the background worker — easy to forget, but required
+## 6. Start the background worker
 
 Feed syncing runs in a **separate process**, not inside the web app:
 
@@ -86,7 +86,7 @@ Feed syncing runs in a **separate process**, not inside the web app:
 npm run worker
 ```
 
-This runs `src/workers/feed-sync.ts`, which processes the BullMQ job queue and periodically re-syncs feeds in the background. Without it running, feeds you add will sit unsynced — `GET /api/cron/sync` still exists, but it's a manual/backup trigger (bearer-token authenticated with `CRON_SECRET`), not a replacement for the worker. Keep this process running alongside the app (a second terminal, a second systemd unit, a second `pm2` process — whatever fits your setup).
+This runs `src/workers/feed-sync.ts`, which processes the BullMQ job queue and periodically re-syncs feeds in the background. Without it running, feeds you add will sit unsynced- `GET /api/cron/sync` still exists, but it's a manual/backup trigger (bearer-token authenticated with `CRON_SECRET`), not a replacement for the worker. Keep this process running alongside the app (a second terminal, a second systemd unit, a second `pm2` process).
 
 ## 7. Expose it to the internet (optional)
 
