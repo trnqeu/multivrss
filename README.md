@@ -1,6 +1,6 @@
 # MultivRSS
 
-MultivRSS exists because Google Reader and Pocket don't. Both got shut down and I wanted them back, in one single product: an **RSS aggregator** and a **reading list** in a calm, minimal dashboard containing just **the feeds you follow** and **the links you save**. I wanted a place to gather, organize and consume the content I find on the internet and this is exactly it. You can read a [short manifesto](https://multivrss.com/en/blog/20260725_why-the-internet-doesnt-love-me-back) if you want.
+Multivrss is a place to gather, organize and consume the content you can find on the internet. It blends an **RSS aggregator** and a **reading list** in one calm, minimal dashboard containing just **the feeds you follow** and **the links you save**. You can read a [short manifesto](https://multivrss.com/en/blog/20260725_why-the-internet-doesnt-love-me-back) if you want.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-000.svg)](./LICENSE)
 &nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md) · [Self-hosting](./SELF_HOSTING.md)
