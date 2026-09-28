@@ -10,6 +10,9 @@ import type { Lang } from "@/lib/i18n";
  * unprefixed top-level routes, everything else lives under `/{lang}/...`.
  */
 
+/** Public source repository, linked from the header, footer and open source section. */
+export const REPO_URL = "https://github.com/trnqeu/multivrss";
+
 export type FooterGroup = "product" | "explore" | "account";
 
 export interface BilingualLabel {
@@ -21,8 +24,10 @@ export interface NavRoute {
   id: string;
   /** Path segment under `/{lang}/`. Mutually exclusive with `path`. */
   slug?: string;
-  /** Full path for routes outside the `/{lang}/` tree. `{lang}` is replaced with the current language. */
+  /** Full path for routes outside the `/{lang}/` tree, or an absolute URL when `external`. `{lang}` is replaced with the current language. */
   path?: string;
+  /** Off-site link: rendered as a plain `<a>` that opens in a new tab. */
+  external?: boolean;
   label: BilingualLabel;
   /** Footer-specific label, when it reads differently than the header entry for the same route. */
   footerLabel?: BilingualLabel;
@@ -43,6 +48,7 @@ export const NAV_ROUTES: NavRoute[] = [
   { id: "faq", slug: "faq", label: { en: "FAQ", it: "FAQ" }, inHeader: true, inFooter: true, footerGroup: "product" },
   { id: "rss", path: "/blog/{lang}.xml", label: { en: "RSS feed", it: "Feed RSS" }, inHeader: false, inFooter: true, footerGroup: "explore" },
   { id: "changelog", slug: "changelog", label: { en: "Changelog", it: "Changelog" }, inHeader: false, inFooter: true, footerGroup: "explore" },
+  { id: "github", path: REPO_URL, label: { en: "Source code ↗", it: "Codice sorgente ↗" }, inHeader: false, inFooter: true, footerGroup: "explore", external: true },
   { id: "signIn", path: "/login", label: { en: "Sign in", it: "Accedi" }, inHeader: true, headerButton: true, inFooter: true, footerGroup: "account" },
   {
     id: "getStarted",

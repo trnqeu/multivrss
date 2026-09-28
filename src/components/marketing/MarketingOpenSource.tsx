@@ -1,6 +1,6 @@
 import type { Dictionary } from "@/lib/i18n";
+import { REPO_URL } from "@/config/routes";
 
-const REPO_URL = "https://github.com/trnqeu/multivrss";
 const SELF_HOSTING_URL = `${REPO_URL}/blob/main/SELF_HOSTING.md`;
 
 interface Props {

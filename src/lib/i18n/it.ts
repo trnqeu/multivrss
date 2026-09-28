@@ -3,6 +3,7 @@ import type { Dictionary } from "./types";
 export const it: Dictionary = {
   nav: {
     openApp: "APRI MULTIVRSS →",
+    githubLabel: "Codice sorgente di MultivRSS su GitHub (si apre in una nuova scheda)",
   },
   hero: {
     kicker: "I tuoi contenuti. E basta.",
@@ -16,7 +17,7 @@ export const it: Dictionary = {
     bodySuffix: "degli articoli più interessanti.",
     bodyReclaim: "",
     cta: "→ INIZIA",
-    subCta: "È GRATIS!",
+    subCta: "GRATIS E OPEN SOURCE",
   },
   blog: {
     kicker: "DIARIO",

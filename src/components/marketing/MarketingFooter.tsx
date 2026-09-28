@@ -46,15 +46,28 @@ export default function MarketingFooter({ lang, dict }: Props) {
             </h5>
             {footerRoutes
               .filter((r) => r.footerGroup === group)
-              .map((route) => (
-                <Link
-                  key={route.id}
-                  href={routeHref(route, lang)}
-                  className={linkClass(isRouteActive(route, lang, pathname))}
-                >
-                  {(route.footerLabel ?? route.label)[lang]}
-                </Link>
-              ))}
+              .map((route) =>
+                route.external ? (
+                  <a
+                    key={route.id}
+                    href={routeHref(route, lang)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={linkClass(false)}
+                  >
+                    {(route.footerLabel ?? route.label)[lang]}
+                    <span className="sr-only"> {dict.openSource.newTabHint}</span>
+                  </a>
+                ) : (
+                  <Link
+                    key={route.id}
+                    href={routeHref(route, lang)}
+                    className={linkClass(isRouteActive(route, lang, pathname))}
+                  >
+                    {(route.footerLabel ?? route.label)[lang]}
+                  </Link>
+                ),
+              )}
           </div>
         ))}
       </div>

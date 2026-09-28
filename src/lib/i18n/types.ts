@@ -14,6 +14,7 @@ export interface FaqCategory {
 export interface Dictionary {
   nav: {
     openApp: string;
+    githubLabel: string;
   };
   hero: {
     kicker: string;

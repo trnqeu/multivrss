@@ -3,6 +3,7 @@ import type { Dictionary } from "./types";
 export const en: Dictionary = {
   nav: {
     openApp: "OPEN MULTIVRSS →",
+    githubLabel: "MultivRSS source code on GitHub (opens in a new tab)",
   },
   hero: {
     kicker: "Read the web. Skip the noise.",
@@ -16,7 +17,7 @@ export const en: Dictionary = {
     bodySuffix: "",
     bodyReclaim: "",
     cta: "→ START HERE",
-    subCta: "IT'S FREE!",
+    subCta: "FREE & OPEN SOURCE",
   },
   blog: {
     kicker: "JOURNAL",
