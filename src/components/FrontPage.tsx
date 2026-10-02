@@ -11,7 +11,7 @@ import { EditionProgressProvider, useEditionProgress } from './EditionProgressCo
 
 type TagVM = { id: string; name: string };
 
-const FORYOU_COUNT = 4;
+const FORYOU_STEP = 4;
 const FIRST_BATCH_SIZE = 6;
 const REST_BATCH_SIZE = 50; // "load everything remaining" cap, see plan's batch-size decision
 
@@ -158,12 +158,27 @@ function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageIte
     );
 }
 
-// ── FOR YOU strip — stateful pool with dismiss/replace ──
-function ForYouStrip({ pool: initialPool, allTags, username }: { pool: FrontPageItem[]; allTags: TagVM[]; username: string }) {
+// ── FOR YOU strip — stateful pool with dismiss/replace and in-place "more" ──
+function ForYouStrip({ pool: initialPool, initialCount, allTags, username }: {
+    pool: FrontPageItem[]; initialCount: number; allTags: TagVM[]; username: string;
+}) {
     const [pool, setPool] = useState(initialPool);
+    const [visibleCount, setVisibleCount] = useState(initialCount);
     const [collapsed, setCollapsed] = useState(false);
     const [, startTransition] = useTransition();
-    const displayed = pool.slice(0, FORYOU_COUNT);
+    const displayed = pool.slice(0, visibleCount);
+    const hiddenCount = pool.length - displayed.length;
+
+    // Stamp only what the reader actually got to see — undisplayed pool items
+    // stay eligible for tomorrow's edition instead of being silently burned.
+    const stampedIds = useRef<Set<string>>(new Set());
+    const displayedKey = displayed.map(i => i.id).join(',');
+    useEffect(() => {
+        const fresh = displayedKey.split(',').filter(id => id && !stampedIds.current.has(id));
+        if (fresh.length === 0) return;
+        for (const id of fresh) stampedIds.current.add(id);
+        void markFrontPageShown(fresh);
+    }, [displayedKey]);
 
     function dismiss(item: FrontPageItem) {
         const excludeIds = pool.map(i => i.id);
@@ -197,6 +212,22 @@ function ForYouStrip({ pool: initialPool, allTags, username }: { pool: FrontPage
                     <ForYouCard key={item.id} item={item} allTags={allTags} onDismiss={() => dismiss(item)} username={username} />
                 ))}
             </div>
+            {!collapsed && hiddenCount > 0 && (
+                <div className="flex justify-start mt-6">
+                    <button
+                        type="button"
+                        onClick={() => setVisibleCount(c => c + FORYOU_STEP)}
+                        className="group inline-flex items-center gap-3 border border-foreground/22 hover:border-terracotta rounded-[2px] px-[13px] py-[15px] md:py-2 font-mono text-[9.5px] uppercase bg-transparent transition-colors"
+                    >
+                        <span className="font-extrabold tracking-[.1em] text-foreground group-hover:text-terracotta transition-colors">
+                            + {Math.min(FORYOU_STEP, hiddenCount)} MORE FOR YOU
+                        </span>
+                        <span className="font-semibold tracking-[.06em] text-foreground/35 group-hover:text-terracotta group-hover:opacity-65 transition-colors">
+                            {hiddenCount} LEFT
+                        </span>
+                    </button>
+                </div>
+            )}
         </section>
     );
 }
@@ -394,20 +425,21 @@ function EmptyFrontPage() {
 
 // ── Main FrontPage component ──
 export default function FrontPage({ data, allTags, username }: { data: FrontPageData; allTags: TagVM[]; username: string }) {
-    const { forYouPool, sections, stats } = data;
+    const { forYouPool, forYouInitial, sections, stats } = data;
     const isEmpty = forYouPool.length === 0 && sections.length === 0;
 
+    // For You items are stamped by ForYouStrip as they are revealed.
     const stamped = useRef(false);
     useEffect(() => {
         if (stamped.current) return;
         stamped.current = true;
-        const ids = [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id);
+        const ids = sections.flatMap(s => s.items).map(i => i.id);
         if (ids.length > 0) void markFrontPageShown(ids);
-    }, [forYouPool, sections]);
+    }, [sections]);
 
     const editionIds = useMemo(
-        () => [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id),
-        [forYouPool, sections],
+        () => [...forYouPool.slice(0, forYouInitial), ...sections.flatMap(s => s.items)].map(i => i.id),
+        [forYouPool, forYouInitial, sections],
     );
 
     return (
@@ -428,7 +460,7 @@ export default function FrontPage({ data, allTags, username }: { data: FrontPage
                 ) : (
                     <>
                         <Masthead stats={stats} />
-                        <ForYouStrip pool={forYouPool} allTags={allTags} username={username} />
+                        <ForYouStrip pool={forYouPool} initialCount={forYouInitial} allTags={allTags} username={username} />
                         <div className="mt-[18px] flex flex-col">
                             {sections.map(s => (
                                 <Section

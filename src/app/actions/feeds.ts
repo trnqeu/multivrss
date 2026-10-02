@@ -9,7 +9,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { slugify } from "@/lib/utils";
 import { triggerRevalidate } from "@/lib/revalidate";
-import { getFrontPage } from "@/lib/frontpage";
+import { editionDateKey, getFrontPage } from "@/lib/frontpage";
 import type { ActionState } from "./types";
 import { frontpageTag } from "./shared";
 
@@ -412,7 +412,7 @@ export async function syncAllFeeds(): Promise<ActionState> {
     // freshly-synced items are already reflected when the user navigates.
     // Best-effort: a slow/broken recommendation engine must not fail the sync.
     try {
-        await getFrontPage(session.user.id);
+        await getFrontPage(session.user.id, editionDateKey());
     } catch (err) {
         console.error('Front page warm-up failed:', err);
     }

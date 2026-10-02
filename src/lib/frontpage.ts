@@ -24,6 +24,9 @@ export type FrontPageItem = FrontPageBaseItem & {
 
 export type FrontPage = {
     forYouPool: FrontPageItem[];
+    // How many forYouPool items are visible before "more for you" — only
+    // those count toward today's edition (see stats.edition).
+    forYouInitial: number;
     sections: { category: string; items: FrontPageItem[]; totalCount: number; remaining: number }[];
     stats: {
         read: number; saved: number; categories: number; updatedAt: number | null; dateLabel: string;
@@ -39,7 +42,32 @@ export type FrontPage = {
 const RECO_LOOKBACK_DAYS = 30;
 const SEED_LIMIT = 12;
 const PER_CATEGORY = 5;
-const FORYOU_POOL_SIZE = 12;
+const TOP_SOURCES = 10;
+const PER_SOURCE = 3;
+const FORYOU_POOL_SIZE = 16;
+const FORYOU_INITIAL = 4;
+// Hours after which a For You candidate's score is halved — keeps the strip
+// biased toward today's news over older items from the same favorite sources.
+const FORYOU_HALF_LIFE_HOURS = 24;
+
+// Calendar day (UTC) that identifies an edition. Passed into getFrontPage() as
+// an argument so it is part of the cache key — a new day always gets a new
+// entry — and shared with frontpageTag() so invalidation hits the same entry.
+export function editionDateKey(now: Date = new Date()): string {
+    return now.toISOString().split('T')[0];
+}
+
+// Items stamped as shown on a previous day are skipped; items shown earlier
+// today stay eligible, so regenerating the edition mid-day (every background
+// sync revalidates it) doesn't burn through the freshest items.
+function notShownBefore(dayStart: Date) {
+    return { OR: [{ frontPageShownAt: null }, { frontPageShownAt: { gte: dayStart } }] };
+}
+
+function forYouScore(item: FrontPageItem, now: number): number {
+    const ageHours = item.pubDate === null ? RECO_LOOKBACK_DAYS * 24 : Math.max(0, (now - item.pubDate) / 3_600_000);
+    return item.affinity * Math.pow(0.5, ageHours / FORYOU_HALF_LIFE_HOURS);
+}
 
 async function getSourcesForUser(userId: string) {
     'use cache';
@@ -51,18 +79,17 @@ async function getSourcesForUser(userId: string) {
     });
 }
 
-export async function getFrontPage(userId: string): Promise<FrontPage> {
+export async function getFrontPage(userId: string, dateKey: string): Promise<FrontPage> {
     'use cache';
     cacheLife('days');
-    const now = new Date();
-    const dateKey = now.toISOString().split('T')[0];
     cacheTag(`frontpage:${userId}:${dateKey}`);
-    const dateLabel = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const dayStart = new Date(`${dateKey}T00:00:00Z`);
+    const dateLabel = dayStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
     const sources = await getSourcesForUser(userId);
     if (sources.length === 0) {
         return {
-            forYouPool: [], sections: [],
+            forYouPool: [], forYouInitial: FORYOU_INITIAL, sections: [],
             stats: { read: 0, saved: 0, categories: 0, updatedAt: null, dateLabel, edition: { total: 0, readAtLoad: 0 } },
         };
     }
@@ -101,14 +128,14 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     const affinityBySource = new Map<string, number>();
     for (const i of recentSaved) affinityBySource.set(i.sourceId, (affinityBySource.get(i.sourceId) ?? 0) + 2);
     for (const i of recentRead)  affinityBySource.set(i.sourceId, (affinityBySource.get(i.sourceId) ?? 0) + 1);
-    const topSources = [...affinityBySource.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const topSources = [...affinityBySource.entries()].sort((a, b) => b[1] - a[1]).slice(0, TOP_SOURCES);
     const maxAff = topSources[0]?.[1] ?? 1;
 
     const freshBySource = await Promise.all(
         topSources.map(([sid]) =>
             prisma.feedItem.findMany({
-                where: { sourceId: sid, read: false, savedAt: null, frontPageShownAt: null, pubDate: { gte: new Date(since) } },
-                orderBy: { pubDate: 'desc' }, take: 2,
+                where: { sourceId: sid, read: false, savedAt: null, pubDate: { gte: new Date(since) }, ...notShownBefore(dayStart) },
+                orderBy: { pubDate: 'desc' }, take: PER_SOURCE,
                 select: { id: true, title: true, link: true, content: true, pubDate: true },
             })
         )
@@ -140,8 +167,11 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
     // the sole contributor to `pick` for now.
     const all = [...pick.values()].sort(byAffinity);
 
-    // forYouPool: top N globals (highest affinity across all categories), pre-shuffled server-side
-    const forYouPool = all.slice(0, FORYOU_POOL_SIZE).sort(() => Math.random() - 0.5);
+    // forYouPool: top N by affinity decayed by age, freshest-relevant first
+    const scoredAt = Date.now();
+    const forYouPool = [...all]
+        .sort((a, b) => forYouScore(b, scoredAt) - forYouScore(a, scoredAt))
+        .slice(0, FORYOU_POOL_SIZE);
     const forYouIds = new Set(forYouPool.map(i => i.id));
     // Track all picked IDs to avoid duplicates in the random fill
     const shownIds = new Set(all.map(i => i.id));
@@ -179,8 +209,8 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
                         sourceId: { in: sids },
                         read: false,
                         savedAt: null,
-                        frontPageShownAt: null,
                         id: { notIn: [...shownIds] },
+                        ...notShownBefore(dayStart),
                     },
                     take: needed * 4,
                     orderBy: { pubDate: 'desc' },
@@ -302,13 +332,14 @@ export async function getFrontPage(userId: string): Promise<FrontPage> {
         .sort((a, b) => (maxAffinityByCat.get(b.category) ?? 0) - (maxAffinityByCat.get(a.category) ?? 0));
 
     // "Today's edition" — see the FrontPage.stats.edition doc comment above.
-    const editionIds = [...forYouPool, ...sections.flatMap(s => s.items)].map(i => i.id);
+    const editionIds = [...forYouPool.slice(0, FORYOU_INITIAL), ...sections.flatMap(s => s.items)].map(i => i.id);
     const editionRead = editionIds.length > 0
         ? await prisma.feedItem.count({ where: { id: { in: editionIds }, read: true } })
         : 0;
 
     return {
         forYouPool,
+        forYouInitial: FORYOU_INITIAL,
         sections,
         stats: {
             read: readCount, saved: savedCount, categories: sections.length, updatedAt, dateLabel,

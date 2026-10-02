@@ -10,7 +10,7 @@ import OnboardingEmptyState from "@/components/OnboardingEmptyState";
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getFrontPage } from "@/lib/frontpage";
+import { editionDateKey, getFrontPage } from "@/lib/frontpage";
 
 export default async function Home({
     searchParams,
@@ -72,7 +72,7 @@ export default async function Home({
                     />
                 ) : (
                     <FrontPage
-                        data={await getFrontPage(userId)}
+                        data={await getFrontPage(userId, editionDateKey())}
                         allTags={await prisma.tag.findMany({
                             where: { userId },
                             select: { id: true, name: true },
