@@ -44,6 +44,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${newsreader.variable} ${jetbrainsMono.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {process.env.NODE_ENV === "production" && (
+          <>
+            <script async src="https://analytics.trnq.eu/js/pa-EPbwGDOA3gmyIUbBll78g.js" />
+            <script dangerouslySetInnerHTML={{
+              __html: `window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()`
+            }} />
+          </>
+        )}
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <a
