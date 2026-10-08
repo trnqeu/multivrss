@@ -7,6 +7,10 @@ interface Props {
   params: Promise<{ lang: string }>;
 }
 
+export async function generateStaticParams() {
+  return [{ lang: "en" }, { lang: "it" }];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang } = await params;
   if (!isValidLang(lang)) return {};

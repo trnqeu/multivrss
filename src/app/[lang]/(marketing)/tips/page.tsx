@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+export async function generateStaticParams() {
+  return [{ lang: "en" }, { lang: "it" }];
+}
+
 // This page has no Italian translation — the same English content is served
 // at both /en/tips and /it/tips. Point the canonical at the one real URL so
 // Google consolidates the two instead of flagging an unresolved duplicate.
