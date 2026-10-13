@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -17,6 +17,18 @@ import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 import { useOnReshow } from '@/components/useOnReshow';
 
 const TAG_PANEL_STORAGE_KEY = 'saved.tagPanelOpen';
+
+// Below Tailwind's `sm` breakpoint the tag panel is a fixed bottom sheet and
+// must be portaled to <body>; at `sm` and up it is an inline (static) row in
+// the header, and portaling it would push it out of the app shell, off-screen.
+const MOBILE_QUERY = '(width < 40rem)';
+function subscribeMobile(onChange: () => void) {
+    const mql = window.matchMedia(MOBILE_QUERY);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+}
+const getIsMobile = () => window.matchMedia(MOBILE_QUERY).matches;
+const getIsMobileServer = () => false;
 
 interface SavedPageClientProps {
     username: string;
@@ -40,6 +52,7 @@ export default function SavedPageClient({
     // The tag filter section (search + pills) is collapsed by default so it
     // doesn't dominate the header. The choice is remembered per-device.
     const [tagPanelOpen, setTagPanelOpen] = useState(false);
+    const isMobile = useSyncExternalStore(subscribeMobile, getIsMobile, getIsMobileServer);
     const [feedOffset, setFeedOffset] = useState(initialFeedOffset);
     const [linkOffset, setLinkOffset] = useState(initialLinkOffset);
     const [hasMore, setHasMore] = useState(initialHasMore);
@@ -235,6 +248,73 @@ export default function SavedPageClient({
 
     const total = articles.length + links.length;
 
+    const tagPanel = (
+        <>
+            {/* Backdrop — mobile only, closes the sheet on tap outside. Portaled
+                to <body> together with the sheet (see below) so it isn't trapped
+                inside the header's stacking order (same fix as AddPopover's backdrop). */}
+            <div
+                className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+                aria-hidden="true"
+                onClick={toggleTagPanel}
+            />
+            <div
+                id="saved-tag-panel"
+                className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-2 border-foreground bg-background p-4 sm:static sm:z-auto sm:max-h-none sm:flex-row sm:items-start sm:overflow-visible sm:border-t-0 sm:border-b sm:border-foreground/12 sm:bg-transparent sm:p-0 sm:pb-4"
+            >
+                <button
+                    type="button"
+                    onClick={toggleTagPanel}
+                    aria-label="Close tag filter"
+                    className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/25 bg-transparent p-0 text-base leading-none text-foreground/60 hover:border-terracotta hover:bg-transparent hover:text-terracotta sm:hidden"
+                >
+                    ×
+                </button>
+                <div className="relative shrink-0 sm:w-[178px]">
+                    <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
+                    <input
+                        id="saved-tag-search"
+                        value={tagQuery}
+                        onChange={e => setTagQuery(e.target.value)}
+                        placeholder="SEARCH TAGS…"
+                        className="w-full border border-foreground/25 bg-background py-[7px] pl-6 pr-2.5 text-[9.5px] font-bold uppercase tracking-[0.06em] outline-none placeholder:font-semibold placeholder:text-foreground/40 focus:border-terracotta"
+                    />
+                    <Search
+                        size={11}
+                        className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-foreground/40"
+                    />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-wrap gap-[7px]">
+                    {visibleTags.map(tag => (
+                        <SavedTagPill
+                            key={tag.id}
+                            tag={tag}
+                            username={username}
+                            onRename={handleRenameTag}
+                            onDelete={handleDeleteTag}
+                        />
+                    ))}
+                    {matchedTags.length === 0 && (
+                        <span role="status" className="py-[7px] text-[9.5px] font-bold uppercase tracking-[0.06em] text-foreground/45">
+                            No tags match
+                        </span>
+                    )}
+                    {!tagQuery && (hiddenTagCount > 0 || tagsExpanded) && (
+                        <button
+                            type="button"
+                            onClick={() => setTagsExpanded(v => !v)}
+                            aria-expanded={tagsExpanded}
+                            className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
+                        >
+                            {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
+                            <span aria-hidden="true" className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+
     return (
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
             <header className="p-8 md:p-12 border-b-2 border-foreground bg-background flex flex-col gap-4">
@@ -259,72 +339,8 @@ export default function SavedPageClient({
 
                 {/* Tag filter bar — collapsed by default (toggle above). The search
                     narrows the pill list (not the items) and lifts the preview cap of 8. */}
-                {tags.length > 0 && !activeTag && tagPanelOpen && typeof document !== 'undefined' && createPortal(
-                    <>
-                        {/* Backdrop — portaled to <body> so it isn't trapped inside this
-                            header's stacking order (same fix as AddPopover's backdrop);
-                            solo mobile, chiude il pannello al tap fuori */}
-                        <div
-                            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
-                            aria-hidden="true"
-                            onClick={toggleTagPanel}
-                        />
-                        <div
-                            id="saved-tag-panel"
-                            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col gap-3 overflow-y-auto border-t-2 border-foreground bg-background p-4 sm:static sm:z-auto sm:max-h-none sm:flex-row sm:items-start sm:overflow-visible sm:border-t-0 sm:border-b sm:border-foreground/12 sm:bg-transparent sm:p-0 sm:pb-4"
-                        >
-                            <button
-                                type="button"
-                                onClick={toggleTagPanel}
-                                aria-label="Close tag filter"
-                                className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center border border-foreground/25 bg-transparent p-0 text-base leading-none text-foreground/60 hover:border-terracotta hover:bg-transparent hover:text-terracotta sm:hidden"
-                            >
-                                ×
-                            </button>
-                            <div className="relative shrink-0 sm:w-[178px]">
-                                <label htmlFor="saved-tag-search" className="sr-only">Search tags</label>
-                                <input
-                                    id="saved-tag-search"
-                                    value={tagQuery}
-                                    onChange={e => setTagQuery(e.target.value)}
-                                    placeholder="SEARCH TAGS…"
-                                    className="w-full border border-foreground/25 bg-background py-[7px] pl-6 pr-2.5 text-[9.5px] font-bold uppercase tracking-[0.06em] outline-none placeholder:font-semibold placeholder:text-foreground/40 focus:border-terracotta"
-                                />
-                                <Search
-                                    size={11}
-                                    className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-foreground/40"
-                                />
-                            </div>
-                            <div className="flex min-w-0 flex-1 flex-wrap gap-[7px]">
-                                {visibleTags.map(tag => (
-                                    <SavedTagPill
-                                        key={tag.id}
-                                        tag={tag}
-                                        username={username}
-                                        onRename={handleRenameTag}
-                                        onDelete={handleDeleteTag}
-                                    />
-                                ))}
-                                {matchedTags.length === 0 && (
-                                    <span role="status" className="py-[7px] text-[9.5px] font-bold uppercase tracking-[0.06em] text-foreground/45">
-                                        No tags match
-                                    </span>
-                                )}
-                                {!tagQuery && (hiddenTagCount > 0 || tagsExpanded) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setTagsExpanded(v => !v)}
-                                        aria-expanded={tagsExpanded}
-                                        className="inline-flex items-center gap-1.5 border border-dashed border-foreground/35 bg-transparent px-2.5 py-1.5 text-[9.5px] font-bold uppercase tracking-widest text-foreground/55 hover:border-terracotta hover:text-terracotta transition-colors"
-                                    >
-                                        {tagsExpanded ? 'Show less' : `+${hiddenTagCount} more`}
-                                        <span aria-hidden="true" className={`inline-block text-[8px] transition-transform ${tagsExpanded ? 'rotate-180' : ''}`}>▾</span>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </>,
-                    document.body
+                {tags.length > 0 && !activeTag && tagPanelOpen && (
+                    isMobile ? createPortal(tagPanel, document.body) : tagPanel
                 )}
 
                 {/* Active-filter context bar — the single way out of a tag filter. */}
