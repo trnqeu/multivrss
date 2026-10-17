@@ -178,7 +178,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - [ ] Heading hierarchy strict: h1 → h2 → h3 (never skip levels)
 - [ ] Exactly one `<h1>` per page
 - [ ] Skip-to-content link at top of every layout
-- [ ] `<html lang="en">` set in root layout
+- [ ] `<html lang="en">` set in root layout; marketing routes sync it to the route language via `DocumentLang` (`src/components/marketing/DocumentLang.tsx`), since the root layout sits above `[lang]`. English-only content served under `/it` (e.g. `/it/tips`) is wrapped in `lang="en"`
 
 ### Forms & Inputs
 - [ ] Every `<input>`, `<select>`, `<textarea>` has `<label htmlFor>` (use `sr-only` if hidden)

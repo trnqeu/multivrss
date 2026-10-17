@@ -159,7 +159,9 @@ const TIPS: TipData[] = [
 
 export default function TipsPage() {
   return (
-    <>
+    // English-only content, also served at /it/tips inside the Italian
+    // marketing chrome: mark it so screen readers don't read it as Italian.
+    <div lang="en">
       {/* Page header */}
       <header className="px-[34px] pt-[80px] pb-[44px] max-[920px]:px-[22px] max-[920px]:pt-14 max-[920px]:pb-8">
         <div className="max-w-[1200px] mx-auto">
@@ -244,6 +246,6 @@ export default function TipsPage() {
           → START FREE
         </Link>
       </section>
-    </>
+    </div>
   );
 }

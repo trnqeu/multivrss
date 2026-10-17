@@ -7,6 +7,7 @@ import MarketingNavAuth from "@/components/marketing/MarketingNavAuth";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import SystemStrip from "@/components/marketing/SystemStrip";
 import { LangAltProvider } from "@/components/marketing/LangAltContext";
+import DocumentLang from "@/components/marketing/DocumentLang";
 import { version } from "../../../../package.json";
 
 interface Props {
@@ -33,6 +34,7 @@ export default async function MarketingLayout({ children, params }: Props) {
 
   return (
     <div className="bg-paper text-black font-sans min-h-screen flex flex-col">
+      <DocumentLang lang={lang} />
       <LangAltProvider>
         <SystemStrip lang={lang} version={version} />
         <Suspense fallback={<MarketingNav lang={lang} dict={dict} />}>
