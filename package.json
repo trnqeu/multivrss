@@ -30,7 +30,7 @@
     "@types/marked": "^5.0.2",
     "bcrypt": "^6.0.0",
     "bullmq": "^5.79.0",
-    "dotenv": "^17.3.1",
+    "dotenv": "^18.0.7",
     "gray-matter": "^4.0.3",
     "ioredis": "^5.11.1",
     "linkedom": "^0.18.13",
