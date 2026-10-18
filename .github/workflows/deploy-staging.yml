@@ -4,6 +4,14 @@ on:
   push:
     branches: [dev]
 
+# Serialize deploys: back-to-back merges otherwise run overlapping SSH deploys
+# that recreate/roll back containers under each other (seen as P1001 on
+# `prisma migrate deploy`). A newer pending run replaces an older pending one,
+# so only the latest commit gets deployed after the in-flight run finishes.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   IMAGE: ghcr.io/trnqeu/multivrss
