@@ -17,6 +17,14 @@ updates:
       # typescript-eslint (peer range >=4.8.4 <6.1.0). Re-enable once it is.
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
+      # ESLint 10 is outside the peer ranges of the plugins bundled by
+      # eslint-config-next (import, jsx-a11y, react). Re-enable once it is.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      # @sentry/nextjs 11 removes withSentryConfig used in next.config.ts:
+      # needs a manual migration, not a drop-in bump.
+      - dependency-name: "@sentry/nextjs"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
