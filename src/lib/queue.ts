@@ -14,6 +14,7 @@ export const connection = {
 const globalForQueue = global as unknown as {
   feedSyncQueue: Queue<FeedSyncJobData>
   feedScanQueue: Queue<Record<string, never>>
+  savedFadingQueue: Queue<Record<string, never>>
 }
 
 export const feedSyncQueue =
@@ -40,7 +41,19 @@ export const feedScanQueue =
     },
   })
 
+// Drives the nightly saved-item fading pass. See src/lib/saved-fading.ts.
+export const savedFadingQueue =
+  globalForQueue.savedFadingQueue ??
+  new Queue<Record<string, never>>('saved-fading', {
+    connection,
+    defaultJobOptions: {
+      removeOnComplete: 30,
+      removeOnFail: 50,
+    },
+  })
+
 if (process.env.NODE_ENV !== 'production') {
   globalForQueue.feedSyncQueue = feedSyncQueue
   globalForQueue.feedScanQueue = feedScanQueue
+  globalForQueue.savedFadingQueue = savedFadingQueue
 }

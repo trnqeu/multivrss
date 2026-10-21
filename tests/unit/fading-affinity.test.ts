@@ -172,7 +172,7 @@ describe('propagateAssociativeTouch', () => {
     });
 
     it('skips neighbours already boosted within the cooldown', async () => {
-        vi.mocked(redis.set).mockResolvedValueOnce(null).mockResolvedValue('OK');
+        vi.mocked(redis.set).mockResolvedValueOnce(null as never).mockResolvedValue('OK');
         expect(await propagateAssociativeTouch('user-1', { kind: 'link', id: 'l1' }, 'read', NOW)).toBe(1);
         expect(prisma.savedLink.updateMany).not.toHaveBeenCalled();
         expect(vi.mocked(redis.set).mock.calls[0]).toEqual(['fading:assoc:link:n1', '1', 'EX', 86400, 'NX']);

@@ -37,6 +37,12 @@ Manual integration checks (`tsconfig.test.json` uses CommonJS — main tsconfig 
 npx tsx --tsconfig tsconfig.test.json tests/test-rss.ts
 ```
 
+Saved-item fading by hand (local DB only; moves a user's saved items back in time, `--run` then runs the nightly pass for all users):
+
+```bash
+npx tsx --env-file=.env --tsconfig tsconfig.test.json scripts/fading-time-travel.ts <username> <days> [--run] [--dry-run]
+```
+
 ## Verification Order
 
 1. `npm run test` + `npm run lint`
@@ -293,6 +299,7 @@ CRON_SECRET=<secret>
 INTERNAL_SECRET=<secret>      # gates /api/internal/revalidate (src/lib/revalidate.ts)
 RESEND_API_KEY=<key>          # email transport (src/lib/email.ts)
 SAVED_FADING=optin            # off | optin | default; saved-item fading (src/lib/fading-config.ts). default also enables it for new accounts
+SAVED_FADING_DRY_RUN=1        # optional; nightly fading job (src/lib/saved-fading.ts) counts and logs without writing
 STAGING_PASSWORD=<password>   # optional; enables Basic Auth in proxy.ts
 EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
 REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)
