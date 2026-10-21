@@ -1,5 +1,11 @@
 // Pure fading model: no Prisma, no Date.now(). Time is always a parameter.
 import {
+  AFFINITY_MAX_KEYWORDS,
+  AFFINITY_MAX_SHARED_TAGS,
+  AFFINITY_MIN_KEYWORD_LENGTH,
+  AFFINITY_WEIGHTS,
+  ASSOCIATIVE_EVENTS,
+  ASSOCIATIVE_GAIN_FACTOR,
   EVENT_PARAMS,
   FADING_SOON_DAYS,
   FORGOTTEN_BELOW_R,
@@ -80,4 +86,63 @@ export function isFadingSoon(state: FadingState, stage: FadingStage, now: Date):
   const at = nextStageAt(state, stage)
   if (!at) return false
   return at.getTime() - now.getTime() <= FADING_SOON_DAYS * MS_PER_DAY
+}
+
+export interface AffinitySignals {
+  /** Number of tags both items carry. */
+  sharedTags: number
+  /** Same host, or the same feed source. */
+  sameSite: boolean
+  /** Fraction of the touched item's keywords found in the other item, in [0, 1]. */
+  textRank: number
+}
+
+/** Combines the affinity signals into a weight in [0, 1]. */
+export function affinityWeight(signals: AffinitySignals): number {
+  const tags = Math.min(Math.max(signals.sharedTags, 0), AFFINITY_MAX_SHARED_TAGS) / AFFINITY_MAX_SHARED_TAGS
+  const site = signals.sameSite ? 1 : 0
+  const text = Math.min(Math.max(signals.textRank, 0), 1)
+  return AFFINITY_WEIGHTS.sharedTags * tags + AFFINITY_WEIGHTS.sameSite * site + AFFINITY_WEIGHTS.text * text
+}
+
+/**
+ * Weaker touch received by an item related to one that was touched with
+ * `sourceEvent`. Only stability grows; the clock is not rewound (rho = 0), so
+ * the item fades more slowly but is not made fresh. Returns the input
+ * unchanged when the event does not propagate or the weight is not positive.
+ */
+export function applyAssociativeTouch(
+  state: FadingState,
+  sourceEvent: FadingEvent,
+  weight: number,
+  now: Date,
+): FadingState {
+  if (!ASSOCIATIVE_EVENTS.includes(sourceEvent) || !(weight > 0)) return state
+  const g = EVENT_PARAMS[sourceEvent].g * Math.min(weight, 1) * ASSOCIATIVE_GAIN_FACTOR
+  const r = retrievability(state, now)
+  const stability = Math.min(S_MAX_DAYS, state.stability * (1 + g * Math.max(1 - r, MIN_GAIN)))
+  return { stability, lastTouchedAt: state.lastTouchedAt }
+}
+
+// Common words of at least AFFINITY_MIN_KEYWORD_LENGTH letters (English and
+// Italian) that say nothing about what an item is about.
+const STOP_WORDS = new Set([
+  'about', 'after', 'also', 'been', 'being', 'from', 'have', 'here', 'into', 'just', 'like', 'more',
+  'most', 'much', 'only', 'other', 'over', 'some', 'than', 'that', 'their', 'them', 'then', 'there',
+  'these', 'they', 'this', 'what', 'when', 'where', 'which', 'while', 'will', 'with', 'would', 'your',
+  'anche', 'come', 'degli', 'della', 'delle', 'dello', 'dopo', 'nella', 'nelle', 'nello', 'perche',
+  'quale', 'quando', 'quella', 'quelle', 'quello', 'questa', 'queste', 'questo', 'sono', 'sulla', 'tutti',
+])
+
+/** Distinct, lowercased content words of a title, at most AFFINITY_MAX_KEYWORDS. Letters and digits only. */
+export function extractKeywords(text: string | null): string[] {
+  if (!text) return []
+  const words = text.toLowerCase().normalize('NFKC').match(/[\p{L}\p{N}]+/gu) ?? []
+  const out: string[] = []
+  for (const word of words) {
+    if (word.length < AFFINITY_MIN_KEYWORD_LENGTH || STOP_WORDS.has(word) || out.includes(word)) continue
+    out.push(word)
+    if (out.length === AFFINITY_MAX_KEYWORDS) break
+  }
+  return out
 }

@@ -54,3 +54,40 @@ export type ClientFadingEvent = (typeof CLIENT_EVENTS)[number]
 export function isClientEvent(value: unknown): value is ClientFadingEvent {
   return typeof value === 'string' && (CLIENT_EVENTS as readonly string[]).includes(value)
 }
+
+// ── Associative touches ("association of ideas") ──
+// A strong touch on one saved item gives a weaker touch to its most related
+// saved items. One hop only: an associative touch never propagates further.
+
+/** Events strong enough to propagate to related items. */
+export const ASSOCIATIVE_EVENTS: readonly FadingEvent[] = ['read', 'search', 'keep']
+
+/** Fraction of the source event's gain passed on to a related item (before its affinity weight). */
+export const ASSOCIATIVE_GAIN_FACTOR = 0.3
+
+/** How many related items receive an associative touch. */
+export const ASSOCIATIVE_NEIGHBORS = 2
+
+/**
+ * Affinities below this weight (0 to 1) are ignored. Chosen so that the same
+ * site alone (0.2) is not enough: one shared tag, a strong word overlap, or
+ * the same site plus some word overlap is.
+ */
+export const MIN_AFFINITY = 0.25
+
+/** An item receives at most one associative touch per this many seconds. */
+export const ASSOCIATIVE_COOLDOWN_SECONDS = 24 * 60 * 60
+
+/** Weights of the affinity signals; they sum to 1. */
+export const AFFINITY_WEIGHTS = {
+  sharedTags: 0.4,
+  sameSite: 0.2,
+  text: 0.4,
+} as const
+
+/** Shared tags beyond this count add nothing more. */
+export const AFFINITY_MAX_SHARED_TAGS = 1
+
+/** Keywords taken from the touched item's title for the lexical signal. */
+export const AFFINITY_MAX_KEYWORDS = 8
+export const AFFINITY_MIN_KEYWORD_LENGTH = 4

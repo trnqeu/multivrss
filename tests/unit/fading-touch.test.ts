@@ -6,12 +6,14 @@ import { recordSavedTouch } from '@/lib/fading-touch';
 import { POST } from '@/app/api/saved/touch/route';
 import { saveExternalLink } from '@/app/actions/saved-links';
 import { MS_PER_DAY, S0_DAYS } from '@/lib/fading-params';
+import { propagateAssociativeTouch } from '@/lib/fading-affinity';
 
 vi.mock('next-auth', () => ({ getServerSession: vi.fn() }));
 vi.mock('@/lib/auth', () => ({ authOptions: {} }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn(), updateTag: vi.fn() }));
 vi.mock('@/lib/rate-limit', () => ({ checkRateLimit: vi.fn() }));
 vi.mock('@/lib/rss', () => ({ validateFeedUrl: vi.fn(), safeFetchText: vi.fn() }));
+vi.mock('@/lib/fading-affinity', () => ({ propagateAssociativeTouch: vi.fn() }));
 vi.mock('@/lib/prisma', () => ({
     prisma: {
         user: { findUnique: vi.fn() },
@@ -30,6 +32,7 @@ beforeEach(() => {
     vi.mocked(prisma.savedLink.updateMany).mockResolvedValue({ count: 1 });
     vi.mocked(prisma.feedItem.updateMany).mockResolvedValue({ count: 1 });
     vi.mocked(checkRateLimit).mockResolvedValue(true);
+    vi.mocked(propagateAssociativeTouch).mockResolvedValue(0);
 });
 
 describe('recordSavedTouch', () => {
@@ -71,6 +74,24 @@ describe('recordSavedTouch', () => {
             id: 'a1', savedAt: { not: null }, source: { category: { userId: 'user-1' } },
         });
         expect(prisma.feedItem.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('propagates to related items only after a successful direct touch', async () => {
+        vi.mocked(prisma.savedLink.findFirst).mockResolvedValue({ stability: S0_DAYS, lastTouchedAt: daysAgo(5) } as never);
+        await recordSavedTouch('user-1', { kind: 'link', id: 'l1' }, 'read', NOW);
+        expect(propagateAssociativeTouch).toHaveBeenCalledWith('user-1', { kind: 'link', id: 'l1' }, 'read', NOW);
+
+        vi.mocked(propagateAssociativeTouch).mockClear();
+        vi.mocked(prisma.savedLink.updateMany).mockResolvedValue({ count: 0 });
+        await recordSavedTouch('user-1', { kind: 'link', id: 'l1' }, 'read', NOW);
+        expect(propagateAssociativeTouch).not.toHaveBeenCalled();
+    });
+
+    it('keeps the direct touch when propagation fails', async () => {
+        vi.mocked(prisma.savedLink.findFirst).mockResolvedValue({ stability: S0_DAYS, lastTouchedAt: daysAgo(5) } as never);
+        vi.mocked(propagateAssociativeTouch).mockRejectedValue(new Error('redis down'));
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        expect(await recordSavedTouch('user-1', { kind: 'link', id: 'l1' }, 'read', NOW)).toBe(true);
     });
 
     it('drops a concurrent touch that lost the compare-and-set', async () => {

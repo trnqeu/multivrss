@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { applyTouch } from '@/lib/fading'
 import { savedFadingMode } from '@/lib/fading-config'
 import { S0_DAYS, type FadingEvent } from '@/lib/fading-params'
+import { propagateAssociativeTouch } from '@/lib/fading-affinity'
 
 export type SavedItemKind = 'link' | 'article'
 
@@ -19,13 +20,35 @@ export interface SavedItemRef {
  * The write is guarded on the value read (compare-and-set), so two concurrent
  * touches can't both apply on top of the same stale state; the loser is dropped.
  *
- * Returns whether a touch was applied. Callers treat failures as non-fatal.
+ * Strong touches (ASSOCIATIVE_EVENTS) then propagate one hop to the most
+ * related saved items (src/lib/fading-affinity.ts); a failure there never
+ * undoes or fails the direct touch.
+ *
+ * Returns whether the direct touch was applied. Callers treat failures as non-fatal.
  */
 export async function recordSavedTouch(
   userId: string,
   ref: SavedItemRef,
   event: FadingEvent,
   now: Date = new Date(),
+): Promise<boolean> {
+  const touched = await applyDirectTouch(userId, ref, event, now)
+  if (touched) {
+    // Association of ideas: a strong touch also gives related items a little life.
+    try {
+      await propagateAssociativeTouch(userId, ref, event, now)
+    } catch (err) {
+      console.error(`Associative touch failed (kind=${ref.kind}, event=${event}):`, err instanceof Error ? err.message : 'unknown error')
+    }
+  }
+  return touched
+}
+
+async function applyDirectTouch(
+  userId: string,
+  ref: SavedItemRef,
+  event: FadingEvent,
+  now: Date,
 ): Promise<boolean> {
   if (savedFadingMode() === 'off') return false
 
