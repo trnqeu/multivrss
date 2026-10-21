@@ -44,6 +44,8 @@ Both OAuth providers are optional — email/password sign-in works without eithe
 
 **Resend** (transactional email — password reset, email verification): create an account at [resend.com](https://resend.com), grab an API key from the dashboard, set `RESEND_API_KEY`. Without it, password reset and email verification links won't be sent — registration/login by password still work, but new accounts stay unverified.
 
+**Saved-item fading** (`SAVED_FADING`): saved items can fade over time unless their owner comes back to them. `off` hides the feature entirely, `optin` (the default) lets each user enable it in settings, and `default` also enables it for every new account. Existing accounts are never switched on automatically, whatever the value.
+
 **Secrets** (`NEXTAUTH_SECRET`, `CRON_SECRET`, `INTERNAL_SECRET`): generate each with
 
 ```bash

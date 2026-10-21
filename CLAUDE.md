@@ -292,6 +292,7 @@ GOOGLE_SECRET=<oauth-client-secret>
 CRON_SECRET=<secret>
 INTERNAL_SECRET=<secret>      # gates /api/internal/revalidate (src/lib/revalidate.ts)
 RESEND_API_KEY=<key>          # email transport (src/lib/email.ts)
+SAVED_FADING=optin            # off | optin | default; saved-item fading (src/lib/fading-config.ts). default also enables it for new accounts
 STAGING_PASSWORD=<password>   # optional; enables Basic Auth in proxy.ts
 EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
 REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)

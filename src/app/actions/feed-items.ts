@@ -10,6 +10,7 @@ import { frontpageTag } from "./shared";
 import { getReadableArticle, type ReaderResult } from "@/lib/reader";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getHost } from "@/lib/utils";
+import { S0_DAYS } from "@/lib/fading-params";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -60,7 +61,7 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: now }
+            data: { savedAt: now, saveStage: 'VIVID', saveStability: S0_DAYS, saveTouchedAt: now }
         });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
@@ -81,7 +82,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: null }
+            data: { savedAt: null, saveStage: null, saveStability: null, saveTouchedAt: null }
         });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));

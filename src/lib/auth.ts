@@ -8,6 +8,7 @@ import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { slugify } from "@/lib/utils";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { newUserFadingData } from "@/lib/fading-config";
 
 const baseAdapter = PrismaAdapter(prisma);
 
@@ -24,7 +25,7 @@ const customAdapter = {
     }
 
     return prisma.user.create({
-        data: { email: data.email, username },
+        data: { email: data.email, username, ...newUserFadingData(new Date()) },
     }) as unknown as AdapterUser;
   },
 } as Adapter;
