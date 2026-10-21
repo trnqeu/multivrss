@@ -17,6 +17,7 @@ import { useReadQueue } from '@/lib/useReadQueue';
 import EmptyStream from "./EmptyStream";
 import MobileCategorySheet from './MobileCategorySheet';
 import TelemetryDropdown from './TelemetryDropdown';
+import { sendSavedTouch } from '@/lib/fading-beacon';
 
 const READ_OPTS = ['ALL', 'UNREAD', 'READ'] as const;
 type ReadOpt = typeof READ_OPTS[number];
@@ -248,6 +249,19 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                             const sourceHref = !isSavedLink && item.sourceSlug ? `/u/${username}/source/${item.sourceSlug}` : null;
                             const tags = itemTags.get(item.id) ?? [];
 
+                            // Opening the original from search results: marks feed items read,
+                            // and counts as recall (`search`) for saved items. Reader Mode is not
+                            // touched here: the reader records the stronger `read` itself.
+                            const onTitleClick = () => {
+                                if (!isSavedLink && !(item.read ?? false)) {
+                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
+                                    queueRead(item.id);
+                                }
+                                if (isSavedLink || item.savedAt) {
+                                    sendSavedTouch(isSavedLink ? 'link' : 'article', item.id, 'search');
+                                }
+                            };
+
                             const readToggle = isSavedLink ? null : (
                                 <button
                                     onClick={() => toggleRead(item)}
@@ -362,12 +376,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                             href={item.link}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            onClick={() => {
-                                                if (!isSavedLink && !(item.read ?? false)) {
-                                                    setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                    queueRead(item.id);
-                                                }
-                                            }}
+                                            onClick={onTitleClick}
                                             className="font-serif font-semibold text-[15px] leading-snug tracking-[-.005em] text-foreground hover:text-terracotta transition-colors no-underline"
                                         >
                                             <Highlight text={item._formatted?.title ?? item.title} />
@@ -408,12 +417,7 @@ export default function SearchBar({ allTags = [], username }: { allTags?: TagVM[
                                                 href={item.link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                onClick={() => {
-                                                    if (!isSavedLink && !(item.read ?? false)) {
-                                                        setAllHits(prev => prev.map(h => h.id === item.id ? { ...h, read: true } : h));
-                                                        queueRead(item.id);
-                                                    }
-                                                }}
+                                                onClick={onTitleClick}
                                                 className="font-serif font-semibold text-[15px] tracking-[-.005em] text-foreground group-hover:text-terracotta transition-colors no-underline"
                                             >
                                                 <Highlight text={item._formatted?.title ?? item.title} />

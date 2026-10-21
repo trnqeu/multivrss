@@ -11,6 +11,7 @@ import { getReadableArticle, type ReaderResult } from "@/lib/reader";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getHost } from "@/lib/utils";
 import { S0_DAYS } from "@/lib/fading-params";
+import { recordSavedTouchSafely } from "@/lib/fading-touch";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -126,6 +127,7 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
                 });
             }
         });
+        await recordSavedTouchSafely(session.user.id, { kind: 'article', id: itemId }, 'edit');
 
         updateTag(`feed:${session.user.id}`);
         revalidatePath(`/u/${session.user.username}/saved`);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { TagVM } from './SavedView';
 import { makeDek, stripHtml } from '@/lib/utils';
 import SavedItemMenu from './SavedItemMenu';
+import { sendSavedTouch } from '@/lib/fading-beacon';
 
 export interface SavedRowItem {
     id: string;
@@ -21,13 +22,15 @@ interface Props {
     username: string;
     onRemove: (item: SavedRowItem) => void;
     onEditTags: (item: SavedRowItem) => void;
+    /** Opening from a filtered list (`q`) is recall, worth more than a plain open. */
+    touchEvent: 'open' | 'search';
 }
 
 // Two-level row: the title is the only element above 12px and is never
 // truncated; source / date / tag chips sit on a second line in a smaller size.
 // The one-line excerpt only appears on row hover (and always on touch, where
 // there is no hover) so the resting list stays scannable.
-export default function SavedItemRow({ item, username, onRemove, onEditTags }: Props) {
+export default function SavedItemRow({ item, username, onRemove, onEditTags, touchEvent }: Props) {
     const isoDate = new Date(item.savedAt).toISOString();
     const dateLabel = new Date(item.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const excerpt = makeDek(stripHtml(item.content ?? ''), 200);
@@ -40,6 +43,7 @@ export default function SavedItemRow({ item, username, onRemove, onEditTags }: P
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => sendSavedTouch(item.isExternal ? 'link' : 'article', item.id, touchEvent)}
                     className="mb-[5px] block text-[14.5px] font-semibold leading-[1.35] text-pretty text-foreground transition-colors hover:text-terracotta"
                 >
                     {item.title}

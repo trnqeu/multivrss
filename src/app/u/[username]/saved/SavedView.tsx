@@ -134,6 +134,7 @@ export default function SavedView({
                                     username={username}
                                     onRemove={handleRemove}
                                     onEditTags={handleEditTags}
+                                    touchEvent={activeQuery ? 'search' : 'open'}
                                 />
                             </Fragment>
                         );

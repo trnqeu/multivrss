@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
+import { recordSavedTouchSafely } from "@/lib/fading-touch";
 
 export async function resolvePageTitle(url: string): Promise<string | null> {
     try {
@@ -37,6 +38,23 @@ export interface SavedLinkData {
 
 export type SaveExternalLinkState = ActionState & { link?: SavedLinkData };
 
+async function findResavedLink(userId: string, url: string): Promise<SavedLinkData | null> {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedFading: true } });
+        if (!user?.savedFading) return null;
+        const existing = await prisma.savedLink.findFirst({
+            where: { userId, url },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, url: true, title: true, description: true, createdAt: true },
+        });
+        if (!existing) return null;
+        await recordSavedTouchSafely(userId, { kind: 'link', id: existing.id }, 'resave');
+        return existing;
+    } catch {
+        return null;
+    }
+}
+
 // Does the actual work of saving a link: validation, title resolution, and
 // the DB write. Deliberately does NOT touch cache invalidation
 // (updateTag/revalidatePath) — updateTag() only works when called from
@@ -58,6 +76,11 @@ async function saveExternalLinkCore(
     } catch {
         return { success: false, message: "Invalid URL." };
     }
+
+    // With fading on, saving a URL already in the list gives the existing link
+    // new life (`resave`) instead of creating a duplicate.
+    const resaved = await findResavedLink(userId, url);
+    if (resaved) return { success: true, message: "Link saved.", link: resaved };
 
     const supplied = title?.trim();
     const resolvedTitle = supplied || (await resolvePageTitle(url));
@@ -177,6 +200,7 @@ export async function updateSavedLinkDetails(linkId: string, title: string, tagI
                 });
             }
         });
+        await recordSavedTouchSafely(session.user.id, { kind: 'link', id: linkId }, 'edit');
 
         const username = session.user.username;
         updateTag(`feed:${session.user.id}`);

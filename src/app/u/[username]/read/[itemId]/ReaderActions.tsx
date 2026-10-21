@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { saveFeedItem, unsaveFeedItem, type ReaderItemKind } from '@/app/actions/feed-items';
 import { setSavedLinkTags } from '@/app/actions/tags';
 import { Bookmark } from '@/components/icons/Bookmark';
 import { TagIcon } from '@/components/icons/Tag';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
+import { sendSavedTouch } from '@/lib/fading-beacon';
 
 interface TagVM {
     id: string;
@@ -36,6 +37,17 @@ export function ReaderActions({ itemId, itemKind, initialSaved, initialTags, all
     const [modalOpen, setModalOpen] = useState(false);
     const [announcement, setAnnouncement] = useState('');
     useCloseOnNavigate(() => setModalOpen(false));
+
+    // Opening Reader Mode for a saved item is the strongest client touch
+    // (`read`). Recorded from a client effect, never during server render, so
+    // link prefetches don't count. The ref keeps it to once per item even when
+    // the hidden route is reshown and its effects replay.
+    const touchedRef = useRef<string | null>(null);
+    useEffect(() => {
+        if (!initialSaved || touchedRef.current === itemId) return;
+        touchedRef.current = itemId;
+        sendSavedTouch(itemKind === 'savedLink' ? 'link' : 'article', itemId, 'read');
+    }, [initialSaved, itemId, itemKind]);
 
     useEffect(() => {
         if (!announcement) return;

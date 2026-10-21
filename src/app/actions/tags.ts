@@ -5,6 +5,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import type { ActionState } from "./types";
+import { recordSavedTouchSafely } from "@/lib/fading-touch";
 
 export interface TagData {
   id: string;
@@ -232,6 +233,7 @@ export async function setSavedLinkTags(linkId: string, tagIds: string[]): Promis
         });
       }
     });
+    await recordSavedTouchSafely(session.user.id, { kind: 'link', id: linkId }, 'edit');
 
     updateTag(`feed:${session.user.id}`);
     revalidatePath(`/u/${session.user.username}/saved`);
@@ -270,6 +272,7 @@ export async function setFeedItemTags(feedItemId: string, tagIds: string[]): Pro
         });
       }
     });
+    await recordSavedTouchSafely(session.user.id, { kind: 'article', id: feedItemId }, 'edit');
 
     updateTag(`feed:${session.user.id}`);
     revalidatePath(`/u/${session.user.username}/saved`);
