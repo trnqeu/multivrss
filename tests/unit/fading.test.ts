@@ -103,11 +103,11 @@ describe('stageFor', () => {
 });
 
 describe('nextStageAt', () => {
-    it('matches the default thresholds (about 36 / 76 / 138 days)', () => {
+    it('matches the default thresholds (about 72 / 152 / 276 days)', () => {
         const state = fresh();
-        expect(daysBetween(T0, nextStageAt(state, 'VIVID')!)).toBeCloseTo(36.1, 1);
-        expect(daysBetween(T0, nextStageAt(state, 'GIST')!)).toBeCloseTo(75.8, 1);
-        expect(daysBetween(T0, nextStageAt(state, 'TRACE')!)).toBeCloseTo(138.2, 1);
+        expect(daysBetween(T0, nextStageAt(state, 'VIVID')!)).toBeCloseTo(72.2, 1);
+        expect(daysBetween(T0, nextStageAt(state, 'GIST')!)).toBeCloseTo(151.5, 1);
+        expect(daysBetween(T0, nextStageAt(state, 'TRACE')!)).toBeCloseTo(276.3, 1);
     });
 
     it('returns null once forgotten', () => {

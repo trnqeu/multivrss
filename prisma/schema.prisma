@@ -173,7 +173,7 @@ model SavedLink {
   updatedAt     DateTime       @updatedAt
   // Saved-item fading (src/lib/fading.ts). stability is in days; CHECK (stability > 0) in migration SQL.
   stage         SavedStage     @default(VIVID)
-  stability     Float          @default(30)
+  stability     Float          @default(60)
   lastTouchedAt DateTime       @default(now())
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags          SavedLinkTag[]

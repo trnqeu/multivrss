@@ -2,7 +2,7 @@
 // Time units are days unless the name or comment says otherwise.
 
 /** Initial stability of a saved item, in days. */
-export const S0_DAYS = 30
+export const S0_DAYS = 60
 
 /** Upper bound for stability, in days: even a heavily used item fades if abandoned. */
 export const S_MAX_DAYS = 365
