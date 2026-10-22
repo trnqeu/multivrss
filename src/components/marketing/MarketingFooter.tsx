@@ -73,7 +73,18 @@ export default function MarketingFooter({ lang, dict }: Props) {
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-[36px] pt-[20px] border-t border-black/[0.14] font-mono text-[10px] tracking-[0.12em] text-black/[0.32] max-w-[1200px] mx-auto">
-        <span>© 2026 MULTIVRSS · MADE IN TORINO</span>
+        <span>
+          © 2026 MULTIVRSS · MADE IN TORINO ·{" "}
+          <a
+            href="https://undurable.com/works/multivrss"
+            target="_blank"
+            rel="noopener"
+            className="text-black/55 font-bold hover:text-terracotta transition-colors"
+          >
+            {lang === "it" ? "PARTE DI UNDURABLE" : "PART OF UNDURABLE"}
+            <span className="sr-only"> {dict.openSource.newTabHint}</span>
+          </a>
+        </span>
         <div className="flex items-center gap-4">
           {LEGAL_ROUTES.map((route) => (
             <Link

@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? {
           title: "Come funziona · MultivRSS",
           description:
-            "Tutto quello che fa MultivRSS, in otto piccole mosse. Uno screenshot e un soffio di testo per ogni passo.",
+            "Tutto quello che fa MultivRSS, in nove piccole mosse. Uno screenshot e un soffio di testo per ogni passo.",
         }
       : {
           title: "How it works · MultivRSS",
           description:
-            "Everything MultivRSS does, in eight small moves. One screenshot and one breath of text per step.",
+            "Everything MultivRSS does, in nine small moves. One screenshot and one breath of text per step.",
         };
 
   return { ...copy, alternates: localizedAlternates(lang, "/guide") };
@@ -168,6 +168,46 @@ function CsvCard() {
   );
 }
 
+// ─── Step 09 media: saved list fading mock ───────────────────────────────────
+
+// The app UI is English-only, so the mock is too.
+function FadeMock() {
+  const label = "font-mono text-[9px] font-extrabold tracking-[0.12em] uppercase border border-black px-[5px] py-[2px]";
+  return (
+    <div className="border-2 border-black bg-[#efeae0]">
+      <ShotBar label="SAVED · FADING SOON" />
+      <div className="p-6">
+        <div className="border-2 border-black bg-white px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <span className="text-[13.5px] font-extrabold text-black">The quiet return of the small web</span>
+            <span className="font-mono text-[9.5px] font-extrabold tracking-[0.1em] text-terracotta uppercase">
+              Fades in 3 days
+            </span>
+          </div>
+          <span className="font-mono text-[10px] font-extrabold tracking-[0.12em] border border-black px-[10px] py-[6px]">KEEP</span>
+        </div>
+        <div className="mt-3 border-2 border-black bg-white">
+          <div className="px-4 py-3 border-b border-black/12">
+            <span className="block text-[13.5px] font-extrabold text-black">Notes on building a calm feed reader</span>
+            <span className="font-mono text-[9.5px] font-bold tracking-[0.06em] text-terracotta uppercase">robinrendle.com</span>
+          </div>
+          <div className="px-4 py-3 border-b border-dashed border-black/45 flex flex-col gap-1">
+            <span className="block text-[13.5px] font-extrabold text-black">How cities are rethinking heat</span>
+            <span className="flex items-center gap-2">
+              <span className={`${label} border-dashed`}>Faded</span>
+              <span className="font-mono text-[9.5px] font-bold tracking-[0.06em] text-terracotta uppercase">theguardian.com</span>
+            </span>
+          </div>
+          <div className="px-4 py-3 flex flex-col gap-1">
+            <span className="block font-serif italic text-[14px] text-black">A link from wired.com, saved March 2026</span>
+            <span><span className={`${label} border-2 border-dotted`}>Trace</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function GuidePage({ params }: Props) {
@@ -181,15 +221,15 @@ export default async function GuidePage({ params }: Props) {
       <header className="px-[34px] pt-[74px] pb-[30px] max-[960px]:px-[22px] max-[960px]:pt-12 max-[960px]:pb-6">
         <div className="max-w-[1200px] mx-auto">
           <p className="font-mono text-[10.5px] font-bold tracking-[0.18em] text-terracotta uppercase mb-[22px]">
-            {isIt ? "// COME FUNZIONA · 8 COSE CHE PUOI FARE" : "// HOW IT WORKS · 08 THINGS YOU CAN DO"}
+            {isIt ? "// COME FUNZIONA · 9 COSE CHE PUOI FARE" : "// HOW IT WORKS · 09 THINGS YOU CAN DO"}
           </p>
           <div className="grid grid-cols-1 min-[960px]:grid-cols-[1.15fr_1fr] gap-12 items-end">
             <h1 className="normal-case font-black text-[clamp(38px,5vw,78px)] leading-[0.99] tracking-[-0.03em] m-0">
               {isIt ? (
-                <>Tutto quello che fa MultivRSS, in <em className="not-italic text-terracotta">otto piccole mosse.</em></>
+                <>Tutto quello che fa MultivRSS, in <em className="not-italic text-terracotta">nove piccole mosse.</em></>
               ) : (
                 <>Everything MultivRSS does, in{" "}
-                <em className="not-italic text-terracotta">eight small moves.</em></>
+                <em className="not-italic text-terracotta">nine small moves.</em></>
               )}
             </h1>
             <p className="text-[16px] leading-[1.62] text-black/55 m-0 max-w-[480px]">
@@ -218,7 +258,7 @@ export default async function GuidePage({ params }: Props) {
       {/* Quick index */}
       <section className="px-[34px] pb-[40px] max-[960px]:px-[22px] max-[960px]:pb-7" aria-label={isIt ? "Indice dei passi" : "Steps index"}>
         <div className="max-w-[1200px] mx-auto">
-          <div className="grid grid-cols-4 max-[960px]:grid-cols-2 max-[560px]:grid-cols-1 border-t-2 border-l-2 border-black">
+          <div className="grid grid-cols-3 max-[960px]:grid-cols-2 max-[560px]:grid-cols-1 border-t-2 border-l-2 border-black">
             {(isIt
               ? [
                   ["01", "#s01", "Aggiungi una fonte"],
@@ -229,6 +269,7 @@ export default async function GuidePage({ params }: Props) {
                   ["06", "#s06", "Sincronizza"],
                   ["07", "#s07", "Importa / Esporta CSV"],
                   ["08", "#s08", "Sul telefono"],
+                  ["09", "#s09", "Tieni ciò che conta"],
                 ]
               : [
                   ["01", "#s01", "Add a source"],
@@ -239,6 +280,7 @@ export default async function GuidePage({ params }: Props) {
                   ["06", "#s06", "Sync"],
                   ["07", "#s07", "Import / Export CSV"],
                   ["08", "#s08", "On your phone"],
+                  ["09", "#s09", "Keep what matters"],
                 ]
             ).map(([num, href, label]) => (
               <a
@@ -555,6 +597,38 @@ export default async function GuidePage({ params }: Props) {
             mediaFirst
           />
 
+          {/* 09 · Fading */}
+          <Step
+            id="s09"
+            num="09"
+            kicker={isIt ? "DISSOLVENZA" : "FADING"}
+            headline={isIt
+              ? <>Tieni ciò che <em className="not-italic text-terracotta">conta.</em></>
+              : <>Keep what <em className="not-italic text-terracotta">matters.</em></>}
+            body={
+              isIt ? (
+                <p className="m-0">
+                  Quello che salvi e non riapri mai <b>sbiadisce</b>: prima perde la descrizione,
+                  poi il titolo, e dopo circa nove mesi sparisce. Aprirlo, cercarlo o leggerlo gli
+                  dà più vita. Ogni settimana <b>Fading soon</b> ti mostra cosa sta per perdere
+                  qualcosa: premi <b>Keep</b> su ciò che vuoi tenere, uno alla volta. Puoi
+                  disattivarla da Impostazioni.
+                </p>
+              ) : (
+                <p className="m-0">
+                  What you save and never reopen <b>fades</b>: first it loses its description, then
+                  its title, and after about nine months it&apos;s gone. Opening, searching or
+                  reading it gives it more life. Each week, <b>Fading soon</b> shows what is about
+                  to lose something: hit <b>Keep</b> on what you want to hold on to, one at a time.
+                  You can turn it off in Settings.
+                </p>
+              )
+            }
+            keys={["FADING SOON", "KEEP"]}
+            media={<FadeMock />}
+            mediaFirst={false}
+          />
+
         </div>
       </section>
 
@@ -565,9 +639,9 @@ export default async function GuidePage({ params }: Props) {
         </p>
         <h2 className="normal-case font-black text-[clamp(32px,4.4vw,64px)] tracking-[-0.03em] leading-[1.02] m-0 mb-5">
           {isIt ? (
-            <>Otto mosse. <em className="not-italic text-terracotta">Un fiume tranquillo.</em></>
+            <>Nove mosse. <em className="not-italic text-terracotta">Un fiume tranquillo.</em></>
           ) : (
-            <>Eight moves. <em className="not-italic text-terracotta">One quiet river.</em></>
+            <>Nine moves. <em className="not-italic text-terracotta">One quiet river.</em></>
           )}
         </h2>
         <p className="text-[15.5px] text-white/55 max-w-[520px] mx-auto mb-8 leading-[1.6]">

@@ -1,6 +1,6 @@
 ---
 title: Privacy Policy
-updated: "2026-07-19"
+updated: "2026-10-22"
 ---
 
 This policy explains what personal data MultivRSS collects, why, and what rights you have over it. It applies to multivrss.com and the MultivRSS dashboard, browser extension, and share-target integration.
@@ -40,7 +40,7 @@ Feed sources, saved links, categories, tags, and search are handled entirely on 
 
 ## How long we keep it
 
-Account data and content are kept for as long as your account is active. Articles pulled from your feeds that you haven't saved are deleted automatically about 90 days after they drop out of their source feed; anything you save to your reading list stays for as long as your account is active. You can permanently delete your account and all its data at any time from Settings → Account in the dashboard; deletion happens immediately, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
+Account data and content are kept for as long as your account is active. Articles pulled from your feeds that you haven't saved are deleted automatically about 90 days after they drop out of their source feed; anything you save to your reading list stays for as long as your account is active, unless saved-item fading is on for your account: then items you don't come back to progressively lose their description and title and are eventually deleted, as explained in the FAQ. Database backups are kept for 30 days, so deleted data can remain in a backup for up to 30 days. You can permanently delete your account and all its data at any time from Settings → Account in the dashboard; deletion happens immediately, except where we're required to keep something longer by law. Error reports are retained by Sentry for a limited period under their own retention policy, typically 90 days.
 
 ## Your rights
 

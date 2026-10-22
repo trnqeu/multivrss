@@ -13,7 +13,7 @@ async function SavedFadingNotice() {
     return (
         <p className="mt-4 border-t border-dashed border-foreground/45 pt-3 text-xs leading-relaxed text-foreground/75">
             Saved items fade unless you come back to them. You can turn this off in settings.{' '}
-            <Link href="/en/faq#saved-fading" className="text-terracotta underline">How fading works</Link>
+            <Link href="/en/faq#faq-saved-fading" className="text-terracotta underline">How fading works</Link>
         </p>
     );
 }

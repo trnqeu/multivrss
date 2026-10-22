@@ -32,7 +32,7 @@ export default function FadingNotice({ username, onDismissed }: Props) {
                 Items you don&apos;t come back to slowly lose their details, then their title, and after about nine months
                 they disappear. Opening, searching, reading or keeping an item gives it more life. You can turn this off in{' '}
                 <Link href={`/u/${username}/settings/account`} className="text-terracotta underline">settings</Link>.{' '}
-                <Link href="/en/faq#saved-fading" className="text-terracotta underline">How fading works</Link>
+                <Link href="/en/faq#faq-saved-fading" className="text-terracotta underline">How fading works</Link>
             </p>
             <button
                 type="button"

@@ -123,7 +123,7 @@ export default function SavedFadingSetting({ initialEnabled, initialSince }: Pro
             <p className="max-w-[60ch] font-serif text-[15px] leading-[1.5]">
                 Saved items you don&apos;t come back to slowly lose their details, then their title, and after about nine
                 months they disappear. Opening, searching, reading or keeping an item gives it more life.{' '}
-                <Link href="/en/faq#saved-fading" className="text-terracotta underline">How fading works</Link>
+                <Link href="/en/faq#faq-saved-fading" className="text-terracotta underline">How fading works</Link>
             </p>
             <p role="status" aria-live="polite" className="text-[11px] font-bold uppercase tracking-widest">
                 {message}
