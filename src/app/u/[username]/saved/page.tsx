@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { getCategories } from "@/app/actions/categories";
 import { prisma } from '@/lib/prisma';
 import { fetchSavedItemsPage } from '@/lib/saved-items';
+import { fetchFadingSoon } from '@/lib/fading-soon';
+import { savedFadingMode } from '@/lib/fading-config';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import SavedPageClient from './SavedPageClient';
@@ -25,13 +27,21 @@ export default async function SavedPage({ params, searchParams }: SavedPageProps
 
     const categories = await getCategories();
 
-    const [itemsPage, allTags] = await Promise.all([
+    const [itemsPage, allTags, fadingSoon, fadingUser] = await Promise.all([
         fetchSavedItemsPage(session.user.id, { tag, q }),
         prisma.tag.findMany({
             where: { userId: session.user.id },
             orderBy: { name: 'asc' },
         }),
+        fetchFadingSoon(session.user.id),
+        prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { savedFading: true, savedFadingNoticeSeenAt: true },
+        }),
     ]);
+    const showFadingNotice = savedFadingMode() !== 'off'
+        && (fadingUser?.savedFading ?? false)
+        && !fadingUser?.savedFadingNoticeSeenAt;
 
     return (
         <>
@@ -57,6 +67,8 @@ export default async function SavedPage({ params, searchParams }: SavedPageProps
                     initialFeedOffset={itemsPage.nextFeedOffset}
                     initialLinkOffset={itemsPage.nextLinkOffset}
                     initialHasMore={itemsPage.hasMore}
+                    initialFadingSoon={fadingSoon}
+                    showFadingNotice={showFadingNotice}
                 />
             </Suspense>
         </>

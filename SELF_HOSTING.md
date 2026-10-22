@@ -44,6 +44,8 @@ Both OAuth providers are optional — email/password sign-in works without eithe
 
 **Resend** (transactional email — password reset, email verification): create an account at [resend.com](https://resend.com), grab an API key from the dashboard, set `RESEND_API_KEY`. Without it, password reset and email verification links won't be sent — registration/login by password still work, but new accounts stay unverified.
 
+**Saved-item fading** (`SAVED_FADING`): saved items can fade over time unless their owner comes back to them. `off` hides the feature entirely, `optin` (the default) lets each user enable it in settings, and `default` also enables it for every new account. Existing accounts are never switched on automatically, whatever the value. The fading itself runs in the worker every night at 04:30 (server time); set `SAVED_FADING_DRY_RUN=1` to have it log what it would change without changing anything. Faded and forgotten text cannot be recovered from the app. With `SAVED_FADING_ENCOUNTERS=1`, saving a link also gives a little life to the same link in other people's saved lists (only for people with fading on; nobody is told who saved what).
+
 **Secrets** (`NEXTAUTH_SECRET`, `CRON_SECRET`, `INTERNAL_SECRET`): generate each with
 
 ```bash

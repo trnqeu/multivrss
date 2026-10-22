@@ -97,6 +97,21 @@ Layered on top of the existing quality gate, each starting advisory
 - **AI agent integration** and a **vector database** — both TBD; the
   recommendation-engine note below is the concrete near-term version.
 
+## Saved-item fading: next ideas
+
+Saved-item fading comes with MultivRSS joining
+[Undurable](https://undurable.com). Ideas kept for later:
+
+- **Digest as encounter**: links told in a MultivRSS Digest post gain life for
+  everyone who saved them. Needs the digest URLs exported at build time, since
+  the running container cannot read `content/`.
+- **Honest link rot**: periodically check saved URLs and say "this page no
+  longer exists" when it is gone, without archiving copies.
+- **Mindabase**: semantic search and "this reminds you of…" through the
+  Undurable memory engine, once it exists. It would also replace the lexical
+  affinity used today by associative touches (tags + Postgres full-text) with
+  semantic similarity.
+
 ## Recommendation engine redesign
 
 The home page "For You" strip currently ranks items with one engine (source

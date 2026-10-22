@@ -6,6 +6,7 @@ import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 import { updateFeedItemDetails } from '@/app/actions/feed-items';
 import { updateSavedLinkDetails } from '@/app/actions/saved-links';
+import { setFeedItemTags, setSavedLinkTags } from '@/app/actions/tags';
 import EmptyStream from '@/components/EmptyStream';
 import SavedItemRow, { type SavedRowItem } from './SavedItemRow';
 
@@ -13,6 +14,9 @@ export interface TagVM {
     id: string;
     name: string;
 }
+
+/** Fading stage of a saved item; VIVID for everyone with fading off. */
+export type SavedStageVM = 'VIVID' | 'GIST' | 'TRACE';
 
 export interface ArticleVM {
     id: string;
@@ -22,6 +26,7 @@ export interface ArticleVM {
     savedAt: Date;
     sourceTitle: string | null;
     tags: TagVM[];
+    stage: SavedStageVM;
 }
 
 export interface LinkVM {
@@ -31,6 +36,7 @@ export interface LinkVM {
     description: string | null;
     createdAt: Date;
     tags: TagVM[];
+    stage: SavedStageVM;
 }
 
 interface Props {
@@ -44,7 +50,8 @@ interface Props {
     onLoadMore: () => void;
     onRemoveArticle: (id: string) => void;
     onRemoveLink: (id: string) => void;
-    onSetArticleDetails: (articleId: string, title: string, tags: TagVM[]) => void;
+    /** `title` is null when only the tags changed (a trace). */
+    onSetArticleDetails: (articleId: string, title: string | null, tags: TagVM[]) => void;
     onSetLinkDetails: (linkId: string, title: string | null, tags: TagVM[]) => void;
 }
 
@@ -52,6 +59,16 @@ interface ModalItem {
     id: string;
     tags: TagVM[];
     isExternal: boolean;
+    /** A trace has no title left to edit: its modal edits tags only. */
+    isTrace: boolean;
+}
+
+function savedMonth(date: Date): string {
+    return new Date(date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+}
+
+function originOf(url: string): string {
+    try { return `${new URL(url).origin}/`; } catch { return url; }
 }
 
 export default function SavedView({
@@ -60,26 +77,35 @@ export default function SavedView({
     onRemoveArticle, onRemoveLink,
     onSetArticleDetails, onSetLinkDetails,
 }: Props) {
+    // Fading by subtraction: a GIST shows no excerpt, a TRACE only says where
+    // it came from and when (see src/lib/saved-fading.ts). A saved article
+    // keeps its content in the feed, so the saved list hides it here.
     const allItems: SavedRowItem[] = [
         ...articles.map(a => ({
             id: a.id,
-            title: a.title,
-            url: a.link,
-            content: a.content,
+            title: a.stage === 'TRACE'
+                ? `An article from ${a.sourceTitle ?? getHost(a.link)}, saved ${savedMonth(a.savedAt)}`
+                : a.title,
+            url: a.stage === 'TRACE' ? originOf(a.link) : a.link,
+            content: a.stage === 'VIVID' ? a.content : null,
             savedAt: a.savedAt,
             sourceLabel: (a.sourceTitle ?? getHost(a.link)).toUpperCase(),
             isExternal: false as const,
             tags: a.tags,
+            stage: a.stage,
         })),
         ...links.map(l => ({
             id: l.id,
-            title: l.title ?? getHost(l.url),
+            title: l.stage === 'TRACE'
+                ? `A link from ${getHost(l.url)}, saved ${savedMonth(l.createdAt)}`
+                : l.title ?? getHost(l.url),
             url: l.url,
-            content: l.description,
+            content: l.stage === 'VIVID' ? l.description : null,
             savedAt: l.createdAt,
             sourceLabel: getHost(l.url).toUpperCase(),
             isExternal: true as const,
             tags: l.tags,
+            stage: l.stage,
         })),
     ].sort((a, b) => b.savedAt.getTime() - a.savedAt.getTime());
 
@@ -93,12 +119,15 @@ export default function SavedView({
     }
 
     function handleEditTags(item: SavedRowItem) {
-        setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal });
+        setModalItem({ id: item.id, tags: item.tags, isExternal: item.isExternal, isTrace: item.stage === 'TRACE' });
         setTitleDraft(item.title);
     }
 
     const handleModalSave = useCallback(async (id: string, tagIds: string[], title?: string) => {
         if (!modalItem) return { success: false };
+        if (modalItem.isTrace) {
+            return modalItem.isExternal ? setSavedLinkTags(id, tagIds) : setFeedItemTags(id, tagIds);
+        }
         return modalItem.isExternal
             ? updateSavedLinkDetails(id, title ?? '', tagIds)
             : updateFeedItemDetails(id, title ?? '', tagIds);
@@ -134,6 +163,7 @@ export default function SavedView({
                                     username={username}
                                     onRemove={handleRemove}
                                     onEditTags={handleEditTags}
+                                    touchEvent={activeQuery ? 'search' : 'open'}
                                 />
                             </Fragment>
                         );
@@ -161,10 +191,13 @@ export default function SavedView({
                     initialTags={modalItem.tags}
                     allTags={allTags}
                     heading="EDIT_ITEM"
-                    titleField={{ value: titleDraft, onChange: setTitleDraft }}
+                    titleField={modalItem.isTrace ? undefined : { value: titleDraft, onChange: setTitleDraft }}
                     onSave={handleModalSave}
                     onTagsApplied={(id, newTags) => {
-                        if (modalItem.isExternal) {
+                        if (modalItem.isTrace) {
+                            if (modalItem.isExternal) onSetLinkDetails(id, null, newTags);
+                            else onSetArticleDetails(id, null, newTags);
+                        } else if (modalItem.isExternal) {
                             onSetLinkDetails(id, titleDraft.trim() || null, newTags);
                         } else {
                             onSetArticleDetails(id, titleDraft.trim(), newTags);

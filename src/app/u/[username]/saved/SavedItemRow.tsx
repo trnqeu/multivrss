@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import type { TagVM } from './SavedView';
+import type { SavedStageVM, TagVM } from './SavedView';
 import { makeDek, stripHtml } from '@/lib/utils';
 import SavedItemMenu from './SavedItemMenu';
+import { sendSavedTouch } from '@/lib/fading-beacon';
 
 export interface SavedRowItem {
     id: string;
@@ -14,6 +15,7 @@ export interface SavedRowItem {
     sourceLabel: string;
     isExternal: boolean;
     tags: TagVM[];
+    stage: SavedStageVM;
 }
 
 interface Props {
@@ -21,39 +23,78 @@ interface Props {
     username: string;
     onRemove: (item: SavedRowItem) => void;
     onEditTags: (item: SavedRowItem) => void;
+    /** Opening from a filtered list (`q`) is recall, worth more than a plain open. */
+    touchEvent: 'open' | 'search';
 }
+
+// Fading is shown by what a row has lost, by a text label and by its
+// separator: never by lighter text (CLAUDE.md contrast rules).
+const STAGE_LABEL: Record<Exclude<SavedStageVM, 'VIVID'>, string> = { GIST: 'Faded', TRACE: 'Trace' };
+
+const ROW_SEPARATOR: Record<SavedStageVM, string> = {
+    VIVID: 'border-b border-foreground/[0.07]',
+    GIST: 'border-b border-dashed border-foreground/45',
+    TRACE: 'border-b-2 border-dotted border-foreground/45',
+};
 
 // Two-level row: the title is the only element above 12px and is never
 // truncated; source / date / tag chips sit on a second line in a smaller size.
 // The one-line excerpt only appears on row hover (and always on touch, where
 // there is no hover) so the resting list stays scannable.
-export default function SavedItemRow({ item, username, onRemove, onEditTags }: Props) {
+export default function SavedItemRow({ item, username, onRemove, onEditTags, touchEvent }: Props) {
     const isoDate = new Date(item.savedAt).toISOString();
     const dateLabel = new Date(item.savedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const excerpt = makeDek(stripHtml(item.content ?? ''), 200);
-    const readerHref = `/u/${username}/read/${item.id}${item.isExternal ? '?type=savedLink' : ''}`;
+    const isTrace = item.stage === 'TRACE';
+    const readerHref = isTrace
+        ? undefined
+        : `/u/${username}/read/${item.id}${item.isExternal ? '?type=savedLink' : ''}`;
+    const stageLabel = item.stage === 'VIVID' ? null : STAGE_LABEL[item.stage];
 
     return (
-        <div className="group relative grid grid-cols-[minmax(0,1fr)_34px] items-start gap-x-3.5 border-b border-foreground/[0.07] py-[11px] transition-colors hover:bg-foreground/[0.022]">
+        <div className={`group relative grid grid-cols-[minmax(0,1fr)_34px] items-start gap-x-3.5 py-[11px] transition-colors hover:bg-foreground/[0.022] ${ROW_SEPARATOR[item.stage]}`}>
             <div className="min-w-0">
                 <a
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mb-[5px] block text-[14.5px] font-semibold leading-[1.35] text-pretty text-foreground transition-colors hover:text-terracotta"
+                    onClick={() => sendSavedTouch(item.isExternal ? 'link' : 'article', item.id, touchEvent)}
+                    className={`mb-[5px] block leading-[1.35] text-pretty text-foreground transition-colors hover:text-terracotta ${
+                        isTrace ? 'font-serif text-[15px] font-normal italic' : 'text-[14.5px] font-semibold'
+                    }`}
                 >
+                    {stageLabel && <span className="sr-only">{stageLabel}: </span>}
                     {item.title}
                 </a>
                 <div className="flex flex-wrap items-center gap-x-[9px] gap-y-1">
-                    <span className="text-[9.5px] font-bold uppercase tracking-[0.06em] text-terracotta">
-                        {item.sourceLabel}
-                    </span>
-                    <span aria-hidden="true" className="text-[9px] text-foreground/25">·</span>
-                    <time dateTime={isoDate} className="text-[9.5px] font-semibold tracking-[0.04em] text-foreground/40">
-                        {dateLabel}
-                    </time>
-                    {item.tags.length > 0 && (
-                        <span aria-hidden="true" className="text-[9px] text-foreground/25">·</span>
+                    {stageLabel && (
+                        <>
+                            <span
+                                aria-hidden="true"
+                                className={`border-foreground px-[5px] py-[2px] text-[8.5px] font-extrabold uppercase tracking-[0.12em] text-foreground ${
+                                    isTrace ? 'border-2 border-dotted' : 'border border-dashed'
+                                }`}
+                            >
+                                {stageLabel}
+                            </span>
+                            {(!isTrace || item.tags.length > 0) && (
+                                <span aria-hidden="true" className="text-[9px] text-foreground/25">·</span>
+                            )}
+                        </>
+                    )}
+                    {!isTrace && (
+                        <>
+                            <span className="text-[9.5px] font-bold uppercase tracking-[0.06em] text-terracotta">
+                                {item.sourceLabel}
+                            </span>
+                            <span aria-hidden="true" className="text-[9px] text-foreground/25">·</span>
+                            <time dateTime={isoDate} className="text-[9.5px] font-semibold tracking-[0.04em] text-foreground/40">
+                                {dateLabel}
+                            </time>
+                            {item.tags.length > 0 && (
+                                <span aria-hidden="true" className="text-[9px] text-foreground/25">·</span>
+                            )}
+                        </>
                     )}
                     {item.tags.map(tag => (
                         <Link

@@ -2,6 +2,8 @@
 
 Multivrss is a place to gather, organize and consume the content you can find on the internet. It blends an **RSS aggregator** and a **reading list** in one calm, minimal dashboard containing just **the feeds you follow** and **the links you save**. You can read a [short manifesto](https://multivrss.com/en/blog/20260725_why-the-internet-doesnt-love-me-back) if you want.
 
+MultivRSS is part of [Undurable](https://undurable.com), a lab that takes infinity away from machines and observes what the end gives back. In MultivRSS that means saved items can **fade**: what you never come back to is slowly forgotten.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-000.svg)](./LICENSE)
 &nbsp;[Changelog](./CHANGELOG.md) · [Roadmap](./ROADMAP.md) · [Self-hosting](./SELF_HOSTING.md)
 
@@ -48,7 +50,14 @@ Multivrss is a place to gather, organize and consume the content you can find on
   the page title and description fetched automatically.
 - Tag saved links and feed items; filter the list by tag.
 - Unsaved feed items are purged ~90 days after they drop out of their source
-  feed; saved items are kept indefinitely.
+  feed.
+- **Saved-item fading** (per account, configurable per instance with
+  `SAVED_FADING`): saved items you never come back to first lose their
+  description, then their title, and are forgotten after about nine months.
+  Opening, searching, reading, editing or keeping an item gives it more life,
+  and a "Fading soon" section lets you keep what matters, one item at a time.
+  Forgetting is irreversible by design. See the
+  [FAQ](https://multivrss.com/en/faq#faq-saved-fading).
 
 **Search**
 - Native PostgreSQL full-text search (`tsvector` / GIN, no separate search

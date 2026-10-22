@@ -7,6 +7,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
+import { recordSavedTouchSafely } from "@/lib/fading-touch";
+import { enqueueEncounter } from "@/lib/fading-encounters";
+import { urlKey } from "@/lib/url-key";
+import type { SavedStage } from "@prisma/client";
 
 export async function resolvePageTitle(url: string): Promise<string | null> {
     try {
@@ -33,9 +37,29 @@ export interface SavedLinkData {
     title: string | null;
     description: string | null;
     createdAt: Date;
+    stage: SavedStage;
 }
 
 export type SaveExternalLinkState = ActionState & { link?: SavedLinkData };
+
+async function findResavedLink(userId: string, url: string): Promise<SavedLinkData | null> {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedFading: true } });
+        if (!user?.savedFading) return null;
+        // Same page even when the URL differs in scheme, fragment, utm_* or trailing slash.
+        const key = urlKey(url);
+        const existing = await prisma.savedLink.findFirst({
+            where: { userId, OR: [{ url }, ...(key ? [{ urlKey: key }] : [])] },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, url: true, title: true, description: true, createdAt: true, stage: true },
+        });
+        if (!existing) return null;
+        await recordSavedTouchSafely(userId, { kind: 'link', id: existing.id }, 'resave');
+        return existing;
+    } catch {
+        return null;
+    }
+}
 
 // Does the actual work of saving a link: validation, title resolution, and
 // the DB write. Deliberately does NOT touch cache invalidation
@@ -59,6 +83,11 @@ async function saveExternalLinkCore(
         return { success: false, message: "Invalid URL." };
     }
 
+    // With fading on, saving a URL already in the list gives the existing link
+    // new life (`resave`) instead of creating a duplicate.
+    const resaved = await findResavedLink(userId, url);
+    if (resaved) return { success: true, message: "Link saved.", link: resaved };
+
     const supplied = title?.trim();
     const resolvedTitle = supplied || (await resolvePageTitle(url));
 
@@ -67,10 +96,12 @@ async function saveExternalLinkCore(
             data: {
                 userId,
                 url,
+                urlKey: urlKey(url),
                 title: resolvedTitle || null,
                 description: description?.trim() || null,
             }
         });
+        await enqueueEncounter(userId, { kind: 'link', id: link.id });
         return {
             success: true,
             message: "Link saved.",
@@ -80,6 +111,7 @@ async function saveExternalLinkCore(
                 title: link.title,
                 description: link.description,
                 createdAt: link.createdAt,
+                stage: link.stage,
             }
         };
     } catch (error) {
@@ -155,11 +187,12 @@ export async function updateSavedLinkDetails(linkId: string, title: string, tagI
     try {
         const link = await prisma.savedLink.findFirst({
             where: { id: linkId, userId: session.user.id },
-            select: { id: true },
+            select: { id: true, stage: true },
         });
         if (!link) return { success: false, message: "Link not found." };
 
-        const trimmedTitle = title.trim();
+        // A trace's title was forgotten: editing can't bring text back.
+        const trimmedTitle = link.stage === 'TRACE' ? '' : title.trim();
         const validTags = tagIds.length > 0
             ? await prisma.tag.findMany({
                 where: { id: { in: tagIds }, userId: session.user.id },
@@ -177,6 +210,7 @@ export async function updateSavedLinkDetails(linkId: string, title: string, tagI
                 });
             }
         });
+        await recordSavedTouchSafely(session.user.id, { kind: 'link', id: linkId }, 'edit');
 
         const username = session.user.username;
         updateTag(`feed:${session.user.id}`);

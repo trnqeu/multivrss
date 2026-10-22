@@ -1,5 +1,6 @@
 'use server';
 
+import { urlKey } from "@/lib/url-key";
 import { prisma } from "@/lib/prisma";
 import { validateFeedUrl } from "@/lib/rss";
 import { revalidatePath, updateTag } from "next/cache";
@@ -293,6 +294,7 @@ export async function importSavedLinksCsv(prevState: ActionState | null, formDat
                 data: {
                     userId,
                     url: row.url,
+                    urlKey: urlKey(row.url),
                     title: resolvedTitle ?? null,
                     description: row.description ?? null,
                     ...(row.savedAt ? { createdAt: row.savedAt } : {}),

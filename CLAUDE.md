@@ -37,6 +37,12 @@ Manual integration checks (`tsconfig.test.json` uses CommonJS — main tsconfig 
 npx tsx --tsconfig tsconfig.test.json tests/test-rss.ts
 ```
 
+Saved-item fading by hand (local DB only; moves a user's saved items back in time, `--run` then runs the nightly pass for all users):
+
+```bash
+npx tsx --env-file=.env --tsconfig tsconfig.test.json scripts/fading-time-travel.ts <username> <days> [--run] [--dry-run]
+```
+
 ## Verification Order
 
 1. `npm run test` + `npm run lint`
@@ -77,7 +83,8 @@ src/app/
     auth/[...nextauth]/   NextAuth handler
     categories/route.ts   Category CRUD
     feeds/sources/route.ts  Feed source CRUD
-    saved/route.ts, saved/[id]/tags/route.ts   Saved links + tagging
+    saved/route.ts, saved/[id]/tags/route.ts   Saved items: GET list (session or API key; stage + fadesAt, never a touch), POST save; tagging
+    saved/touch/route.ts  sendBeacon target for saved-item fading touches (session cookie only, same-origin, client events only)
     cron/sync/route.ts    Bearer-token cron (CRON_SECRET), syncs stale feeds
     internal/revalidate/route.ts  Internal-secret-gated cache revalidation
     search/route.ts       Full-text search (Postgres, see src/lib/search.ts)
@@ -96,6 +103,7 @@ src/app/
     tags.ts                 Tag CRUD, tag assignment to links/items
     starter-packs.ts        Onboarding starter pack add/undo
     digest.ts                getDigestStatus() — read-only, resolves per-item SAVE/ADD FEED state for the blog Digest rubric; called imperatively from DigestCard, not a mutation
+    fading.ts                Saved-item fading: enable/disableSavedFading(), getFadingSoon(), keepSavedItem() (the Keep button, one item at a time), dismissSavedFadingNotice()
 
 src/lib/
   auth.ts                 NextAuth options + custom Prisma adapter (auto-generates username)
@@ -109,6 +117,16 @@ src/lib/
   auth-resume-links.ts    buildLoginResumeHref/buildAddFeedHref/buildSaveLinkHref — "log in, then finish this action" links for logged-out visitors. buildAddFeedHref (→ u/add) is used by the public /sources directory (MarketingSourcesFinder); buildSaveLinkHref (→ u/save-link) currently has no caller. The blog Digest rubric (DigestCard) reuses only the bare buildLoginResumeHref, pointed back at the post itself instead of at u/add/u/save-link — see blog.ts below
   domain-gate.ts          Semaphore: max 2 concurrent requests per hostname
   rate-limit.ts           Redis-backed rate limiter (checkRateLimit) for login/password reset/reader mode
+  fading-params.ts        Saved-item fading constants (S0, S_MAX, thresholds, event table, associative weights)
+  fading.ts               Pure fading model: retrievability, applyTouch, stageFor, nextStageAt, isFadingSoon, affinityWeight, applyAssociativeTouch, extractKeywords
+  fading-config.ts        SAVED_FADING mode + defaults for new accounts
+  fading-touch.ts         recordSavedTouch(): owner-scoped, compare-and-set write of a touch, then associative propagation
+  fading-affinity.ts      findAffinities()/propagateAssociativeTouch(): one-hop "association of ideas" between a user's saved items
+  fading-beacon.ts        sendSavedTouch(): client-side sendBeacon to /api/saved/touch
+  fading-soon.ts          fetchFadingSoon(): items whose next stage is within FADING_SOON_DAYS
+  fading-encounters.ts    Encounters (SAVED_FADING_ENCOUNTERS=1): enqueueEncounter/applyEncounters, backfillUrlKeys
+  saved-fading.ts         runSavedFading(): the nightly forget → trace → gist pass
+  url-key.ts              urlKey(): normalized URL used to recognize the same page across users
   i18n/                   Dictionary-based i18n (en/it) for marketing routes; Dictionary["digest"] holds the SAVE/ADD FEED button strings for the blog Digest rubric
   blog.ts                 Markdown blog post loader. A post's optional `digestItems` frontmatter array (id/title/url/sourceName/feedUrl?/feedCategory?/blurb?, `id` required) drives the "MultivRSS Digest" rubric: the body places each pick inline with a `::digest[id]` marker on its own line; renderPostSegments() splits content on those markers into an ordered [{prose html} | {digest item}] list (any digestItems entry never referenced by a marker is appended at the end, frontmatter order) and throws — failing `next build` — if a marker references an unknown id. Rendered by src/components/marketing/DigestCard.tsx (DigestProvider + DigestCard) as SAVE + (if feedUrl set) ADD FEED cards: saved/subscribed status is resolved client-side after hydration via getDigestStatus() (src/app/actions/digest.ts) — blog pages are static and shared across users, so this can't be baked in at build time — and the two buttons call saveDigestLink()/addDigestFeedSource() imperatively (optimistic UI, no reload). A logged-out click redirects through /login?callbackUrl=<post path>?intent=save|feed&... and DigestCard's intent-resume effect finishes the action on return.
   frontpage.ts            Landing page data (stats, featured content)
@@ -118,7 +136,7 @@ src/lib/
   revalidate.ts           Shared cache revalidation helpers
   cors.ts                 CORS handling for the extension/share-target origin
 
-src/workers/feed-sync.ts  Background worker process for feed syncing
+src/workers/feed-sync.ts  Background worker process: feed syncing, nightly saved-item fading (04:30), fading encounters
 src/proxy.ts              Request proxy (Next.js 16 convention — not middleware.ts)
 tests/unit/               Vitest unit tests
 ```
@@ -221,9 +239,19 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - `FeedItem`: unique by `[sourceId, externalId]` (NOT globally unique) — `externalId` used to deduplicate on upsert
 - `PasswordResetToken`: per-user
 - `Tag`: user-scoped; applied to both `SavedLink` and `FeedItem` via join tables
+- Saved-item fading: `SavedLink.stage` (`SavedStage` enum: VIVID/GIST/TRACE), `stability` (days, `CHECK > 0`), `lastTouchedAt`, `urlKey`; the same state for a saved article lives on `FeedItem.saveStage`/`saveStability`/`saveTouchedAt`/`saveUrlKey`, set only while `savedAt` is set. `User.savedFading`, `savedFadingSince`, `savedFadingNoticeSeenAt`. Retrievability is never stored
 - Cascade deletes: `Category → FeedSource → FeedItem`
 - Indexes on `FeedItem.sourceId` and `FeedItem.pubDate`
 - `FeedItem.searchVector` / `SavedLink.searchVector`: generated `tsvector` columns (GIN-indexed, `'simple'` config, title weighted `A` over content/description weighted `B`) — declared `Unsupported("tsvector")?` in `schema.prisma`; the `GENERATED ALWAYS AS (...) STORED` expression and GIN index exist only in hand-written migration SQL, not the Prisma schema DSL
+
+## Saved-item fading
+
+MultivRSS is part of [Undurable](https://undurable.com): saved items (`SavedLink` and saved `FeedItem`) fade unless their owner comes back to them. Original brief: `docs/multivrss-goes-undurable.md` (local only).
+
+- **Model** (`src/lib/fading.ts`, constants in `fading-params.ts`): `R = exp(-days since lastTouchedAt / stability)`, computed on read. A touch grows stability by `g × max(1 − R, MIN_GAIN)` (capped at `S_MAX = 365`) and erases a fraction `rho` of the time since the last touch. `S0 = 60` days, so an untouched item turns GIST after ~72 days (description removed), TRACE after ~152 (title and description removed, URL reduced to its origin, URL key cleared) and is forgotten after ~276 (link deleted; a saved article loses its save and falls back under the 90-day retention). Stages only move forward.
+- **Touches**: client events `open` < `edit` < `search` < `keep` < `read`, sent with `sendSavedTouch()` from explicit user actions; `edit` and `resave` are recorded server-side; `encounter` comes from other users saving the same URL (`SAVED_FADING_ENCOUNTERS=1`). `read`/`search`/`keep` also give a weaker, stability-only touch to the 2 most related saved items (shared tag, word overlap, same site), one hop, once per item per day.
+- **Nightly job**: `runSavedFading()` in the worker at 04:30, batches of 1000, idempotent, `SAVED_FADING_DRY_RUN=1` to only count. Check by hand with `scripts/fading-time-travel.ts`.
+- **Principles (do not break)**: opt-in for existing accounts (enabling resets every item to fresh); forgetting is irreversible (no soft delete, no history, logs carry counts only); fading is shown by subtraction plus a text label, never by lower contrast; touches only from explicit client actions, never during render and never from API reads; no bulk keep; never tied to Premium; imports start fresh; nothing ever reveals why an item gained life or that someone else saved it.
 
 ## Design System
 
@@ -246,6 +274,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - **`prisma migrate dev` reliably corrupts on every run** because of `FeedItem.searchVector`/`SavedLink.searchVector` (`Unsupported("tsvector")`, `GENERATED ALWAYS AS (...) STORED`, hand-written in `prisma/migrations/*_add_fulltext_search`). Prisma's diff engine always proposes `DROP INDEX "FeedItem_searchVector_idx"` / `DROP INDEX "SavedLink_searchVector_idx"` + `ALTER TABLE ... ALTER COLUMN "searchVector" DROP DEFAULT` — this fires even when the schema change is unrelated to search, and even on a second `migrate dev` run right after a clean apply. Postgres rejects the `DROP DEFAULT` on a generated column (error `42601`), but the `DROP INDEX` statements are NOT protected by that failure and commit for real, silently deleting the GIN indexes backing full-text search. Always run `prisma migrate dev --create-only --name <name>` first, delete the spurious `DropIndex`/`AlterTable searchVector` lines from the generated `migration.sql` by hand, then run `prisma migrate dev` (no args) to apply. If the indexes do get dropped, recreate them manually (exact SQL in `prisma/migrations/*_add_fulltext_search/migration.sql`) — do not reach for `prisma migrate reset`, it wipes all local data and is never necessary for this issue.
 - **Browser/router back-forward navigation can resurrect stale modal state.** Next.js always reuses a route segment's cached client render on back/forward navigation (`router.back()`, or the browser's own back button) to preserve scroll position — this is undocumented-but-real behavior distinct from `staleTimes`, which only governs *forward* navigation freshness (see `node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/staleTimes.md` and the `04-glossary.md` "Client Cache" entry). Any modal/popover whose visibility is local `useState` (not tied to the URL) can therefore reappear after navigating away and back, even though it was explicitly closed before leaving. Fix: call `useCloseOnNavigate(closeFn)` (`src/components/useCloseOnNavigate.ts`) in any component that owns that kind of visibility state — it force-closes on every pathname change. Already applied everywhere `AssignTagsModal` is rendered from local state (`AddPopover`, `FeedItem`, `FrontPageItemActions`, `SavedView`, `SearchBar`, `ReaderActions`, `ShareTargetModal`); apply it to any new modal built the same way.
   - **`useCloseOnNavigate` alone does not cover an effect that reopens a modal by watching a `useActionState` result.** When the cached segment above is restored, React re-runs that segment's effects — including ones with unchanged dependencies — as part of redisplaying it, the same way effects always run on mount. `useCloseOnNavigate`'s own pathname-diff effect correctly force-closes on this replay, but a *second*, independent effect that opens the modal by checking `if (saveState?.success) { setX(saveState.link); ... }` re-runs too and immediately reopens it, because `saveState` (from `useActionState`) still holds the old resolved "success" value from before — nothing ever cleared it, and it's preserved across the replay same as any other `useState`. `useCloseOnNavigate` can't fix this because the problem isn't "the modal didn't close," it's "a second unrelated effect reopened it right after." Fix at the source: guard that effect with a ref tracking the last `saveState` object it actually acted on (`if (saveState?.success && saveState.link && handledRef.current !== saveState) { handledRef.current = saveState; ... }`), so a replay of the identical object is a no-op. Apply this to any future component pairing `useActionState` with an effect that opens transient UI on success. Already applied in `AddPopover.tsx` and `ShareTargetModal.tsx`.
+- **Never record a saved-item fading touch while rendering.** Next.js prefetches links, and a Server Component render (or a GET handler) can run without the person ever looking at the item, so a render-time `recordSavedTouch()` would count prefetches as reads and keep items alive that nobody touched. Touches come only from explicit actions: a client event handler or effect calling `sendSavedTouch()` (`src/lib/fading-beacon.ts`), or a Server Action that is itself a deliberate edit (`updateSavedLinkDetails`, tag setters, resave). The Reader Mode `read` touch is a client `useEffect` in `ReaderActions.tsx`, guarded by a ref so the Activity hide/reshow effect replay doesn't count twice. `GET /api/saved` never touches.
 - **`cacheComponents` keeps up to 3 recently-visited routes mounted under `<Activity mode="hidden">` — a page that seeds server data into `useState` goes stale while hidden.** Different symptom, same family as the modal gotcha above. `cacheComponents: true` makes Next.js hide the previous route instead of unmounting it (see `node_modules/next/dist/docs/01-app/02-guides/preserving-ui-state.md`), so its `useState` survives a navigation away and back — the preserved state never re-reads its props, and server-side revalidation (`revalidatePath`/`updateTag`) can't touch a client component that isn't re-rendering. Example: save an article from the feed list, soft-navigate to `/u/[username]/saved`, and the newly-saved item is missing until a hard refresh — `SavedPageClient` held the list in `useState(initial*)` and `/saved` was sitting hidden with the pre-save state. Fix: `useOnReshow(refetchCb)` (`src/components/useOnReshow.ts`) — React re-runs effects on every hidden→visible transition, so this fires a refetch-and-reseed callback on each reshow while skipping the initial mount. Applied in `SavedPageClient.tsx` (refetches page 1 via `getMoreSavedItems({feedOffset:0,linkOffset:0})` + `getTags()`). Apply it to any page that seeds a server list into `useState` and can be mutated from elsewhere in the app.
 
 ## Docker
@@ -292,6 +321,9 @@ GOOGLE_SECRET=<oauth-client-secret>
 CRON_SECRET=<secret>
 INTERNAL_SECRET=<secret>      # gates /api/internal/revalidate (src/lib/revalidate.ts)
 RESEND_API_KEY=<key>          # email transport (src/lib/email.ts)
+SAVED_FADING=optin            # off | optin | default; saved-item fading (src/lib/fading-config.ts). default also enables it for new accounts
+SAVED_FADING_DRY_RUN=1        # optional; nightly fading job (src/lib/saved-fading.ts) counts and logs without writing
+SAVED_FADING_ENCOUNTERS=1     # optional; a save touches other users' saved copies of the same URL (src/lib/fading-encounters.ts)
 STAGING_PASSWORD=<password>   # optional; enables Basic Auth in proxy.ts
 EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
 REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)

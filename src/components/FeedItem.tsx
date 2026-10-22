@@ -9,6 +9,7 @@ import { Reader } from '@/components/icons/Reader';
 import AssignTagsModal from '@/components/AssignTagsModal';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 import { useReadQueue } from '@/lib/useReadQueue';
+import { sendSavedTouch } from '@/lib/fading-beacon';
 
 interface Props {
     item: {
@@ -40,6 +41,12 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
         if (isRead) return;
         setIsRead(true);
         queueRead(item.id);
+    }
+    // Opening the original of a saved item gives it a little life. The Reader
+    // Mode link uses handleClick only: the reader records the stronger `read`.
+    function handleOpenOriginal() {
+        handleClick();
+        if (isSaved) sendSavedTouch('article', item.id, 'open');
     }
     async function handleSave(e: React.MouseEvent) {
         e.preventDefault();
@@ -84,7 +91,7 @@ export default function FeedItem( { item, isLast, allTags, username }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className={`hover:text-terracotta transition-colors ${isRead ? 'opacity-30' : ''}`}
-            onClick={handleClick}
+            onClick={handleOpenOriginal}
         >
             <span className="text-foreground/50 text-xs">
                 {item.pubDate

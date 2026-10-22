@@ -140,6 +140,7 @@ function ForYouCard({ item, allTags, onDismiss, username }: { item: FrontPageIte
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
+                saved={item.savedAt !== null}
                 onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[19px] font-semibold leading-[1.2] tracking-[-0.01em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
@@ -241,6 +242,7 @@ function Lead({ item, allTags, onDismiss, username }: { item: FrontPageItem; all
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
+                saved={item.savedAt !== null}
                 onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[27px] font-semibold leading-[1.14] tracking-[-0.015em] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >
@@ -271,6 +273,7 @@ function Row({ item, allTags, onDismiss, username, animate }: {
             <FrontPageLink
                 itemId={item.id}
                 href={item.link}
+                saved={item.savedAt !== null}
                 onNavigate={() => { setOpened(true); notifyOpened(item.id); }}
                 className={`font-serif text-[17px] font-medium leading-[1.26] text-foreground hover:text-terracotta transition-colors transition-opacity no-underline ${opened ? 'opacity-40' : ''}`}
             >

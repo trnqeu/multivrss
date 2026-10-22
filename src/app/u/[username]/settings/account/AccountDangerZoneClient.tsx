@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState, type ReactNode } from 'react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { deleteAccount } from '@/app/actions/account';
@@ -12,9 +12,12 @@ const CONFIRMATION_PHRASE = 'delete';
 export default function AccountDangerZoneClient({
   username,
   hasPassword,
+  children,
 }: {
   username: string;
   hasPassword: boolean;
+  /** Settings sections rendered above the danger zone. */
+  children?: ReactNode;
 }) {
   const [step, setStep] = useState<'idle' | 'confirm'>('idle');
   const [confirmationInput, setConfirmationInput] = useState('');
@@ -50,6 +53,7 @@ export default function AccountDangerZoneClient({
       </header>
 
       <div className="p-8 md:p-12 flex flex-col gap-10 max-w-2xl">
+        {children}
         <section className="flex flex-col gap-4 border-2 border-terracotta p-6" aria-labelledby="danger-zone-heading">
           <h2 id="danger-zone-heading" className="text-[12px] font-bold uppercase tracking-widest text-terracotta">
             Danger zone

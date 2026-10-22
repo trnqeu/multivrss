@@ -137,6 +137,47 @@ export const it: Dictionary = {
         ],
       },
       {
+        id: "saved-fading",
+        title: "Elementi salvati e dissolvenza",
+        items: [
+          {
+            question: "Quello che salvo resta per sempre?",
+            answer:
+              "Non se per il tuo account è attiva la dissolvenza. Gli elementi salvati a cui non torni mai sbiadiscono piano piano: prima perdono la descrizione, poi il titolo, e alla fine spariscono. Quello a cui continui a tornare resta. I nuovi account partono con la dissolvenza attiva; gli account creati prima che esistesse la hanno spenta finché non la attivi da Impostazioni → Account.",
+          },
+          {
+            question: "Quanto velocemente sbiadiscono gli elementi salvati?",
+            answer:
+              "Un elemento che non tocchi più perde la descrizione dopo circa dieci settimane. Dopo circa cinque mesi diventa una traccia: niente titolo, solo il sito da cui viene, il mese in cui l'hai salvato e i suoi tag. Dopo circa nove mesi sparisce. Ogni volta che ci torni, per quell'elemento il tempo rallenta.",
+          },
+          {
+            question: "Come tengo qualcosa?",
+            answer:
+              "Usandolo. Aprire un elemento salvato, ritrovarlo con la ricerca, leggerlo in Reader Mode o modificarne titolo e tag gli dà più vita, e leggerlo conta più di tutto. Tornare su qualcosa che stava per sbiadire conta più che cliccarlo di continuo quando è ancora fresco. Ogni settimana la sezione Fading soon in cima ai salvati mostra cosa sta per perdere qualcosa, con un pulsante Keep per ogni elemento. Non c'è un «tieni tutto»: scegli un elemento alla volta. Leggere, cercare o tenere un elemento dà anche un po' di vita agli elementi salvati più affini, per tag o per parole.",
+          },
+          {
+            question: "Un elemento sbiadito può tornare com'era?",
+            answer:
+              "No. Ciò che sbiadisce viene cancellato dal nostro database, senza annullamento e senza copie nascoste. Tornare su un elemento sbiadito gli impedisce di sbiadire ancora, ma non gli restituisce quello che ha già perso. Una precisazione onesta: i backup del database vengono conservati per 30 giorni, quindi un link dimenticato può ancora esistere in un backup per un massimo di 30 giorni, poi sparisce del tutto.",
+          },
+          {
+            question: "Cosa succede a un articolo salvato da uno dei miei feed?",
+            answer:
+              "Il suo testo appartiene al feed, quindi la dissolvenza non lo cancella mai: cambia solo come l'articolo appare nei tuoi salvati. Quando è il salvataggio a essere dimenticato, l'articolo torna a essere un normale elemento del feed e segue la regola consueta degli articoli non salvati.",
+          },
+          {
+            question: "Posso disattivare la dissolvenza?",
+            answer:
+              "Sì, da Impostazioni → Account. Disattivandola si ferma tutto; ciò che è già sbiadito resta com'è. Riattivandola, ogni elemento salvato riparte da capo. Anche i link importati da Pocket, Instapaper o da un file CSV partono da capo, qualunque sia la loro data originale.",
+          },
+          {
+            question: "Perché una lista di lettura dovrebbe dimenticare?",
+            answer:
+              "Perché salviamo tutto, rileggiamo poco e non dimentichiamo nulla, e una lista che cresce soltanto smette di essere letta. Sapere che un elemento può sbiadire è ciò che ti fa tornare su quelli che contano. MultivRSS fa parte di Undurable (undurable.com), un laboratorio che toglie l'infinito alle macchine e osserva cosa restituisce la fine.",
+          },
+        ],
+      },
+      {
         id: "pricing",
         title: "Prezzi e limiti",
         items: [
@@ -147,12 +188,12 @@ export const it: Dictionary = {
           {
             question: "Ci sono limiti nel piano gratuito?",
             answer:
-              "Due, e preferiamo dirtelo subito: un massimo di 200 feed per account, e un articolo non salvato viene rimosso circa 90 giorni dopo che sparisce dal feed di origine. Tutto ciò che salvi nella lista di lettura resta per sempre.",
+              "Due, e preferiamo dirtelo subito: un massimo di 200 feed per account, e un articolo non salvato viene rimosso circa 90 giorni dopo che sparisce dal feed di origine. Ciò che salvi nella lista di lettura resta finché ci torni: vedi Elementi salvati e dissolvenza qui sopra.",
           },
           {
             question: "Per quanto tempo restano gli articoli non salvati?",
             answer:
-              "Finché il feed di origine li elenca, più circa 90 giorni dopo che ne escono. Salva un articolo nella lista di lettura in qualsiasi momento prima di allora e resta per sempre.",
+              "Finché il feed di origine li elenca, più circa 90 giorni dopo che ne escono. Salva un articolo nella lista di lettura in qualsiasi momento prima di allora e resta salvato finché ci torni.",
           },
           {
             question: "Ci sarà un piano a pagamento in futuro?",

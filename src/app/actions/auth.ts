@@ -9,6 +9,7 @@ import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 import type { ActionState } from "./types";
+import { newUserFadingData } from "@/lib/fading-config";
 
 // action to create user
 export async function registerUser(prevState: string | null, formData: FormData): Promise<string | null> {
@@ -32,7 +33,7 @@ export async function registerUser(prevState: string | null, formData: FormData)
         }
         const hashed = await bcrypt.hash(password, 10);
         const user = await prisma.user.create({
-            data: { email, username, password: hashed },
+            data: { email, username, password: hashed, ...newUserFadingData(new Date()) },
         });
 
         const token = crypto.randomBytes(32).toString('hex');

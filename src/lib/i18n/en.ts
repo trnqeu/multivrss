@@ -137,6 +137,47 @@ export const en: Dictionary = {
         ],
       },
       {
+        id: "saved-fading",
+        title: "Saved items & fading",
+        items: [
+          {
+            question: "Do my saved items stay forever?",
+            answer:
+              "Not if fading is on for your account. Saved items you never come back to slowly fade: first they lose their description, then their title, and in the end they disappear. Anything you keep returning to stays. New accounts start with fading on; accounts created before it existed have it off until you turn it on in Settings → Account.",
+          },
+          {
+            question: "How fast do saved items fade?",
+            answer:
+              "An item you never touch again loses its description after about ten weeks. After about five months it becomes a trace: no title, only the site it came from, the month you saved it and its tags. After about nine months it is gone. Every time you come back to an item, the clock slows down for it.",
+          },
+          {
+            question: "How do I keep something?",
+            answer:
+              "Use it. Opening a saved item, finding it with search, reading it in Reader Mode or editing its title and tags all give it more life, and reading counts the most. Coming back to something that was about to fade counts more than clicking it again and again while it is fresh. Each week, the Fading soon section at the top of your saved list shows what is about to lose something, with a Keep button for each item. There is no keep all: you choose one item at a time. Reading, searching or keeping an item also gives a little life to the saved items most closely related to it, by tags or words.",
+          },
+          {
+            question: "Can a faded item come back?",
+            answer:
+              "No. What fades is deleted from our database, with no undo and no hidden copy. Coming back to a faded item stops it from fading further, but it doesn't bring back what it already lost. One honest caveat: our database backups are kept for 30 days, so a forgotten link can still exist in a backup for up to 30 days before it is gone for good.",
+          },
+          {
+            question: "What happens to a saved article from one of my feeds?",
+            answer:
+              "Its text belongs to the feed, so fading never deletes it: it only changes how the article shows in your saved list. When the save itself is forgotten, the article goes back to being an ordinary feed item and follows the usual rule for unsaved articles.",
+          },
+          {
+            question: "Can I turn fading off?",
+            answer:
+              "Yes, in Settings → Account. Turning it off stops all fading; anything already faded stays as it is. Turning it on later starts every saved item fresh. Links you import from Pocket, Instapaper or a CSV file also start fresh, whatever their original date.",
+          },
+          {
+            question: "Why would a reading list forget things?",
+            answer:
+              "Because we save everything, reread little and forget nothing, and a list that only grows stops being read. Knowing that an item can fade is what makes you come back to the ones that matter. MultivRSS is part of Undurable (undurable.com), a lab that takes infinity away from machines and observes what the end gives back.",
+          },
+        ],
+      },
+      {
         id: "pricing",
         title: "Pricing & limits",
         items: [
@@ -147,12 +188,12 @@ export const en: Dictionary = {
           {
             question: "Are there any limits on the free plan?",
             answer:
-              "Two, and we'd rather tell you upfront: a maximum of 200 feeds per account, and an unsaved article is cleared about 90 days after it drops out of its source feed. Anything you save to your reading list is kept indefinitely.",
+              "Two, and we'd rather tell you upfront: a maximum of 200 feeds per account, and an unsaved article is cleared about 90 days after it drops out of its source feed. What you save to your reading list stays for as long as you come back to it: see Saved items & fading above.",
           },
           {
             question: "How long do unsaved articles stay?",
             answer:
-              "As long as the source feed still lists them, plus roughly 90 days after they fall off it. Save an article to your reading list any time before then and it's kept for good.",
+              "As long as the source feed still lists them, plus roughly 90 days after they fall off it. Save an article to your reading list any time before then and it stays saved for as long as you come back to it.",
           },
           {
             question: "Will there be a paid plan in the future?",

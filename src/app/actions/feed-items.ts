@@ -10,6 +10,10 @@ import { frontpageTag } from "./shared";
 import { getReadableArticle, type ReaderResult } from "@/lib/reader";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getHost } from "@/lib/utils";
+import { S0_DAYS } from "@/lib/fading-params";
+import { recordSavedTouchSafely } from "@/lib/fading-touch";
+import { enqueueEncounter } from "@/lib/fading-encounters";
+import { urlKey } from "@/lib/url-key";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -55,13 +59,22 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
 
     try {
         const now = new Date();
+        const item = await prisma.feedItem.findFirst({
+            where: { id: itemId, source: { category: { userId: session.user.id } } },
+            select: { link: true },
+        });
+        if (!item) return { success: false, message: "Failed to save item." };
         await prisma.feedItem.update({
             where: {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: now }
+            data: {
+                savedAt: now, saveStage: 'VIVID', saveStability: S0_DAYS, saveTouchedAt: now,
+                saveUrlKey: urlKey(item.link),
+            }
         });
+        await enqueueEncounter(session.user.id, { kind: 'article', id: itemId });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         revalidatePath(`/u/${session.user.username}/saved`);
@@ -81,7 +94,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: null }
+            data: { savedAt: null, saveStage: null, saveStability: null, saveTouchedAt: null, saveUrlKey: null }
         });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
@@ -104,9 +117,11 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
     try {
         const item = await prisma.feedItem.findFirst({
             where: { id: itemId, source: { category: { userId: session.user.id } } },
-            select: { id: true },
+            select: { id: true, title: true, saveStage: true },
         });
         if (!item) return { success: false, message: "Item not found." };
+        // A saved article that faded to a trace no longer shows its title, so it can't be edited either.
+        const newTitle = item.saveStage === 'TRACE' ? item.title : trimmedTitle;
 
         const validTags = tagIds.length > 0
             ? await prisma.tag.findMany({
@@ -117,7 +132,7 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
         const validTagIds = validTags.map(t => t.id);
 
         await prisma.$transaction(async (tx) => {
-            await tx.feedItem.update({ where: { id: itemId }, data: { title: trimmedTitle } });
+            await tx.feedItem.update({ where: { id: itemId }, data: { title: newTitle } });
             await tx.feedItemTag.deleteMany({ where: { feedItemId: itemId } });
             if (validTagIds.length > 0) {
                 await tx.feedItemTag.createMany({
@@ -125,6 +140,7 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
                 });
             }
         });
+        await recordSavedTouchSafely(session.user.id, { kind: 'article', id: itemId }, 'edit');
 
         updateTag(`feed:${session.user.id}`);
         revalidatePath(`/u/${session.user.username}/saved`);

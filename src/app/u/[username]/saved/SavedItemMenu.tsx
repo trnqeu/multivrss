@@ -8,7 +8,8 @@ import { Bookmark } from '@/components/icons/Bookmark';
 import { useCloseOnNavigate } from '@/components/useCloseOnNavigate';
 
 interface Props {
-    readerHref: string;
+    /** Absent for a trace: there is nothing left to read. */
+    readerHref?: string;
     onEditTags: () => void;
     onRemove: () => void;
 }
@@ -36,7 +37,7 @@ export default function SavedItemMenu({ readerHref, onEditTags, onRemove }: Prop
     }, [open]);
 
     useEffect(() => {
-        if (open) itemsRef.current[0]?.focus();
+        if (open) itemsRef.current.find(el => el != null)?.focus();
     }, [open]);
 
     function close(focusTrigger = true) {
@@ -92,17 +93,19 @@ export default function SavedItemMenu({ readerHref, onEditTags, onRemove }: Prop
                     onKeyDown={handleMenuKeyDown}
                     className="absolute right-0 top-8 z-20 min-w-[186px] border border-foreground/25 bg-background shadow-[3px_3px_0_rgba(0,0,0,0.10)]"
                 >
-                    <Link
-                        ref={el => { itemsRef.current[0] = el; }}
-                        href={readerHref}
-                        role="menuitem"
-                        tabIndex={-1}
-                        onClick={() => close(false)}
-                        className={itemClass}
-                    >
-                        <Reader size={13} />
-                        Read
-                    </Link>
+                    {readerHref && (
+                        <Link
+                            ref={el => { itemsRef.current[0] = el; }}
+                            href={readerHref}
+                            role="menuitem"
+                            tabIndex={-1}
+                            onClick={() => close(false)}
+                            className={itemClass}
+                        >
+                            <Reader size={13} />
+                            Read
+                        </Link>
+                    )}
                     <button
                         ref={el => { itemsRef.current[1] = el; }}
                         type="button"
