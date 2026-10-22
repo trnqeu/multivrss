@@ -12,6 +12,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { getHost } from "@/lib/utils";
 import { S0_DAYS } from "@/lib/fading-params";
 import { recordSavedTouchSafely } from "@/lib/fading-touch";
+import { enqueueEncounter } from "@/lib/fading-encounters";
+import { urlKey } from "@/lib/url-key";
 
 export async function markAsRead(itemId: string): Promise<ActionState> {
     const session = await getServerSession(authOptions);
@@ -57,13 +59,22 @@ export async function saveFeedItem(itemId: string): Promise<ActionState> {
 
     try {
         const now = new Date();
+        const item = await prisma.feedItem.findFirst({
+            where: { id: itemId, source: { category: { userId: session.user.id } } },
+            select: { link: true },
+        });
+        if (!item) return { success: false, message: "Failed to save item." };
         await prisma.feedItem.update({
             where: {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: now, saveStage: 'VIVID', saveStability: S0_DAYS, saveTouchedAt: now }
+            data: {
+                savedAt: now, saveStage: 'VIVID', saveStability: S0_DAYS, saveTouchedAt: now,
+                saveUrlKey: urlKey(item.link),
+            }
         });
+        await enqueueEncounter(session.user.id, { kind: 'article', id: itemId });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));
         revalidatePath(`/u/${session.user.username}/saved`);
@@ -83,7 +94,7 @@ export async function unsaveFeedItem(itemId: string): Promise<ActionState> {
                 id: itemId,
                 source: { category: { userId: session.user.id } }
             },
-            data: { savedAt: null, saveStage: null, saveStability: null, saveTouchedAt: null }
+            data: { savedAt: null, saveStage: null, saveStability: null, saveTouchedAt: null, saveUrlKey: null }
         });
         updateTag(`feed:${session.user.id}`);
         updateTag(frontpageTag(session.user.id));

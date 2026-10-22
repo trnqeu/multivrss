@@ -117,6 +117,8 @@ model FeedItem {
   saveStage        SavedStage?
   saveStability    Float?
   saveTouchedAt    DateTime?
+  // Normalized link (src/lib/url-key.ts) while saved, for fading encounters; NULL otherwise.
+  saveUrlKey       String?
   frontPageShownAt DateTime?
   // Bumped by syncFeed() to "now" for every item still present in the feed XML.
   // Retention (runFeedSyncScan) purges unsaved items 90 days after this — i.e.
@@ -138,6 +140,7 @@ model FeedItem {
   @@index([sourceId])
   @@index([pubDate])
   @@index([savedAt])
+  @@index([saveUrlKey])
   // Backs the retention purge in runFeedSyncScan() (savedAt IS NULL AND lastSeenAt < cutoff).
   @@index([savedAt, lastSeenAt])
 }
@@ -177,6 +180,8 @@ model SavedLink {
   stage         SavedStage     @default(VIVID)
   stability     Float          @default(60)
   lastTouchedAt DateTime       @default(now())
+  // Normalized URL (src/lib/url-key.ts) for fading encounters; NULL once the link is a trace.
+  urlKey        String?
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags          SavedLinkTag[]
 
@@ -186,6 +191,7 @@ model SavedLink {
   @@index([userId])
   @@index([userId, createdAt])
   @@index([userId, stage])
+  @@index([urlKey])
 }
 
 model Tag {

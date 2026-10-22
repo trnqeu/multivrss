@@ -11,6 +11,8 @@ import { fetchSavedItemsPage } from "@/lib/saved-items";
 import { getHost } from "@/lib/utils";
 import { S0_DAYS } from "@/lib/fading-params";
 import type { SavedStage } from "@prisma/client";
+import { urlKey } from "@/lib/url-key";
+import { enqueueEncounter } from "@/lib/fading-encounters";
 
 export async function OPTIONS(request: Request) {
     return new Response(null, { status: 204, headers: corsHeaders(request) });
@@ -170,6 +172,7 @@ export async function POST(request: Request) {
                 data: {
                     userId: session.user.id,
                     url,
+                    urlKey: urlKey(url),
                     title: title?.trim() || null,
                     description: description?.trim() || null,
                 },
@@ -180,6 +183,7 @@ export async function POST(request: Request) {
             }),
             prisma.user.findUnique({ where: { id: session.user.id }, select: { savedFading: true } }),
         ]);
+        await enqueueEncounter(session.user.id, { kind: 'link', id: created.id });
         // fadesAt: when the link reaches its next fading stage; null when fading is off.
         const { stability, lastTouchedAt, ...rest } = created;
         const fadingOn = savedFadingMode() !== 'off' && (user?.savedFading ?? false);

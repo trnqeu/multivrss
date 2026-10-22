@@ -6,6 +6,14 @@ export interface FeedSyncJobData {
   url: string
 }
 
+// Saved item whose save may give life to the same link saved by others
+// (src/lib/fading-encounters.ts). Ids only: no URL ever goes into Redis.
+export interface SavedEncounterJobData {
+  saverUserId: string
+  kind: 'link' | 'article'
+  id: string
+}
+
 export const connection = {
   host: process.env.REDIS_HOST ?? 'localhost',
   port: Number(process.env.REDIS_PORT ?? 6379),
@@ -15,6 +23,7 @@ const globalForQueue = global as unknown as {
   feedSyncQueue: Queue<FeedSyncJobData>
   feedScanQueue: Queue<Record<string, never>>
   savedFadingQueue: Queue<Record<string, never>>
+  savedEncounterQueue: Queue<SavedEncounterJobData>
 }
 
 export const feedSyncQueue =
@@ -52,8 +61,22 @@ export const savedFadingQueue =
     },
   })
 
+// Applies fading encounters in the background, never inside the save request.
+export const savedEncounterQueue =
+  globalForQueue.savedEncounterQueue ??
+  new Queue<SavedEncounterJobData>('saved-encounters', {
+    connection,
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 10_000 },
+      removeOnComplete: true,
+      removeOnFail: 100,
+    },
+  })
+
 if (process.env.NODE_ENV !== 'production') {
   globalForQueue.feedSyncQueue = feedSyncQueue
   globalForQueue.feedScanQueue = feedScanQueue
   globalForQueue.savedFadingQueue = savedFadingQueue
+  globalForQueue.savedEncounterQueue = savedEncounterQueue
 }

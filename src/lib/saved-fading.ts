@@ -12,7 +12,8 @@ import { FORGOTTEN_BELOW_R, GIST_BELOW_R, TRACE_BELOW_R } from '@/lib/fading-par
 //      deleted) and falls back under the 90-day retention in runFeedSyncScan().
 //   2. trace  (R < 0.08): SavedLink title and description removed, URL reduced
 //      to its origin. A FeedItem only changes stage: its content belongs to the
-//      feed and is never removed by fading.
+//      feed and is never removed by fading. Either way the URL key used for
+//      encounters is cleared: a trace can no longer be recognized as a page.
 //   3. gist   (R < 0.30): SavedLink description removed.
 // Each step also has a lower R bound and only takes rows not yet at its stage,
 // so its rows are exactly those it changes: a second run in a row changes
@@ -86,12 +87,12 @@ function articleCandidates(stageFilter: Prisma.Sql, low: number, high: number) {
   }
 }
 
-// Origin of a URL with an authority ("https://host/"), credentials dropped;
+// Origin of a URL with an authority ("https://host/", lowercased), credentials dropped;
 // otherwise just its scheme ("mailto:"), so no path ever survives a trace.
 const TRACE_URL = Prisma.sql`CASE
   WHEN sl.url ~ '^[a-zA-Z][a-zA-Z0-9+.-]*://[^/?#]'
-    THEN regexp_replace(sl.url, '^([a-zA-Z][a-zA-Z0-9+.-]*://)(?:[^/?#@]*@)?([^/?#]+).*$', '\\1\\2/')
-  ELSE regexp_replace(sl.url, '^([a-zA-Z][a-zA-Z0-9+.-]*:).*$', '\\1')
+    THEN lower(regexp_replace(sl.url, '^([a-zA-Z][a-zA-Z0-9+.-]*://)(?:[^/?#@]*@)?([^/?#]+).*$', '\\1\\2/'))
+  ELSE lower(regexp_replace(sl.url, '^([a-zA-Z][a-zA-Z0-9+.-]*:).*$', '\\1'))
 END`
 
 const ANY_STAGE = Prisma.sql`true`
@@ -113,7 +114,7 @@ const STEPS: Step[] = [
       WITH batch AS (${batch}),
       tags AS (DELETE FROM "FeedItemTag" t USING batch WHERE t."feedItemId" = batch.id)
       UPDATE "FeedItem" fi
-      SET "savedAt" = NULL, "saveStage" = NULL, "saveStability" = NULL, "saveTouchedAt" = NULL
+      SET "savedAt" = NULL, "saveStage" = NULL, "saveStability" = NULL, "saveTouchedAt" = NULL, "saveUrlKey" = NULL
       FROM batch WHERE fi.id = batch.id
       RETURNING batch."userId"`,
   },
@@ -123,7 +124,7 @@ const STEPS: Step[] = [
     apply: batch => Prisma.sql`
       WITH batch AS (${batch})
       UPDATE "SavedLink" sl
-      SET stage = 'TRACE', title = NULL, description = NULL, url = ${TRACE_URL}
+      SET stage = 'TRACE', title = NULL, description = NULL, url = ${TRACE_URL}, "urlKey" = NULL
       FROM batch WHERE sl.id = batch.id
       RETURNING batch."userId"`,
   },
@@ -132,7 +133,7 @@ const STEPS: Step[] = [
     candidates: articleCandidates(Prisma.sql`${ARTICLE_STAGE} <> 'TRACE'`, FORGOTTEN_BELOW_R, TRACE_BELOW_R),
     apply: batch => Prisma.sql`
       WITH batch AS (${batch})
-      UPDATE "FeedItem" fi SET "saveStage" = 'TRACE'
+      UPDATE "FeedItem" fi SET "saveStage" = 'TRACE', "saveUrlKey" = NULL
       FROM batch WHERE fi.id = batch.id
       RETURNING batch."userId"`,
   },

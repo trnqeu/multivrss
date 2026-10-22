@@ -300,6 +300,7 @@ INTERNAL_SECRET=<secret>      # gates /api/internal/revalidate (src/lib/revalida
 RESEND_API_KEY=<key>          # email transport (src/lib/email.ts)
 SAVED_FADING=optin            # off | optin | default; saved-item fading (src/lib/fading-config.ts). default also enables it for new accounts
 SAVED_FADING_DRY_RUN=1        # optional; nightly fading job (src/lib/saved-fading.ts) counts and logs without writing
+SAVED_FADING_ENCOUNTERS=1     # optional; a save touches other users' saved copies of the same URL (src/lib/fading-encounters.ts)
 STAGING_PASSWORD=<password>   # optional; enables Basic Auth in proxy.ts
 EXTENSION_ORIGIN=<origin>     # allowed origin for CORS (src/lib/cors.ts)
 REDIS_HOST=localhost          # background job queue (src/lib/queue.ts, redis.ts)

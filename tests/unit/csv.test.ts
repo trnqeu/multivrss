@@ -86,6 +86,7 @@ describe('importSavedLinksCsv', () => {
             data: {
                 userId: 'user_1',
                 url: 'https://example.com/a',
+                urlKey: 'example.com/a',
                 title: 'Article A',
                 description: null,
             },
@@ -117,6 +118,7 @@ describe('importSavedLinksCsv', () => {
             data: {
                 userId: 'user_1',
                 url: 'https://news.example.com/article',
+                urlKey: 'news.example.com/article',
                 title: 'Some Article Title',
                 // Selection equals the URL (no real highlight) -> discarded, not stored as description.
                 description: null,
@@ -159,6 +161,7 @@ describe('importSavedLinksCsv', () => {
             data: {
                 userId: 'user_1',
                 url: 'https://example.com/a',
+                urlKey: 'example.com/a',
                 title: 'Fetched Title',
                 description: null,
             },

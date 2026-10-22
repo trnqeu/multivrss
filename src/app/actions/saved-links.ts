@@ -8,6 +8,8 @@ import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
 import { recordSavedTouchSafely } from "@/lib/fading-touch";
+import { enqueueEncounter } from "@/lib/fading-encounters";
+import { urlKey } from "@/lib/url-key";
 import type { SavedStage } from "@prisma/client";
 
 export async function resolvePageTitle(url: string): Promise<string | null> {
@@ -44,8 +46,10 @@ async function findResavedLink(userId: string, url: string): Promise<SavedLinkDa
     try {
         const user = await prisma.user.findUnique({ where: { id: userId }, select: { savedFading: true } });
         if (!user?.savedFading) return null;
+        // Same page even when the URL differs in scheme, fragment, utm_* or trailing slash.
+        const key = urlKey(url);
         const existing = await prisma.savedLink.findFirst({
-            where: { userId, url },
+            where: { userId, OR: [{ url }, ...(key ? [{ urlKey: key }] : [])] },
             orderBy: { createdAt: 'desc' },
             select: { id: true, url: true, title: true, description: true, createdAt: true, stage: true },
         });
@@ -92,10 +96,12 @@ async function saveExternalLinkCore(
             data: {
                 userId,
                 url,
+                urlKey: urlKey(url),
                 title: resolvedTitle || null,
                 description: description?.trim() || null,
             }
         });
+        await enqueueEncounter(userId, { kind: 'link', id: link.id });
         return {
             success: true,
             message: "Link saved.",
