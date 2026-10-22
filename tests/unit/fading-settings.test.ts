@@ -99,3 +99,22 @@ describe('disableSavedFading', () => {
         expect(prisma.feedItem.updateMany).not.toHaveBeenCalled();
     });
 });
+
+describe('dismissSavedFadingNotice', () => {
+    beforeEach(() => { vi.clearAllMocks(); });
+
+    it('stores the dismissal on the current user', async () => {
+        const { dismissSavedFadingNotice } = await import('@/app/actions/fading');
+        vi.mocked(getServerSession).mockResolvedValue(session);
+        expect(await dismissSavedFadingNotice()).toEqual({ success: true });
+        const call = vi.mocked(prisma.user.update).mock.calls[0][0];
+        expect(call.where).toEqual({ id: 'user-1' });
+        expect(call.data.savedFadingNoticeSeenAt).toBeInstanceOf(Date);
+    });
+
+    it('marks the notice as seen when fading is turned on from settings', async () => {
+        vi.mocked(getServerSession).mockResolvedValue(session);
+        await enableSavedFading();
+        expect(vi.mocked(prisma.user.update).mock.calls[0][0].data.savedFadingNoticeSeenAt).toBeInstanceOf(Date);
+    });
+});

@@ -106,6 +106,7 @@ export async function fetchSavedItemsPage(userId: string, opts: FetchSavedItemsO
             savedAt: data.savedAt!,
             sourceTitle: data.source.title,
             tags: data.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
+            stage: data.saveStage ?? 'VIVID',
         }));
 
     const links: LinkVM[] = merged
@@ -117,6 +118,7 @@ export async function fetchSavedItemsPage(userId: string, opts: FetchSavedItemsO
             description: data.description,
             createdAt: data.createdAt,
             tags: data.tags.map(jt => ({ id: jt.tag.id, name: jt.tag.name })),
+            stage: data.stage,
         }));
 
     return {

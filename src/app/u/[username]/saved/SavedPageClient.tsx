@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import SavedView from './SavedView';
 import type { ArticleVM, LinkVM, TagVM } from './SavedView';
 import { Bookmark } from '@/components/icons/Bookmark';
-import { deleteSavedLink } from '@/app/actions/saved-links';
+import { deleteSavedLink, type SavedLinkData } from '@/app/actions/saved-links';
 import { unsaveFeedItem } from '@/app/actions/feed-items';
 import { renameTag, deleteTag, getTags } from '@/app/actions/tags';
 import { getMoreSavedItems } from '@/app/actions/saved-items';
@@ -15,6 +15,10 @@ import SavedTagPill from '@/components/SavedTagPill';
 import { Search } from '@/components/icons/Search';
 import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 import { useOnReshow } from '@/components/useOnReshow';
+import FadingSoon from './FadingSoon';
+import FadingNotice from './FadingNotice';
+import { getFadingSoon } from '@/app/actions/fading';
+import type { FadingSoonItem } from '@/lib/fading-soon';
 
 const TAG_PANEL_STORAGE_KEY = 'saved.tagPanelOpen';
 
@@ -38,12 +42,18 @@ interface SavedPageClientProps {
     initialFeedOffset: number;
     initialLinkOffset: number;
     initialHasMore: boolean;
+    /** Null when fading is off for this user: the section is not rendered. */
+    initialFadingSoon: FadingSoonItem[] | null;
+    /** One-time notice for accounts that started with fading on. */
+    showFadingNotice: boolean;
 }
 
 export default function SavedPageClient({
     username, initialArticles, initialLinks, initialTags,
-    initialFeedOffset, initialLinkOffset, initialHasMore,
+    initialFeedOffset, initialLinkOffset, initialHasMore, initialFadingSoon, showFadingNotice,
 }: SavedPageClientProps) {
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const [fadingSoon, setFadingSoon] = useState(initialFadingSoon);
     const [articles, setArticles] = useState(initialArticles);
     const [links, setLinks] = useState(initialLinks);
     const [tags, setTags] = useState(initialTags);
@@ -95,7 +105,7 @@ export default function SavedPageClient({
     const refreshTokenRef = useRef(0);
     const refreshFromServer = useCallback(async () => {
         const token = ++refreshTokenRef.current;
-        const [page, freshTags] = await Promise.all([
+        const [page, freshTags, freshFadingSoon] = await Promise.all([
             getMoreSavedItems({
                 tag: activeTag ?? undefined,
                 q: query || undefined,
@@ -103,8 +113,10 @@ export default function SavedPageClient({
                 linkOffset: 0,
             }),
             getTags(),
+            getFadingSoon(),
         ]);
         if (token !== refreshTokenRef.current) return;
+        setFadingSoon(freshFadingSoon);
         if (!('error' in page)) {
             setArticles(page.articles);
             setLinks(page.links);
@@ -149,8 +161,10 @@ export default function SavedPageClient({
 
     
 
-    const handleLinkSaved = useCallback((newLink: { id: string; url: string; title: string | null; description: string | null; createdAt: Date }) => {
-        setLinks(prev => [{ ...newLink, tags: [] }, ...prev]);
+    // A save can return a link already in the list (fading's `resave`): it
+    // keeps its place instead of appearing twice.
+    const handleLinkSaved = useCallback((newLink: SavedLinkData) => {
+        setLinks(prev => prev.some(l => l.id === newLink.id) ? prev : [{ ...newLink, tags: [] }, ...prev]);
     }, []);
 
     // The filter-bar tag list is seeded once from the server at mount and only
@@ -190,9 +204,9 @@ export default function SavedPageClient({
         await deleteSavedLink(id);
     }, []);
 
-    const handleSetArticleDetails = useCallback((articleId: string, title: string, tags: TagVM[]) => {
+    const handleSetArticleDetails = useCallback((articleId: string, title: string | null, tags: TagVM[]) => {
         setArticles(prev => prev.map(a =>
-            a.id === articleId ? { ...a, title, tags } : a
+            a.id === articleId ? { ...a, title: title ?? a.title, tags } : a
         ));
         mergeNewTags(tags);
     }, [mergeNewTags]);
@@ -319,10 +333,10 @@ export default function SavedPageClient({
         <main className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden relative scroll-smooth bg-background">
             <header className="p-8 md:p-12 border-b-2 border-foreground bg-background flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <span className="inline-flex items-center gap-2.5">
+                    <h1 ref={headingRef} tabIndex={-1} className="inline-flex items-center gap-2.5 text-xs font-bold tracking-widest">
                         <Bookmark filled className="text-terracotta" size={13} />
                         <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
-                    </span>
+                    </h1>
                     {tags.length > 0 && !activeTag && (
                         <button
                             type="button"
@@ -358,6 +372,13 @@ export default function SavedPageClient({
                     </div>
                 )}
             </header>
+            {showFadingNotice && (
+                <FadingNotice username={username} onDismissed={() => headingRef.current?.focus()} />
+            )}
+            {/* The weekly ritual belongs to the whole list, not to a filtered view. */}
+            {fadingSoon && !activeTag && !query && (
+                <FadingSoon items={fadingSoon} username={username} />
+            )}
             <SavedView
                 username={username}
                 articles={articles}

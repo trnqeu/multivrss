@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import { decodeHtmlEntities } from "@/lib/utils";
 import type { ActionState } from "./types";
 import { recordSavedTouchSafely } from "@/lib/fading-touch";
+import type { SavedStage } from "@prisma/client";
 
 export async function resolvePageTitle(url: string): Promise<string | null> {
     try {
@@ -34,6 +35,7 @@ export interface SavedLinkData {
     title: string | null;
     description: string | null;
     createdAt: Date;
+    stage: SavedStage;
 }
 
 export type SaveExternalLinkState = ActionState & { link?: SavedLinkData };
@@ -45,7 +47,7 @@ async function findResavedLink(userId: string, url: string): Promise<SavedLinkDa
         const existing = await prisma.savedLink.findFirst({
             where: { userId, url },
             orderBy: { createdAt: 'desc' },
-            select: { id: true, url: true, title: true, description: true, createdAt: true },
+            select: { id: true, url: true, title: true, description: true, createdAt: true, stage: true },
         });
         if (!existing) return null;
         await recordSavedTouchSafely(userId, { kind: 'link', id: existing.id }, 'resave');
@@ -103,6 +105,7 @@ async function saveExternalLinkCore(
                 title: link.title,
                 description: link.description,
                 createdAt: link.createdAt,
+                stage: link.stage,
             }
         };
     } catch (error) {
@@ -178,11 +181,12 @@ export async function updateSavedLinkDetails(linkId: string, title: string, tagI
     try {
         const link = await prisma.savedLink.findFirst({
             where: { id: linkId, userId: session.user.id },
-            select: { id: true },
+            select: { id: true, stage: true },
         });
         if (!link) return { success: false, message: "Link not found." };
 
-        const trimmedTitle = title.trim();
+        // A trace's title was forgotten: editing can't bring text back.
+        const trimmedTitle = link.stage === 'TRACE' ? '' : title.trim();
         const validTags = tagIds.length > 0
             ? await prisma.tag.findMany({
                 where: { id: { in: tagIds }, userId: session.user.id },

@@ -106,9 +106,11 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
     try {
         const item = await prisma.feedItem.findFirst({
             where: { id: itemId, source: { category: { userId: session.user.id } } },
-            select: { id: true },
+            select: { id: true, title: true, saveStage: true },
         });
         if (!item) return { success: false, message: "Item not found." };
+        // A saved article that faded to a trace no longer shows its title, so it can't be edited either.
+        const newTitle = item.saveStage === 'TRACE' ? item.title : trimmedTitle;
 
         const validTags = tagIds.length > 0
             ? await prisma.tag.findMany({
@@ -119,7 +121,7 @@ export async function updateFeedItemDetails(itemId: string, title: string, tagId
         const validTagIds = validTags.map(t => t.id);
 
         await prisma.$transaction(async (tx) => {
-            await tx.feedItem.update({ where: { id: itemId }, data: { title: trimmedTitle } });
+            await tx.feedItem.update({ where: { id: itemId }, data: { title: newTitle } });
             await tx.feedItemTag.deleteMany({ where: { feedItemId: itemId } });
             if (validTagIds.length > 0) {
                 await tx.feedItemTag.createMany({
