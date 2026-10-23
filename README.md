@@ -73,8 +73,6 @@ MultivRSS is part of [Undurable](https://undurable.com), a lab that takes infini
 **Platform**
 - Installable PWA with a share-target endpoint (share links straight into the
   app from mobile).
-- Personal API keys for external tools (gated behind a Premium flag),
-  documented by an interactive OpenAPI reference at `/docs`.
 - Localized public marketing site (English / Italian).
 - Sign in with GitHub, Google, or email + password (with email verification
   and password reset). Self-service account deletion.
@@ -146,12 +144,11 @@ default and Server Actions handle mutations.
 |------|--------|------------|
 | `/`, `/en`, `/it` | Public | Marketing site: landing, blog, guide, suggested sources, tips |
 | `/login`, `/register`, `/forgot-password` | Public | Auth flows |
-| `/docs` | Public | Interactive API reference (OpenAPI via Scalar) |
 | `/u/{username}` | Owner only | Private dashboard: all feeds, inline full-text search (`?q=`) |
 | `/u/{username}/category/{slug}`, `/source/{slug}` | Owner only | Category- / source-filtered feed |
 | `/u/{username}/saved` | Owner only | Reading list |
 | `/u/{username}/read/{itemId}` | Owner only | Reader Mode |
-| `/u/{username}/settings/*` | Owner only | Account, API keys, import/export |
+| `/u/{username}/settings/*` | Owner only | Account, import/export |
 
 Every route under `/u/{username}/` sits behind a layout that enforces
 authentication **and** that the URL's `{username}` matches the session, no
