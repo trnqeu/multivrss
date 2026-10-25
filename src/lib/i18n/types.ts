@@ -105,6 +105,10 @@ export interface Dictionary {
   };
   footer: {
     tagline: string;
+    partOf: string;
+    madeBy: string;
+    undurableBlurb: string;
+    trnqBlurb: string;
   };
   meta: {
     home: {
