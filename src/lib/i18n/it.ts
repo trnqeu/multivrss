@@ -271,8 +271,6 @@ export const it: Dictionary = {
       "Un aggregatore RSS e lista di lettura in un'unica dashboard semplice e minimale.",
     partOf: "PARTE DI",
     madeBy: "REALIZZATO DA",
-    undurableBlurb: "Un laboratorio che toglie l'infinito alle macchine.",
-    trnqBlurb: "Idee, racconti e progetti digitali di Stefano Trinchero.",
   },
   meta: {
     home: {

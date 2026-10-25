@@ -82,10 +82,7 @@ export default function MarketingFooter({ lang, dict }: Props) {
           className="group flex flex-col gap-[14px] py-[24px] sm:pr-[30px] sm:border-r-2 border-black"
         >
           <span className="font-mono text-[10px] font-extrabold tracking-[0.2em] text-terracotta">{t.partOf}</span>
-          <UndurableLogo className="h-[34px] w-auto self-start text-black" />
-          <span className="text-[12.5px] text-black/55 font-medium leading-[1.6] group-hover:text-black transition-colors">
-            {t.undurableBlurb}
-          </span>
+          <UndurableLogo className="h-[34px] w-auto self-start text-black group-hover:text-terracotta group-focus-visible:text-terracotta transition-colors" />
           <span className="sr-only">Undurable {dict.openSource.newTabHint}</span>
         </a>
         <a
@@ -95,10 +92,7 @@ export default function MarketingFooter({ lang, dict }: Props) {
           className="group flex flex-col gap-[14px] py-[24px] border-t-2 sm:border-t-0 sm:pl-[30px] border-black"
         >
           <span className="font-mono text-[10px] font-extrabold tracking-[0.2em] text-terracotta">{t.madeBy}</span>
-          <TrnqWordmark className="text-[32px] text-black h-[34px] flex items-center" />
-          <span className="text-[12.5px] text-black/55 font-medium leading-[1.6] group-hover:text-black transition-colors">
-            {t.trnqBlurb}
-          </span>
+          <TrnqWordmark className="text-[32px] text-black h-[34px] flex items-center group-hover:text-terracotta group-focus-visible:text-terracotta transition-colors" />
           <span className="sr-only">trnq.eu {dict.openSource.newTabHint}</span>
         </a>
       </div>

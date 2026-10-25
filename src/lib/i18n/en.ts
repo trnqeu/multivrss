@@ -270,8 +270,6 @@ export const en: Dictionary = {
     tagline: "An RSS aggregator and reading list in one open-format dashboard. Ad-free, calm, yours.",
     partOf: "PART OF",
     madeBy: "MADE BY",
-    undurableBlurb: "A lab that takes infinity away from machines.",
-    trnqBlurb: "Ideas, short stories and digital projects by Stefano Trinchero.",
   },
   meta: {
     home: {
