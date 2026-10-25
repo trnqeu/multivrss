@@ -12,7 +12,7 @@ excerpt: "The links you save on MultivRSS can now fade: first they lose their de
 
 I recently launched a project called [Undurable](https://undurable.com). I described it as a "lab for technological impermanence", because it's meant to be a place to explore **controlled forgetting**, "data fading", "de-databasing" and other made-up notions, all attempts at solving a problem that is probably mine alone: the abuse of memory in digital ecosystems.
 
-If you want to dig deeper, there's a short [manifesto](https://undurable.com/en/manifesto) where I try to explain the reasons behind this work.
+If you want to dig deeper, there's a short [manifesto](https://undurable.com/manifesto) where I try to explain the reasons behind this work.
 
 I wanted MultivRSS to become part of Undurable because at some point I asked myself a question: with MultivRSS, haven't I just built myself **yet another place to pile things up forever**? And isn't that exactly the problem I'm trying to tackle with Undurable?
 
