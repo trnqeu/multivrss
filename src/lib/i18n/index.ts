@@ -29,8 +29,8 @@ export function detectLangFromHeader(acceptLanguage: string): Lang {
 // Self-referencing canonical + hreflang alternates for a marketing page that
 // has a real, distinct translation at every supported language path (e.g.
 // `/en/guide` and `/it/guide` with different content). Do not use this for a
-// page that is identical across languages — see the `tips` page, which sets
-// a fixed canonical instead since it has no separate Italian version.
+// page that is identical across languages: give that one a fixed canonical
+// instead, since it has no separate Italian version.
 export function localizedAlternates(lang: Lang, path: string): Metadata["alternates"] {
   return {
     canonical: `/${lang}${path}`,

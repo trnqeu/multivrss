@@ -62,7 +62,7 @@ npx tsx --env-file=.env --tsconfig tsconfig.test.json scripts/fading-time-travel
 src/app/
   [lang]/(marketing)/     Localized public marketing site (en/it) at /[lang]
     page.tsx              Landing page
-    blog/, guide/, sources/, tips/   Marketing content pages
+    blog/, guide/, sources/, manifesto/   Marketing content pages (guide ends with the feed URL tips, src/components/marketing/GuideTips.tsx; /tips redirects to /guide#tips in next.config.ts; manifesto text lives in content/manifesto/{en,it}.md)
   u/[username]/           Private dashboard shell (layout.tsx enforces auth + username match)
     page.tsx              Feed list (all feeds)
     category/[slug]/      Category-filtered feed
@@ -128,7 +128,7 @@ src/lib/
   saved-fading.ts         runSavedFading(): the nightly forget → trace → gist pass
   url-key.ts              urlKey(): normalized URL used to recognize the same page across users
   i18n/                   Dictionary-based i18n (en/it) for marketing routes; Dictionary["digest"] holds the SAVE/ADD FEED button strings for the blog Digest rubric
-  blog.ts                 Markdown blog post loader. A post's optional `digestItems` frontmatter array (id/title/url/sourceName/feedUrl?/feedCategory?/blurb?, `id` required) drives the "MultivRSS Digest" rubric: the body places each pick inline with a `::digest[id]` marker on its own line; renderPostSegments() splits content on those markers into an ordered [{prose html} | {digest item}] list (any digestItems entry never referenced by a marker is appended at the end, frontmatter order) and throws — failing `next build` — if a marker references an unknown id. Rendered by src/components/marketing/DigestCard.tsx (DigestProvider + DigestCard) as SAVE + (if feedUrl set) ADD FEED cards: saved/subscribed status is resolved client-side after hydration via getDigestStatus() (src/app/actions/digest.ts) — blog pages are static and shared across users, so this can't be baked in at build time — and the two buttons call saveDigestLink()/addDigestFeedSource() imperatively (optimistic UI, no reload). A logged-out click redirects through /login?callbackUrl=<post path>?intent=save|feed&... and DigestCard's intent-resume effect finishes the action on return.
+  blog.ts                 Markdown blog post loader. Optional `canonical` frontmatter (a path) makes a post republished elsewhere point its canonical there and drops it from the sitemap (the July "Perché internet mi odia" posts defer to /[lang]/manifesto). A post's optional `digestItems` frontmatter array (id/title/url/sourceName/feedUrl?/feedCategory?/blurb?, `id` required) drives the "MultivRSS Digest" rubric: the body places each pick inline with a `::digest[id]` marker on its own line; renderPostSegments() splits content on those markers into an ordered [{prose html} | {digest item}] list (any digestItems entry never referenced by a marker is appended at the end, frontmatter order) and throws — failing `next build` — if a marker references an unknown id. Rendered by src/components/marketing/DigestCard.tsx (DigestProvider + DigestCard) as SAVE + (if feedUrl set) ADD FEED cards: saved/subscribed status is resolved client-side after hydration via getDigestStatus() (src/app/actions/digest.ts) — blog pages are static and shared across users, so this can't be baked in at build time — and the two buttons call saveDigestLink()/addDigestFeedSource() imperatively (optimistic UI, no reload). A logged-out click redirects through /login?callbackUrl=<post path>?intent=save|feed&... and DigestCard's intent-resume effect finishes the action on return.
   frontpage.ts            Landing page data (stats, featured content)
   suggested-feeds.ts      Suggested feeds directory data
   youtube.ts              YouTube feed source support
@@ -196,7 +196,7 @@ Every new component, page, or feature must satisfy these before merge. Treat fai
 - [ ] Heading hierarchy strict: h1 → h2 → h3 (never skip levels)
 - [ ] Exactly one `<h1>` per page
 - [ ] Skip-to-content link at top of every layout
-- [ ] `<html lang="en">` set in root layout; marketing routes sync it to the route language via `DocumentLang` (`src/components/marketing/DocumentLang.tsx`), since the root layout sits above `[lang]`. English-only content served under `/it` (e.g. `/it/tips`) is wrapped in `lang="en"`
+- [ ] `<html lang="en">` set in root layout; marketing routes sync it to the route language via `DocumentLang` (`src/components/marketing/DocumentLang.tsx`), since the root layout sits above `[lang]`. English-only content served under `/it` (e.g. the URL snippets in the guide tips) is wrapped in `lang="en"`
 
 ### Forms & Inputs
 - [ ] Every `<input>`, `<select>`, `<textarea>` has `<label htmlFor>` (use `sr-only` if hidden)

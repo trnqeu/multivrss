@@ -50,7 +50,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${post.title} · MultivRSS`,
     description: post.excerpt,
     authors: authorInfo ? [{ name: authorInfo.name, url: authorInfo.url }] : undefined,
-    alternates: {
+    // A post republished elsewhere defers to that page, with no hreflang of its own.
+    alternates: post.canonical ? { canonical: post.canonical } : {
       canonical: `/${lang}/blog/${slug}`,
       languages: {
         [lang]: `/${lang}/blog/${slug}`,

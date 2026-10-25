@@ -142,7 +142,7 @@ default and Server Actions handle mutations.
 
 | Path | Access | What it is |
 |------|--------|------------|
-| `/`, `/en`, `/it` | Public | Marketing site: landing, blog, guide, suggested sources, tips |
+| `/`, `/en`, `/it` | Public | Marketing site: landing, manifesto, blog, guide (with feed URL tips), suggested sources |
 | `/login`, `/register`, `/forgot-password` | Public | Auth flows |
 | `/u/{username}` | Owner only | Private dashboard: all feeds, inline full-text search (`?q=`) |
 | `/u/{username}/category/{slug}`, `/source/{slug}` | Owner only | Category- / source-filtered feed |

@@ -5,14 +5,14 @@ import { getAllPosts, getPostBySlug } from "@/lib/blog";
 const BASE_URL = "https://multivrss.com";
 
 // `langs` defaults to every supported language. Override it for a path that
-// has no real translation (e.g. `/tips`, see its page.tsx) so the sitemap
-// doesn't declare an hreflang alternate for a language version that isn't
-// actually distinct — that page's own canonical points at a single URL.
+// has no real translation so the sitemap doesn't declare an hreflang
+// alternate for a language version that isn't actually distinct — that
+// page's own canonical should then point at a single URL.
 const STATIC_PATHS: Array<{ path: string; priority: number; langs?: readonly string[] }> = [
   { path: "", priority: 1 },
+  { path: "/manifesto", priority: 0.7 },
   { path: "/guide", priority: 0.8 },
   { path: "/sources", priority: 0.8 },
-  { path: "/tips", priority: 0.7, langs: ["en"] },
   { path: "/faq", priority: 0.7 },
   { path: "/changelog", priority: 0.5 },
   { path: "/blog", priority: 0.7 },
@@ -42,7 +42,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // translation only when `translationSlug` resolves to a real post.
   const blogEntries: MetadataRoute.Sitemap = SUPPORTED_LANGS.flatMap((lang) => {
     const otherLang: Lang = lang === "it" ? "en" : "it";
-    return getAllPosts(lang).map((post) => {
+    // A post with its own `canonical` defers to another page, which is listed instead.
+    return getAllPosts(lang).filter((post) => !post.canonical).map((post) => {
       const translatedPost = post.translationSlug
         ? getPostBySlug(post.translationSlug, otherLang)
         : null;

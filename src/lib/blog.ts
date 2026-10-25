@@ -95,6 +95,8 @@ export interface BlogPost {
   author?: string;
   content: string;
   translationSlug?: string;
+  /** Path of the page that owns this text, when the post is republished elsewhere (e.g. "/it/manifesto"). The post then points its canonical there and leaves the sitemap. */
+  canonical?: string;
   digestItems?: DigestItem[];
 }
 
@@ -117,6 +119,7 @@ function parsePost(file: string, lang: Lang): BlogPost {
     author: data.author as string | undefined,
     content,
     translationSlug: data.translationSlug as string | undefined,
+    canonical: data.canonical as string | undefined,
     digestItems: data.digestItems as DigestItem[] | undefined,
   };
 }

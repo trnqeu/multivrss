@@ -3,7 +3,7 @@ title: "MultivRSS goes Undurable"
 category: "PRODUCT DESIGN"
 date: "23 OCT 2026"
 translationSlug: "20261023_multivrss_diventa_undurable"
-featured: false
+featured: true
 author: "Stefano Trinchero"
 excerpt: "The links you save on MultivRSS can now fade: first they lose their details, then their title, then they're gone. Why did I do it?"
 ---

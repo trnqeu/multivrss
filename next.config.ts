@@ -75,6 +75,12 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // The tips used to be their own page; they are now the last section of the guide.
+      { source: '/:lang(en|it)/tips', destination: '/:lang/guide#tips', permanent: true },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

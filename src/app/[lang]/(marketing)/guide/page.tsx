@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isValidLang, localizedAlternates, type Lang } from "@/lib/i18n";
+import GuideTips from "@/components/marketing/GuideTips";
 
 interface Props {
   params: Promise<{ lang: string }>;
@@ -295,6 +296,11 @@ export default async function GuidePage({ params }: Props) {
               </a>
             ))}
           </div>
+          <p className="font-mono text-[10.5px] font-bold tracking-[0.14em] uppercase mt-4 mb-0">
+            <a href="#tips" className="text-black hover:text-terracotta transition-colors">
+              {isIt ? "+ Suggerimenti: 9 trucchi per trovare il feed di un sito ↓" : "+ Tips: 9 tricks to find a site's feed ↓"}
+            </a>
+          </p>
         </div>
       </section>
 
@@ -631,6 +637,8 @@ export default async function GuidePage({ params }: Props) {
 
         </div>
       </section>
+
+      <GuideTips isIt={isIt} />
 
       {/* Closing CTA */}
       <section className="px-[34px] py-[92px] bg-black text-[#f6f3ec] border-t-2 border-black text-center max-[960px]:px-[22px] max-[960px]:py-[66px]">

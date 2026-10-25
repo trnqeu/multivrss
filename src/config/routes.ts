@@ -44,7 +44,7 @@ export const NAV_ROUTES: NavRoute[] = [
   { id: "blog", slug: "blog", label: { en: "Blog", it: "Blog" }, inHeader: true, inFooter: true, footerGroup: "explore" },
   { id: "guide", slug: "guide", label: { en: "Guide", it: "Guida" }, inHeader: true, inFooter: true, footerGroup: "product" },
   { id: "sources", slug: "sources", label: { en: "Sources", it: "Fonti" }, inHeader: true, inFooter: true, footerGroup: "product" },
-  { id: "tips", slug: "tips", label: { en: "Tips", it: "Suggerimenti" }, inHeader: true, inFooter: true, footerGroup: "product" },
+  { id: "manifesto", slug: "manifesto", label: { en: "Manifesto", it: "Manifesto" }, inHeader: true, inFooter: true, footerGroup: "explore" },
   { id: "faq", slug: "faq", label: { en: "FAQ", it: "FAQ" }, inHeader: true, inFooter: true, footerGroup: "product" },
   { id: "rss", path: "/blog/{lang}.xml", label: { en: "RSS feed", it: "Feed RSS" }, inHeader: false, inFooter: true, footerGroup: "explore" },
   { id: "changelog", slug: "changelog", label: { en: "Changelog", it: "Changelog" }, inHeader: false, inFooter: true, footerGroup: "explore" },

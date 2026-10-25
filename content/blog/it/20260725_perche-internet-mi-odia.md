@@ -3,7 +3,8 @@ title: "Perché internet mi odia?"
 category: "MANIFESTO"
 date: "25 JUL 2026"
 translationSlug: "20260725_why-the-internet-doesnt-love-me-back"
-featured: true
+canonical: "/it/manifesto"
+featured: false
 author: "Stefano Trinchero"
 excerpt: "Mi ricordo quando internet era bellissimo. Ho creato Multivrss per cercare di riportare in vita l'internet che piace a me."
 ---

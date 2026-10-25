@@ -3,7 +3,7 @@ title: "MultivRSS diventa Undurable"
 category: "PRODUCT DESIGN"
 date: "23 OCT 2026"
 translationSlug: "20261023_multivrss_goes_undurable"
-featured: false
+featured: true
 author: "Stefano Trinchero"
 excerpt: "I link che salvi su MultivRSS ora possono sbiadire: prima perdono i dettagli, poi il titolo, poi spariscono. Perché l'ho fatto? "
 ---
