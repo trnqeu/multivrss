@@ -81,7 +81,7 @@ export default function MarketingFooter({ lang, dict }: Props) {
             rel="noopener"
             className="text-black/55 font-bold hover:text-terracotta transition-colors"
           >
-            {lang === "it" ? "PARTE DI UNDURABLE" : "PART OF UNDURABLE"}
+            {lang === "it" ? "UN PROGETTO UNDURABLE" : "AN UNDURABLE PROJECT"}
             <span className="sr-only"> {dict.openSource.newTabHint}</span>
           </a>
         </span>
