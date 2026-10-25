@@ -17,6 +17,7 @@ import { useSavedLinksSync } from '@/components/SavedLinksSyncContext';
 import { useOnReshow } from '@/components/useOnReshow';
 import FadingSoon from './FadingSoon';
 import FadingNotice from './FadingNotice';
+import FadingStatus from './FadingStatus';
 import { getFadingSoon } from '@/app/actions/fading';
 import type { FadingSoonItem } from '@/lib/fading-soon';
 
@@ -337,6 +338,7 @@ export default function SavedPageClient({
                         <Bookmark filled className="text-terracotta" size={13} />
                         <span className="label-system text-terracotta text-xs">SAVED // {total}{hasMore ? '+' : ''} ITEMS</span>
                     </h1>
+                    {fadingSoon && <FadingStatus username={username} />}
                     {tags.length > 0 && !activeTag && (
                         <button
                             type="button"
