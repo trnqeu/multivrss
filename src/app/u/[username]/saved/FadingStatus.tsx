@@ -43,7 +43,7 @@ export default function FadingStatus({ username }: Props) {
                 onClick={() => setOpen(o => !o)}
                 aria-expanded={open}
                 aria-controls={open ? 'fading-status-info' : undefined}
-                className="inline-flex items-center gap-1.5 border border-dashed border-foreground px-2 py-1 text-[9.5px] font-bold uppercase tracking-[0.08em] text-foreground transition-colors hover:border-terracotta hover:text-terracotta"
+                className="inline-flex items-center gap-1.5 border border-dashed border-foreground bg-transparent px-2 py-1 text-[9.5px] font-bold uppercase tracking-[0.08em] text-foreground transition-colors hover:border-terracotta hover:text-terracotta"
             >
                 Fading is on
                 <span aria-hidden="true" className="text-[9px]">?</span>

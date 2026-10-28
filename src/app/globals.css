@@ -80,12 +80,18 @@ hr {
 /* Integrated Furniture - Sharp Edges */
 @layer base {
   button, input, select, textarea {
-    @apply rounded-none border-foreground border-2 bg-background text-foreground transition-all;
+    @apply rounded-none border-foreground border-2 transition-all;
     font-family: var(--font-sans);
   }
 
+  input, select, textarea {
+    @apply bg-background text-foreground;
+  }
+
+  /* No default fill: a button takes its surroundings' colours unless it sets
+     its own, so overriding only the text colour can't leave it unreadable. */
   button {
-    @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-foreground text-background hover:bg-background hover:text-foreground;
+    @apply px-6 py-2 uppercase text-xs font-bold tracking-widest bg-transparent text-inherit;
   }
 
   input, select {
