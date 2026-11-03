@@ -239,7 +239,12 @@ export default function AssignTagsModal({
                                     <button
                                         key={tag.id}
                                         type="button"
-                                        onClick={() => toggleTag(tag.id)}
+                                        onClick={() => {
+                                            toggleTag(tag.id);
+                                            // Picking a tag consumes the filter text, so Apply
+                                            // doesn't also create it as a new tag ("Shopp" → "shopping").
+                                            setSearch('');
+                                        }}
                                         className={`px-3 py-1.5 font-mono text-[10px] uppercase font-bold border-2 transition-all active:translate-x-[1px] active:translate-y-[1px] ${
                                             isSelected
                                                 ? 'bg-terracotta text-background border-terracotta'
