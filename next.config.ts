@@ -93,5 +93,7 @@ export default withSentryConfig(nextConfig, {
     treeshake: { removeDebugLogging: true },
     automaticVercelMonitors: false,
   },
-  tunnelRoute: true,
+  // Fixed path (not `true`, which randomizes it per build) so src/proxy.ts can
+  // exclude it from its matcher and it never gets caught by the auth guard.
+  tunnelRoute: "/monitoring",
 });

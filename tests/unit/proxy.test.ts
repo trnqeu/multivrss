@@ -16,7 +16,7 @@ describe('proxy', () => {
 
     it('matches all non-public paths', () => {
         expect(config.matcher).toEqual([
-            '/((?!api|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets|\\.well-known|sw\\.js).*)',
+            '/((?!api|monitoring|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets|\\.well-known|sw\\.js).*)',
         ]);
     });
 
@@ -50,6 +50,24 @@ describe('proxy', () => {
 
         expect(mockedGetToken).toHaveBeenCalledWith({ req: request });
         expect(response.status).toBe(200);
+    });
+
+    it('does not guard top-level paths that merely start with "u"', async () => {
+        mockedGetToken.mockResolvedValue(null);
+
+        const request = new NextRequest('https://multivrss.test/u4gfnq2m?o=1&p=2');
+        const response = await proxy(request);
+
+        expect(mockedGetToken).not.toHaveBeenCalled();
+        expect(response.status).toBe(200);
+    });
+
+    it('guards the bare /u path', async () => {
+        mockedGetToken.mockResolvedValue(null);
+
+        const response = await proxy(new NextRequest('https://multivrss.test/u'));
+
+        expect(response.status).toBe(307);
     });
 
     it('allows non-u routes without authentication', async () => {

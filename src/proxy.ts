@@ -44,8 +44,10 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // Protected user routes
-  if (pathname.startsWith("/u")) {
+  // Protected user routes. Match the /u segment exactly: a bare startsWith("/u")
+  // also caught unrelated top-level paths (e.g. a Sentry tunnel route named
+  // /u4gfnq2m), redirecting them to /login.
+  if (pathname === "/u" || pathname.startsWith("/u/")) {
     const token = await getToken({ req });
     if (!token) {
       const loginUrl = new URL("/login", req.url);
@@ -58,5 +60,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets|\\.well-known|sw\\.js).*)"],
+  matcher: ["/((?!api|monitoring|_next/static|_next/image|favicon\\.ico|icon|manifest\\.|logo|assets|\\.well-known|sw\\.js).*)"],
 };
