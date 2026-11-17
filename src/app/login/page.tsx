@@ -1,6 +1,7 @@
 'use client'
 
 import { signIn } from "next-auth/react";
+import * as Sentry from "@sentry/nextjs";
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -12,17 +13,39 @@ const ERROR_MESSAGES: Record<string, string> = {
     CredentialsSignin: "Invalid email or password.",
 };
 
+const GENERIC_ERROR = "An error occurred. Please try again.";
+const UNAVAILABLE_ERROR = "Sign-in is temporarily unavailable. Please try again later.";
+
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [formError, setFormError] = useState<string | null>(null);
+    const [pending, setPending] = useState(false);
     const searchParams = useSearchParams();
-    const error = searchParams.get("error");
+    const urlError = searchParams.get("error");
     const verified = searchParams.get("verified");
     const callbackUrl = sanitizeCallbackUrl(searchParams.get("callbackUrl"));
+    const errorMessage = formError ?? (urlError ? ERROR_MESSAGES[urlError] ?? GENERIC_ERROR : null);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        await signIn("credentials", { email, password, callbackUrl });
+        setFormError(null);
+        setPending(true);
+        try {
+            const res = await signIn("credentials", { email, password, callbackUrl, redirect: false });
+            if (res?.ok && !res.error) {
+                window.location.assign(res.url ?? callbackUrl);
+                return;
+            }
+            setFormError(ERROR_MESSAGES[res?.error ?? ""] ?? GENERIC_ERROR);
+        } catch (err) {
+            // signIn() throws when the response is not NextAuth's JSON, e.g. an
+            // HTML block page from a WAF in front of the app. That request never
+            // reaches the server, so this is the only place it can be reported.
+            Sentry.captureException(err, { tags: { area: "login" } });
+            setFormError(UNAVAILABLE_ERROR);
+        }
+        setPending(false);
     }
 
     return (
@@ -34,9 +57,9 @@ export default function LoginPage() {
                     </h1>
                 </div>
 
-                {error && (
-                    <div role="alert" className="mb-6 text-sm tracking-widest text-terracotta text-center">
-                        {ERROR_MESSAGES[error] ?? "An error occurred. Please try again."}
+                {errorMessage && (
+                    <div id="login-error" role="alert" className="mb-6 text-sm tracking-widest text-terracotta text-center">
+                        {errorMessage}
                     </div>
                 )}
 
@@ -72,9 +95,11 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        className="border-2 border-foreground bg-foreground text-background px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors cursor-pointer"
+                        disabled={pending}
+                        aria-describedby={errorMessage ? "login-error" : undefined}
+                        className="border-2 border-foreground bg-foreground text-background px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-background hover:text-foreground transition-colors cursor-pointer disabled:cursor-wait"
                     >
-                        SIGN IN →
+                        {pending ? "SIGNING IN…" : "SIGN IN →"}
                     </button>
 
                     <Link
