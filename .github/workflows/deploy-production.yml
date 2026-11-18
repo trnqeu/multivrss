@@ -47,6 +47,10 @@ jobs:
           tags: ${{ env.IMAGE }}:${{ github.sha }}-migrator
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Single manifest per tag: no untagged child manifests for the GHCR
+          # cleanup step to delete out from under a tag that is still in use.
+          provenance: false
+          sbom: false
           build-args: |
             GIT_COMMIT=${{ github.sha }}
             NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
@@ -62,6 +66,10 @@ jobs:
             ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Single manifest per tag: no untagged child manifests for the GHCR
+          # cleanup step to delete out from under a tag that is still in use.
+          provenance: false
+          sbom: false
           build-args: |
             GIT_COMMIT=${{ github.sha }}
             NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
@@ -177,6 +185,6 @@ jobs:
         with:
           package-name: multivrss
           package-type: container
-          min-versions-to-keep: 10
+          min-versions-to-keep: 30
           ignore-versions: "^(staging|production|latest)$"
         continue-on-error: true
