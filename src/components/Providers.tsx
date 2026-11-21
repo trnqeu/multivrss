@@ -10,7 +10,12 @@ export function Providers({ children }: {
 }) {
     useEffect(() => {
         if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("/sw.js");
+            // Registration can be rejected by the environment (private mode,
+            // WebViews, injected browser scripts). The app works without it,
+            // so swallow the rejection instead of surfacing it as an error.
+            navigator.serviceWorker.register("/sw.js").catch((error: unknown) => {
+                console.warn("Service worker registration failed", error);
+            });
         }
     }, []);
 
