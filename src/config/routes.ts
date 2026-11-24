@@ -64,8 +64,8 @@ export const NAV_ROUTES: NavRoute[] = [
 ];
 
 export const LEGAL_ROUTES: NavRoute[] = [
-  { id: "privacy", slug: "privacy", label: { en: "Privacy Policy", it: "Privacy Policy" }, inHeader: false, inFooter: true },
-  { id: "cookies", slug: "cookies", label: { en: "Cookie Policy", it: "Cookie Policy" }, inHeader: false, inFooter: true },
+  { id: "privacy", slug: "privacy", label: { en: "Privacy Policy", it: "Privacy Policy" }, inHeader: false, inFooter: true, footerGroup: "account" },
+  { id: "cookies", slug: "cookies", label: { en: "Cookie Policy", it: "Cookie Policy" }, inHeader: false, inFooter: true, footerGroup: "account" },
 ];
 
 export const FOOTER_GROUP_LABELS: Record<FooterGroup, BilingualLabel> = {

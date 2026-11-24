@@ -4,6 +4,7 @@ import { registerUser } from "@/app/actions/auth";
 import { useActionState, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { OAuthButtons } from "@/components/OAuthButtons";
+import LegalLinks from "@/components/LegalLinks";
 import { sanitizeCallbackUrl } from "@/lib/utils";
 
 
@@ -84,6 +85,10 @@ export default function RegisterForm({ notice }: { notice?: ReactNode }) {
                 <div className="px-8 pb-8">
                     <OAuthButtons callbackUrl={callbackUrl} label="up" />
                     {notice}
+                    <LegalLinks
+                        intro="By creating an account you confirm you have read how we handle your data:"
+                        className="mt-6 pt-4 border-t-2 border-foreground"
+                    />
                 </div>
             </div>
         </main>
