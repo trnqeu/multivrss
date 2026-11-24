@@ -72,6 +72,23 @@ export default function SettingsMenu({
                         </Link>
                     </div>
 
+                    <div className="flex gap-3 px-4 py-2.5 border-y-2 border-foreground text-[9px] font-bold uppercase tracking-widest">
+                        <Link
+                            href="/en/privacy"
+                            onClick={() => setOpen(false)}
+                            className="text-foreground/75 hover:text-terracotta transition-colors"
+                        >
+                            Privacy
+                        </Link>
+                        <Link
+                            href="/en/cookies"
+                            onClick={() => setOpen(false)}
+                            className="text-foreground/75 hover:text-terracotta transition-colors"
+                        >
+                            Cookies
+                        </Link>
+                    </div>
+
                     <button
                         onClick={() => {
                             try { new BroadcastChannel('auth').postMessage('logout'); } catch { /* unsupported */ }

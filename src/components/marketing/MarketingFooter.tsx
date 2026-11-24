@@ -21,7 +21,8 @@ export default function MarketingFooter({ lang, dict }: Props) {
   const t = dict.footer;
   const pathname = usePathname();
 
-  const footerRoutes = NAV_ROUTES.filter((r) => r.inFooter);
+  // Legal pages close the Account column, after sign in / create account.
+  const footerRoutes = [...NAV_ROUTES, ...LEGAL_ROUTES].filter((r) => r.inFooter);
 
   const linkClass = (active: boolean) =>
     `block text-[12.5px] font-medium leading-[1.95] transition-colors ${
@@ -99,19 +100,6 @@ export default function MarketingFooter({ lang, dict }: Props) {
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-[20px] font-mono text-[10px] tracking-[0.12em] text-black/[0.32] max-w-[1200px] mx-auto">
         <span>© 2026 MULTIVRSS · MADE IN TORINO</span>
-        <div className="flex items-center gap-4">
-          {LEGAL_ROUTES.map((route) => (
-            <Link
-              key={route.id}
-              href={routeHref(route, lang)}
-              className={`transition-colors ${
-                isRouteActive(route, lang, pathname) ? "text-terracotta" : "hover:text-black"
-              }`}
-            >
-              {route.label[lang]}
-            </Link>
-          ))}
-        </div>
         <span>
           <Link
             href={`/${lang}/changelog`}

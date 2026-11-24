@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { OAuthButtons } from "@/components/OAuthButtons";
+import LegalLinks from "@/components/LegalLinks";
 import { sanitizeCallbackUrl } from "@/lib/utils";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -123,6 +124,9 @@ export default function LoginPage() {
                         Register
                     </Link>
                 </div>
+
+                <LegalLinks className="mt-8 text-center tracking-widest" />
+
             </div>
         </main>
     );
